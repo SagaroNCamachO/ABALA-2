@@ -241,3 +241,10 @@ def apply_penalty(champ_id):
     
     return jsonify({"success": True, "message": "Multa aplicada"})
 
+
+# Exportar para Vercel - Vercel busca 'handler' o 'application'
+# Cuando el archivo se llama app.py, Vercel detecta Flask automáticamente
+# pero también exportamos explícitamente para compatibilidad
+handler = app
+application = app
+
