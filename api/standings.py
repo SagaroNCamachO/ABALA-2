@@ -5,7 +5,10 @@ Gestiona la tabla de posiciones de una categoría.
 """
 
 from typing import List, Dict
-from team import Team
+try:
+    from api.team import Team
+except ImportError:
+    from team import Team
 
 
 class Standings:

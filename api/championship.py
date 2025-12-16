@@ -5,7 +5,10 @@ Gestiona el campeonato completo con todas sus categorías.
 """
 
 from typing import Dict, List, Optional
-from category import Category
+try:
+    from api.category import Category
+except ImportError:
+    from category import Category
 
 
 class Championship:

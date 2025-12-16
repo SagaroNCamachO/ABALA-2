@@ -5,7 +5,10 @@ Genera automáticamente los partidos ida y vuelta para cada vuelta del campeonat
 """
 
 from typing import List
-from match import Match
+try:
+    from api.match import Match
+except ImportError:
+    from match import Match
 
 
 class FixtureGenerator:

@@ -5,10 +5,16 @@ Gestiona una categoría del campeonato con sus equipos, partidos y tabla de posi
 """
 
 from typing import List, Dict
-from team import Team
-from match import Match
-from standings import Standings
-from fixture_generator import FixtureGenerator
+try:
+    from api.team import Team
+    from api.match import Match
+    from api.standings import Standings
+    from api.fixture_generator import FixtureGenerator
+except ImportError:
+    from team import Team
+    from match import Match
+    from standings import Standings
+    from fixture_generator import FixtureGenerator
 
 
 class Category:
