@@ -7,9 +7,9 @@
 ## Estado Actual
 
 ### ✅ Implementado
-- `serverless-wsgi==0.8.2` está en `requirements.txt`
-- Código en `api/index.py` intenta usarlo (pero ese archivo ya no se usa)
-- `api/app.py` exporta la app directamente (método recomendado por Vercel)
+- `api/app.py` exporta la app directamente (método recomendado por Vercel) ✅
+- Versión alternativa con `serverless-wsgi` disponible en `api/app_with_serverless_wsgi.py`
+- **Nota:** `serverless-wsgi` fue removido de `requirements.txt` porque no es necesario para el método directo
 
 ### 📝 Opciones Disponibles
 
@@ -68,10 +68,11 @@ application = handler
    }
    ```
 
-3. **Verificar `requirements.txt`** (ya tiene serverless-wsgi):
+3. **Agregar `serverless-wsgi` a `requirements.txt`**:
    ```
    serverless-wsgi==0.8.2
    ```
+   **Nota:** Actualmente no está en `requirements.txt` porque usamos el método directo. Si cambias a `serverless-wsgi`, agrégalo.
 
 ## Recomendación
 
@@ -88,10 +89,10 @@ application = handler
 
 ## Estado Actual del Proyecto
 
-- ✅ Método directo implementado en `api/app.py`
-- ✅ serverless-wsgi disponible en `requirements.txt`
-- ✅ Versión alternativa creada en `api/app_with_serverless_wsgi.py`
-- ✅ Puedes cambiar entre métodos fácilmente
+- ✅ Método directo implementado en `api/app.py` (ACTUAL)
+- ✅ Versión alternativa con `serverless-wsgi` creada en `api/app_with_serverless_wsgi.py`
+- ⚠️ `serverless-wsgi` NO está en `requirements.txt` (no es necesario para el método directo)
+- ✅ Puedes cambiar entre métodos fácilmente agregando `serverless-wsgi` a `requirements.txt` si lo necesitas
 
 ## Conclusión
 
