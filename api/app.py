@@ -3,7 +3,7 @@ API Flask para el Sistema de Gestión de Campeonatos de Básquetbol.
 Versión simplificada para diagnóstico.
 """
 
-from flask import Flask, jsonify
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -50,7 +50,6 @@ try:
     @app.route('/api/championships', methods=['POST'])
     def create_championship():
         """Crear un nuevo campeonato."""
-        from flask import request
         data = request.json or {}
         champ_id = data.get('id', f"champ_{len(championships) + 1}")
         name = data.get('name', 'Campeonato')
@@ -99,7 +98,6 @@ try:
     @app.route('/api/championships/<champ_id>/categories', methods=['POST'])
     def add_category(champ_id):
         """Agregar una categoría a un campeonato."""
-        from flask import request
         if champ_id not in championships:
             return jsonify({"success": False, "error": "Campeonato no encontrado"}), 404
         
@@ -133,7 +131,6 @@ try:
     @app.route('/api/championships/<champ_id>/results', methods=['POST'])
     def register_result(champ_id):
         """Registrar el resultado de un partido."""
-        from flask import request
         if champ_id not in championships:
             return jsonify({"success": False, "error": "Campeonato no encontrado"}), 404
         
@@ -182,7 +179,6 @@ try:
         if category is None:
             return jsonify({"success": False, "error": "Categoría no encontrada"}), 404
         
-        from flask import request
         round_number = request.args.get('round', type=int)
         if round_number:
             matches = category.get_matches_by_round(round_number)
@@ -198,7 +194,6 @@ try:
     @app.route('/api/championships/<champ_id>/penalty', methods=['POST'])
     def apply_penalty(champ_id):
         """Aplicar una multa o bonificación de puntos."""
-        from flask import request
         if champ_id not in championships:
             return jsonify({"success": False, "error": "Campeonato no encontrado"}), 404
         
