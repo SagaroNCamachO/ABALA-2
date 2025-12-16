@@ -26,7 +26,7 @@ ENV/
 env/
 
 # IDE
-.vscode/
+# .vscode/  # Mantener .vscode/settings.json para configuración del proyecto
 .idea/
 *.swp
 *.swo
