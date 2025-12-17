@@ -900,6 +900,7 @@
                     const round = document.getElementById('roundView').value;
                     url = `${API_BASE}/api/championships/${champId}/fixture/${category}`;
                     if (round) url += `?round=${round}`;
+                    window.currentCategory = category; // Guardar para usar en renderFixture
                 } else {
                     url = `${API_BASE}/api/championships/${champId}`;
                 }
