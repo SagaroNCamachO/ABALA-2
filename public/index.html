@@ -420,14 +420,15 @@
         
         async function loadData() {
             try {
-                // Primero obtener la lista de campeonatos
+                // Primero cargar desde localStorage
+                loadFromLocalStorage();
+                
+                // Luego obtener la lista de campeonatos del servidor
                 const res = await fetch(`${API_BASE}/api/championships`);
                 const data = await res.json();
                 
                 if (data.success) {
                     const champList = data.championships || {};
-                    championshipsData = {};
-                    categoriesData = {};
                     
                     // Cargar datos completos de cada campeonato
                     const loadPromises = Object.keys(champList).map(async (id) => {
@@ -448,13 +449,18 @@
                                 if (champData.championship.categories) {
                                     categoriesData[id] = champData.championship.categories;
                                 }
+                                
+                                // Guardar en localStorage
+                                saveToLocalStorage(id, championshipsData[id]);
                             } else {
                                 // Si falla, usar datos del resumen
                                 championshipsData[id] = champList[id];
+                                saveToLocalStorage(id, championshipsData[id]);
                             }
                         } catch (error) {
                             console.error(`Error cargando campeonato ${id}:`, error);
                             championshipsData[id] = champList[id];
+                            saveToLocalStorage(id, championshipsData[id]);
                         }
                     });
                     
@@ -466,7 +472,37 @@
                 }
             } catch (error) {
                 console.error('Error cargando datos:', error);
-                showAlert('Error al cargar datos: ' + error.message, 'error');
+                // Si falla el servidor, cargar desde localStorage
+                loadFromLocalStorage();
+                renderChampionships();
+                renderCategories();
+                showAlert('Cargando desde almacenamiento local (servidor no disponible)', 'warning');
+            }
+        }
+        
+        function loadFromLocalStorage() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('savedChampionships') || '{}');
+                Object.entries(saved).forEach(([id, champ]) => {
+                    if (!championshipsData[id]) {
+                        championshipsData[id] = champ;
+                    }
+                });
+            } catch (error) {
+                console.error('Error cargando desde localStorage:', error);
+            }
+        }
+        
+        function saveToLocalStorage(champId, champData) {
+            try {
+                const saved = JSON.parse(localStorage.getItem('savedChampionships') || '{}');
+                saved[champId] = {
+                    ...champData,
+                    savedAt: new Date().toISOString()
+                };
+                localStorage.setItem('savedChampionships', JSON.stringify(saved));
+            } catch (error) {
+                console.error('Error guardando en localStorage:', error);
             }
         }
         
@@ -479,16 +515,172 @@
             }
             
             list.innerHTML = Object.entries(championshipsData).map(([id, champ]) => `
-                <div class="data-item" onclick="selectChampionship('${id}')">
-                    <strong>${champ.name || id}</strong>
-                    <div class="info">
-                        ID: ${id}<br>
-                        Vueltas: ${champ.rounds || 'N/A'}<br>
-                        Categorías: ${champ.categories ? Object.keys(champ.categories).length : 0}
+                <div class="data-item" style="border: 2px solid #667eea; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #f8f9fa; cursor: pointer;" onclick="loadChampionshipDetails('${id}')">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                        <div style="flex: 1;">
+                            <strong style="font-size: 1.2em; color: #667eea;">${champ.name || id}</strong>
+                            <div class="info" style="margin-top: 8px; color: #666; font-size: 0.9em;">
+                                <div>ID: <code>${id}</code></div>
+                                <div>Vueltas: ${champ.rounds || 'N/A'}</div>
+                                <div>Categorías: ${champ.categories ? Object.keys(champ.categories).length : 0}</div>
+                                <div>Puntos por Victoria: ${champ.points_per_win || 2} | Derrota: ${champ.points_per_loss || 0}</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 5px; flex-direction: column;">
+                            <button onclick="event.stopPropagation(); loadChampionshipDetails('${id}')" 
+                                style="padding: 5px 10px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85em;">
+                                👁️ Ver
+                            </button>
+                            <button onclick="event.stopPropagation(); deleteChampionship('${id}')" 
+                                style="padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85em;">
+                                🗑️ Eliminar
+                            </button>
+                        </div>
                     </div>
-                    ${champ.categories ? `<div class="chips">${Object.keys(champ.categories).map(cat => `<span class="chip">${cat}</span>`).join('')}</div>` : ''}
+                    ${champ.categories ? `<div class="chips" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px;">${Object.keys(champ.categories).map(cat => `<span class="chip" style="background: #667eea; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.85em;">${cat}</span>`).join('')}</div>` : ''}
                 </div>
             `).join('');
+        }
+        
+        async function loadChampionshipDetails(champId) {
+            try {
+                const res = await fetch(`${API_BASE}/api/championships/${champId}`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    // Mostrar detalles en el panel de respuesta
+                    const responseCard = document.getElementById('responseCard');
+                    const responseDiv = document.getElementById('response');
+                    
+                    responseCard.style.display = 'block';
+                    responseDiv.innerHTML = `
+                        <div style="padding: 20px;">
+                            <h3 style="color: #667eea; margin-bottom: 15px;">📋 Detalles del Campeonato: ${data.championship.name}</h3>
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <p><strong>ID:</strong> <code>${champId}</code></p>
+                                <p><strong>Vueltas:</strong> ${data.championship.rounds}</p>
+                                <p><strong>Puntos por Victoria:</strong> ${data.championship.points_per_win}</p>
+                                <p><strong>Puntos por Derrota:</strong> ${data.championship.points_per_loss}</p>
+                            </div>
+                            
+                            <h4 style="color: #667eea; margin-top: 20px; margin-bottom: 10px;">Categorías:</h4>
+                            ${Object.keys(data.championship.categories || {}).length > 0 
+                                ? Object.entries(data.championship.categories || {}).map(([catName, cat]) => `
+                                    <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #667eea;">
+                                        <strong>${catName}</strong>
+                                        <div style="margin-top: 8px;">
+                                            <strong>Equipos (${cat.teams?.length || 0}):</strong>
+                                            <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px;">
+                                                ${cat.teams?.map(t => `<span style="background: #e9ecef; padding: 4px 8px; border-radius: 4px; font-size: 0.9em;">${t.name || t}</span>`).join('') || 'Sin equipos'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')
+                                : '<p style="color: #666;">No hay categorías creadas</p>'
+                            }
+                            
+                            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                                <button onclick="saveChampionshipToLocal('${champId}')" 
+                                    style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                    💾 Guardar Localmente
+                                </button>
+                                <button onclick="loadChampionshipFromLocal('${champId}')" 
+                                    style="padding: 10px 20px; background: #17a2b8; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                    📂 Cargar desde Local
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Scroll a la respuesta
+                    responseCard.scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch (error) {
+                showAlert('Error al cargar detalles: ' + error.message, 'error');
+            }
+        }
+        
+        async function deleteChampionship(champId) {
+            if (!confirm(`¿Estás seguro de eliminar el campeonato "${championshipsData[champId]?.name || champId}"? Esta acción no se puede deshacer.`)) {
+                return;
+            }
+            
+            try {
+                // Eliminar del servidor
+                const res = await fetch(`${API_BASE}/api/championships/${champId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    // Eliminar del localStorage
+                    removeChampionshipFromLocal(champId);
+                    // Eliminar de los datos en memoria
+                    delete championshipsData[champId];
+                    delete categoriesData[champId];
+                    
+                    showAlert('Campeonato eliminado exitosamente', 'success');
+                    setTimeout(() => loadData(), 500);
+                } else {
+                    showAlert(data.error || 'Error al eliminar', 'error');
+                }
+            } catch (error) {
+                // Si falla el servidor, eliminar solo del localStorage
+                removeChampionshipFromLocal(champId);
+                delete championshipsData[champId];
+                delete categoriesData[champId];
+                showAlert('Campeonato eliminado del almacenamiento local (servidor no disponible)', 'warning');
+                setTimeout(() => loadData(), 500);
+            }
+        }
+        
+        function saveChampionshipToLocal(champId) {
+            try {
+                const champ = championshipsData[champId];
+                if (!champ) {
+                    showAlert('Campeonato no encontrado', 'error');
+                    return;
+                }
+                
+                const saved = JSON.parse(localStorage.getItem('savedChampionships') || '{}');
+                saved[champId] = {
+                    ...champ,
+                    savedAt: new Date().toISOString()
+                };
+                localStorage.setItem('savedChampionships', JSON.stringify(saved));
+                showAlert('Campeonato guardado localmente', 'success');
+            } catch (error) {
+                showAlert('Error al guardar: ' + error.message, 'error');
+            }
+        }
+        
+        function loadChampionshipFromLocal(champId) {
+            try {
+                const saved = JSON.parse(localStorage.getItem('savedChampionships') || '{}');
+                const champ = saved[champId];
+                
+                if (!champ) {
+                    showAlert('Campeonato no encontrado en almacenamiento local', 'error');
+                    return;
+                }
+            
+                showAlert('Campeonato cargado desde almacenamiento local', 'success');
+                // Los datos ya están en championshipsData, solo recargamos la vista
+                renderChampionships();
+            } catch (error) {
+                showAlert('Error al cargar: ' + error.message, 'error');
+            }
+        }
+        
+        function removeChampionshipFromLocal(champId) {
+            try {
+                const saved = JSON.parse(localStorage.getItem('savedChampionships') || '{}');
+                delete saved[champId];
+                localStorage.setItem('savedChampionships', JSON.stringify(saved));
+            } catch (error) {
+                console.error('Error al eliminar del localStorage:', error);
+            }
         }
         
         function renderCategories() {
@@ -726,6 +918,27 @@
                 
                 if (data.success) {
                     showAlert('Operación exitosa', 'success');
+                    // Guardar en localStorage si se creó un campeonato
+                    if (action === 'createChamp' && data.id) {
+                        const champId = data.id;
+                        setTimeout(async () => {
+                            try {
+                                const champRes = await fetch(`${API_BASE}/api/championships/${champId}`);
+                                const champData = await champRes.json();
+                                if (champData.success) {
+                                    saveToLocalStorage(champId, {
+                                        name: champData.championship.name,
+                                        rounds: champData.championship.rounds,
+                                        points_per_win: champData.championship.points_per_win,
+                                        points_per_loss: champData.championship.points_per_loss,
+                                        categories: champData.championship.categories || {}
+                                    });
+                                }
+                            } catch (error) {
+                                console.error('Error guardando en localStorage:', error);
+                            }
+                        }, 500);
+                    }
                     // Recargar datos después de crear/modificar
                     if (action === 'createChamp' || action === 'addCategory') {
                         setTimeout(() => loadData(), 1000);

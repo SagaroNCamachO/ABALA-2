@@ -102,6 +102,27 @@ app.get('/api/championships', (_req: Request, res: Response) => {
 });
 
 /**
+ * Eliminar un campeonato.
+ */
+app.delete('/api/championships/:id', (req: Request, res: Response) => {
+  const champId = req.params.id;
+  
+  if (!championships.has(champId)) {
+    return res.status(404).json({
+      success: false,
+      error: "Campeonato no encontrado"
+    });
+  }
+
+  championships.delete(champId);
+
+  return res.json({
+    success: true,
+    message: "Campeonato eliminado exitosamente"
+  });
+});
+
+/**
  * Obtener un campeonato específico.
  */
 app.get('/api/championships/:id', (req: Request, res: Response) => {
