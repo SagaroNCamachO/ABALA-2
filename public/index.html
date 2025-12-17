@@ -1245,8 +1245,321 @@
             }, 3000);
         }
         
+        function updateExportSelect() {
+            const select = document.getElementById('exportChampSelect');
+            if (!select) return;
+            
+            const champIds = Object.keys(championshipsData);
+            select.innerHTML = '<option value="">Selecciona campeonato</option>' +
+                champIds.map(id => 
+                    `<option value="${id}">${championshipsData[id].name || id}</option>`
+                ).join('');
+        }
+        
+        async function saveChampionship() {
+            const champId = document.getElementById('exportChampSelect').value;
+            if (!champId) {
+                showAlert('Selecciona un campeonato', 'error');
+                return;
+            }
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/championships/${champId}`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    const jsonData = JSON.stringify(data.championship, null, 2);
+                    const blob = new Blob([jsonData], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `campeonato_${champId}_${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    showAlert('Campeonato guardado exitosamente', 'success');
+                } else {
+                    showAlert('Error al obtener el campeonato', 'error');
+                }
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+            }
+        }
+        
+        function loadChampionship() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                try {
+                    const text = await file.text();
+                    const data = JSON.parse(text);
+                    
+                    // Crear campeonato desde JSON
+                    const res = await fetch(`${API_BASE}/api/championships`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id: data.name?.toLowerCase().replace(/\s+/g, '_') + '_imported',
+                            name: data.name,
+                            rounds: data.rounds,
+                            points_per_win: data.points_per_win,
+                            points_per_loss: data.points_per_loss
+                        })
+                    });
+                    
+                    const result = await res.json();
+                    if (result.success) {
+                        // Agregar categorías
+                        for (const [catName, category] of Object.entries(data.categories || {})) {
+                            const teams = category.teams?.map(t => t.name || t) || [];
+                            await fetch(`${API_BASE}/api/championships/${result.id}/categories`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    name: catName,
+                                    teams: teams
+                                })
+                            });
+                        }
+                        
+                        showAlert('Campeonato cargado exitosamente', 'success');
+                        setTimeout(() => loadData(), 1000);
+                    }
+                } catch (error) {
+                    showAlert('Error al cargar: ' + error.message, 'error');
+                }
+            };
+            input.click();
+        }
+        
+        async function exportFixture() {
+            const champId = document.getElementById('champIdView')?.value;
+            const category = document.getElementById('categoryView')?.value;
+            
+            if (!champId || !category) {
+                showAlert('Primero selecciona campeonato y categoría en la vista de Fixture', 'error');
+                return;
+            }
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/championships/${champId}/fixture/${category}`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    // Crear HTML para imprimir
+                    const html = generateFixtureHTML(data.matches, category, champId);
+                    printHTML(html, `Fixture_${category}_${champId}`);
+                }
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+            }
+        }
+        
+        async function exportStandings() {
+            const champId = document.getElementById('champIdView')?.value;
+            const category = document.getElementById('categoryView')?.value;
+            
+            if (!champId || !category) {
+                showAlert('Primero selecciona campeonato y categoría en la vista de Tabla de Posiciones', 'error');
+                return;
+            }
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/championships/${champId}/standings/${category}`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    // Crear HTML para imprimir
+                    const html = generateStandingsHTML(data.standings, category, champId);
+                    printHTML(html, `Tabla_Posiciones_${category}_${champId}`);
+                }
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+            }
+        }
+        
+        function generateFixtureHTML(matches, categoryName, champId) {
+            const champ = championshipsData[champId];
+            const champName = champ?.name || champId;
+            
+            // Agrupar por vuelta y jornada
+            const matchesByVuelta = { 'ida': {}, 'vuelta': {} };
+            matches.forEach(match => {
+                const matchType = match.match_type || 'ida';
+                const matchday = match.matchday || 1;
+                if (!matchesByVuelta[matchType][matchday]) {
+                    matchesByVuelta[matchType][matchday] = [];
+                }
+                matchesByVuelta[matchType][matchday].push(match);
+            });
+            
+            let html = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Fixture - ${categoryName}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        h1 { color: #667eea; }
+                        .vuelta { margin-bottom: 30px; page-break-inside: avoid; }
+                        .jornada { margin-bottom: 20px; border: 1px solid #ddd; padding: 15px; }
+                        .match { padding: 10px; border-bottom: 1px solid #eee; }
+                        .match:last-child { border-bottom: none; }
+                        @media print { .no-print { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <h1>📅 Fixture - ${categoryName}</h1>
+                    <p><strong>Campeonato:</strong> ${champName}</p>
+                    <p><strong>Total Partidos:</strong> ${matches.length}</p>
+                    <hr>
+            `;
+            
+            ['ida', 'vuelta'].forEach((matchType, index) => {
+                const vueltaNum = index + 1;
+                const vueltaMatches = matchesByVuelta[matchType];
+                if (!vueltaMatches || Object.keys(vueltaMatches).length === 0) return;
+                
+                html += `<div class="vuelta"><h2>Vuelta ${vueltaNum} (${matchType})</h2>`;
+                
+                Object.keys(vueltaMatches).sort((a, b) => parseInt(a) - parseInt(b)).forEach(matchday => {
+                    const jornadaMatches = vueltaMatches[matchday];
+                    html += `<div class="jornada"><h3>Vuelta ${vueltaNum}, Jornada ${matchday}</h3>`;
+                    
+                    jornadaMatches.slice(0, 2).forEach(match => {
+                        const scoreA = match.score_a !== null ? match.score_a : '-';
+                        const scoreB = match.score_b !== null ? match.score_b : '-';
+                        const date = match.date || 'Por definir';
+                        const time = match.time || 'Por definir';
+                        const status = match.played ? '✓ Jugado' : 'Pendiente';
+                        
+                        html += `
+                            <div class="match">
+                                <strong>${match.team_a}</strong> ${scoreA} - ${scoreB} <strong>${match.team_b}</strong><br>
+                                <small>Fecha: ${date} | Horario: ${time} | ${status}</small>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `</div>`;
+                });
+                
+                html += `</div>`;
+            });
+            
+            html += `
+                    <hr>
+                    <p style="text-align: center; color: #666; font-size: 0.9em;">
+                        Generado el ${new Date().toLocaleDateString('es-ES')}
+                    </p>
+                </body>
+                </html>
+            `;
+            
+            return html;
+        }
+        
+        function generateStandingsHTML(standings, categoryName, champId) {
+            const champ = championshipsData[champId];
+            const champName = champ?.name || champId;
+            
+            let html = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Tabla de Posiciones - ${categoryName}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        h1 { color: #667eea; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th { background: #667eea; color: white; padding: 12px; text-align: left; }
+                        td { padding: 10px; border-bottom: 1px solid #ddd; }
+                        tr:nth-child(even) { background: #f8f9fa; }
+                        .pos-1, .pos-2, .pos-3 { font-weight: bold; }
+                        @media print { .no-print { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <h1>📊 Tabla de Posiciones - ${categoryName}</h1>
+                    <p><strong>Campeonato:</strong> ${champName}</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Pos</th>
+                                <th>Equipo</th>
+                                <th>PJ</th>
+                                <th>PG</th>
+                                <th>PP</th>
+                                <th>PF</th>
+                                <th>PC</th>
+                                <th>Dif</th>
+                                <th>Pts</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            standings.forEach((team, index) => {
+                const pos = index + 1;
+                html += `
+                    <tr class="pos-${pos <= 3 ? pos : ''}">
+                        <td>${pos}</td>
+                        <td><strong>${team.name}</strong></td>
+                        <td>${team.pj || 0}</td>
+                        <td>${team.pg || 0}</td>
+                        <td>${team.pp || 0}</td>
+                        <td>${team.pf || 0}</td>
+                        <td>${team.pc || 0}</td>
+                        <td>${team.difference || 0}</td>
+                        <td><strong>${team.points || 0}</strong></td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                    <hr>
+                    <p style="text-align: center; color: #666; font-size: 0.9em;">
+                        Generado el ${new Date().toLocaleDateString('es-ES')}
+                    </p>
+                </body>
+                </html>
+            `;
+            
+            return html;
+        }
+        
+        function printHTML(html, filename) {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(html);
+            printWindow.document.close();
+            printWindow.focus();
+            
+            // Esperar a que cargue y luego imprimir
+            setTimeout(() => {
+                printWindow.print();
+            }, 250);
+        }
+        
+        // Actualizar select de exportación cuando se cargan datos
+        const originalLoadData = loadData;
+        loadData = async function() {
+            await originalLoadData();
+            updateExportSelect();
+        };
+        
         // Inicializar
         updateForm();
+        loadData();
     </script>
 </body>
 </html>
