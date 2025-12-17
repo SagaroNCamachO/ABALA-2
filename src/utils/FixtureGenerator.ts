@@ -56,8 +56,13 @@ export class FixtureGenerator {
         const match2 = roundMatches[i + 1];
         
         match1.matchday = matchday;
+        // Asignar horario por defecto: primer partido 20:00
+        match1.time = "20:00";
+        
         if (match2) {
           match2.matchday = matchday;
+          // Asignar horario por defecto: segundo partido 21:00
+          match2.time = "21:00";
         }
         
         matches.push(match1);
