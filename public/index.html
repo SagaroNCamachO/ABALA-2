@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABALA - Gestión de Campeonatos de Básquetbol</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .endpoint-list {
+            list-style: none;
+        }
+        
+        .endpoint-list li {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .endpoint-list li strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .endpoint-list li code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .test-section {
+            margin-top: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #5568d3;
+        }
+        
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .response pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .status.healthy {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.operational {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏀 ABALA</h1>
+            <p>Sistema de Gestión de Campeonatos de Básquetbol</p>
+            <p style="font-size: 0.9em; margin-top: 10px;">
+                <span class="status operational">API Operacional</span>
+                <span class="status healthy" id="healthStatus">Verificando...</span>
+            </p>
+        </div>
+        
+        <div class="card">
+            <h2>📡 Endpoints Disponibles</h2>
+            <ul class="endpoint-list">
+                <li>
+                    <strong>POST /api/championships</strong>
+                    <span>Crear un nuevo campeonato</span>
+                </li>
+                <li>
+                    <strong>GET /api/championships</strong>
+                    <span>Listar todos los campeonatos</span>
+                </li>
+                <li>
+                    <strong>GET /api/championships/:id</strong>
+                    <span>Obtener un campeonato específico</span>
+                </li>
+                <li>
+                    <strong>POST /api/championships/:id/categories</strong>
+                    <span>Agregar una categoría a un campeonato</span>
+                </li>
+                <li>
+                    <strong>POST /api/championships/:id/results</strong>
+                    <span>Registrar el resultado de un partido</span>
+                </li>
+                <li>
+                    <strong>GET /api/championships/:id/standings/:category</strong>
+                    <span>Obtener la tabla de posiciones de una categoría</span>
+                </li>
+                <li>
+                    <strong>GET /api/championships/:id/fixture/:category</strong>
+                    <span>Obtener el fixture de una categoría</span>
+                </li>
+                <li>
+                    <strong>POST /api/championships/:id/penalty</strong>
+                    <span>Aplicar una multa o bonificación de puntos</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="card test-section">
+            <h2>🧪 Probar API</h2>
+            
+            <div class="form-group">
+                <label>Acción:</label>
+                <select id="actionSelect" onchange="updateForm()">
+                    <option value="create">Crear Campeonato</option>
+                    <option value="list">Listar Campeonatos</option>
+                    <option value="addCategory">Agregar Categoría</option>
+                    <option value="registerResult">Registrar Resultado</option>
+                    <option value="getStandings">Ver Tabla de Posiciones</option>
+                    <option value="getFixture">Ver Fixture</option>
+                </select>
+            </div>
+            
+            <div id="dynamicForm"></div>
+            
+            <button class="btn" onclick="testEndpoint()">Ejecutar</button>
+            
+            <div id="response" class="response" style="display: none;"></div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = window.location.origin;
+        
+        // Verificar salud de la API
+        fetch(`${API_BASE}/health`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('healthStatus').textContent = 'API Saludable';
+            })
+            .catch(() => {
+                document.getElementById('healthStatus').textContent = 'Error de Conexión';
+                document.getElementById('healthStatus').classList.remove('healthy');
+                document.getElementById('healthStatus').classList.add('status');
+                document.getElementById('healthStatus').style.background = '#f8d7da';
+                document.getElementById('healthStatus').style.color = '#721c24';
+            });
+        
+        function updateForm() {
+            const action = document.getElementById('actionSelect').value;
+            const formDiv = document.getElementById('dynamicForm');
+            let html = '';
+            
+            switch(action) {
+                case 'create':
+                    html = `
+                        <div class="form-group">
+                            <label>ID del Campeonato:</label>
+                            <input type="text" id="champId" placeholder="champ1" value="champ1">
+                        </div>
+                        <div class="form-group">
+                            <label>Nombre:</label>
+                            <input type="text" id="name" placeholder="Campeonato 2024" value="Campeonato 2024">
+                        </div>
+                        <div class="form-group">
+                            <label>Vueltas:</label>
+                            <input type="number" id="rounds" value="2" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Puntos por Victoria:</label>
+                            <input type="number" id="pointsWin" value="2" min="0">
+                        </div>
+                    `;
+                    break;
+                case 'addCategory':
+                    html = `
+                        <div class="form-group">
+                            <label>ID del Campeonato:</label>
+                            <input type="text" id="champId" placeholder="champ1" value="champ1">
+                        </div>
+                        <div class="form-group">
+                            <label>Nombre de la Categoría:</label>
+                            <input type="text" id="categoryName" placeholder="TC" value="TC">
+                        </div>
+                        <div class="form-group">
+                            <label>Equipos (separados por comas):</label>
+                            <input type="text" id="teams" placeholder="Equipo A, Equipo B, Equipo C" value="Equipo A, Equipo B, Equipo C">
+                        </div>
+                    `;
+                    break;
+                case 'registerResult':
+                    html = `
+                        <div class="form-group">
+                            <label>ID del Campeonato:</label>
+                            <input type="text" id="champId" placeholder="champ1" value="champ1">
+                        </div>
+                        <div class="form-group">
+                            <label>Categoría:</label>
+                            <input type="text" id="category" placeholder="TC" value="TC">
+                        </div>
+                        <div class="form-group">
+                            <label>Equipo A:</label>
+                            <input type="text" id="teamA" placeholder="Equipo A" value="Equipo A">
+                        </div>
+                        <div class="form-group">
+                            <label>Equipo B:</label>
+                            <input type="text" id="teamB" placeholder="Equipo B" value="Equipo B">
+                        </div>
+                        <div class="form-group">
+                            <label>Vuelta:</label>
+                            <input type="number" id="roundNumber" value="1" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Puntos Equipo A:</label>
+                            <input type="number" id="scoreA" value="95" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Puntos Equipo B:</label>
+                            <input type="number" id="scoreB" value="82" min="0">
+                        </div>
+                    `;
+                    break;
+                case 'getStandings':
+                    html = `
+                        <div class="form-group">
+                            <label>ID del Campeonato:</label>
+                            <input type="text" id="champId" placeholder="champ1" value="champ1">
+                        </div>
+                        <div class="form-group">
+                            <label>Categoría:</label>
+                            <input type="text" id="category" placeholder="TC" value="TC">
+                        </div>
+                    `;
+                    break;
+                case 'getFixture':
+                    html = `
+                        <div class="form-group">
+                            <label>ID del Campeonato:</label>
+                            <input type="text" id="champId" placeholder="champ1" value="champ1">
+                        </div>
+                        <div class="form-group">
+                            <label>Categoría:</label>
+                            <input type="text" id="category" placeholder="TC" value="TC">
+                        </div>
+                        <div class="form-group">
+                            <label>Vuelta (opcional):</label>
+                            <input type="number" id="round" placeholder="Dejar vacío para todas" min="1">
+                        </div>
+                    `;
+                    break;
+            }
+            
+            formDiv.innerHTML = html;
+        }
+        
+        function testEndpoint() {
+            const action = document.getElementById('actionSelect').value;
+            const responseDiv = document.getElementById('response');
+            responseDiv.style.display = 'block';
+            responseDiv.innerHTML = '<pre>Cargando...</pre>';
+            
+            let url, options = {};
+            
+            switch(action) {
+                case 'create':
+                    url = `${API_BASE}/api/championships`;
+                    options = {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id: document.getElementById('champId').value,
+                            name: document.getElementById('name').value,
+                            rounds: parseInt(document.getElementById('rounds').value),
+                            points_per_win: parseInt(document.getElementById('pointsWin').value)
+                        })
+                    };
+                    break;
+                case 'list':
+                    url = `${API_BASE}/api/championships`;
+                    options = { method: 'GET' };
+                    break;
+                case 'addCategory':
+                    const champId = document.getElementById('champId').value;
+                    url = `${API_BASE}/api/championships/${champId}/categories`;
+                    options = {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: document.getElementById('categoryName').value,
+                            teams: document.getElementById('teams').value.split(',').map(t => t.trim())
+                        })
+                    };
+                    break;
+                case 'registerResult':
+                    const champId2 = document.getElementById('champId').value;
+                    url = `${API_BASE}/api/championships/${champId2}/results`;
+                    options = {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            category: document.getElementById('category').value,
+                            team_a: document.getElementById('teamA').value,
+                            team_b: document.getElementById('teamB').value,
+                            round_number: parseInt(document.getElementById('roundNumber').value),
+                            score_a: parseInt(document.getElementById('scoreA').value),
+                            score_b: parseInt(document.getElementById('scoreB').value)
+                        })
+                    };
+                    break;
+                case 'getStandings':
+                    const champId3 = document.getElementById('champId').value;
+                    const category = document.getElementById('category').value;
+                    url = `${API_BASE}/api/championships/${champId3}/standings/${category}`;
+                    options = { method: 'GET' };
+                    break;
+                case 'getFixture':
+                    const champId4 = document.getElementById('champId').value;
+                    const category2 = document.getElementById('category').value;
+                    const round = document.getElementById('round').value;
+                    url = `${API_BASE}/api/championships/${champId4}/fixture/${category2}`;
+                    if (round) url += `?round=${round}`;
+                    options = { method: 'GET' };
+                    break;
+            }
+            
+            fetch(url, options)
+                .then(res => res.json())
+                .then(data => {
+                    responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                })
+                .catch(error => {
+                    responseDiv.innerHTML = `<pre style="color: red;">Error: ${error.message}</pre>`;
+                });
+        }
+        
+        // Inicializar formulario
+        updateForm();
+    </script>
+</body>
+</html>
+

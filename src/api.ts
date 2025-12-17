@@ -1,10 +1,14 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import path from 'path';
 import { Championship } from './models/Championship';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Servir archivos estáticos (HTML, CSS, JS)
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Almacenar campeonatos en memoria (en producción usar base de datos)
 const championships: Map<string, Championship> = new Map();
