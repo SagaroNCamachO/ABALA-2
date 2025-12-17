@@ -1108,20 +1108,20 @@
             const partidosJugados = matches.filter(m => m.played).length;
             const partidosPendientes = totalPartidos - partidosJugados;
             
-            let html = `<div style="padding: 10px;">
-                <h3 style="color: #667eea; margin-bottom: 10px;">📅 Fixture - ${categoryName}</h3>
-                <div style="background: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 15px;">
+            let html = `<div style="padding: 25px; font-size: 16px;">
+                <h3 style="color: #667eea; margin-bottom: 20px; font-size: 2em; font-weight: 700;">📅 Fixture - ${categoryName}</h3>
+                <div style="background: linear-gradient(135deg, #f0f8ff 0%, #e0e8f0 100%); padding: 25px; border-radius: 15px; margin-bottom: 30px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                     <div style="text-align: center;">
-                        <div style="font-size: 2em; font-weight: bold; color: #667eea;">${totalPartidos}</div>
-                        <div style="font-size: 0.9em; color: #666;">Total Partidos</div>
+                        <div style="font-size: 3.5em; font-weight: bold; color: #667eea; margin-bottom: 8px;">${totalPartidos}</div>
+                        <div style="font-size: 1.2em; color: #666; font-weight: 600;">Total Partidos</div>
                     </div>
                     <div style="text-align: center;">
-                        <div style="font-size: 2em; font-weight: bold; color: #28a745;">${partidosJugados}</div>
-                        <div style="font-size: 0.9em; color: #666;">Jugados</div>
+                        <div style="font-size: 3.5em; font-weight: bold; color: #28a745; margin-bottom: 8px;">${partidosJugados}</div>
+                        <div style="font-size: 1.2em; color: #666; font-weight: 600;">Jugados</div>
                     </div>
                     <div style="text-align: center;">
-                        <div style="font-size: 2em; font-weight: bold; color: #dc3545;">${partidosPendientes}</div>
-                        <div style="font-size: 0.9em; color: #666;">Pendientes</div>
+                        <div style="font-size: 3.5em; font-weight: bold; color: #dc3545; margin-bottom: 8px;">${partidosPendientes}</div>
+                        <div style="font-size: 1.2em; color: #666; font-weight: 600;">Pendientes</div>
                     </div>
                 </div>
             `;
