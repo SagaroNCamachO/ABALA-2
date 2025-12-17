@@ -75,10 +75,54 @@ export class FixtureGenerator {
   }
 
   /**
+   * Agrupa enfrentamientos en jornadas asegurando que ningún equipo se repita en la misma jornada.
+   * Cada jornada tiene máximo 2 partidos.
+   */
+  static groupMatchupsIntoMatchdays(matchups: Array<[string, string]>): Array<Array<[string, string]>> {
+    const matchdays: Array<Array<[string, string]>> = [];
+    const used = new Set<number>();
+    
+    // Mezclar los enfrentamientos para distribución aleatoria
+    const shuffled = [...matchups];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    
+    // Agrupar enfrentamientos en jornadas
+    for (let i = 0; i < shuffled.length; i++) {
+      if (used.has(i)) continue;
+      
+      const currentMatchday: Array<[string, string]> = [shuffled[i]];
+      used.add(i);
+      const teamsInMatchday = new Set([shuffled[i][0], shuffled[i][1]]);
+      
+      // Buscar un segundo enfrentamiento que no tenga equipos repetidos
+      for (let j = i + 1; j < shuffled.length && currentMatchday.length < 2; j++) {
+        if (used.has(j)) continue;
+        
+        const [teamA, teamB] = shuffled[j];
+        // Verificar que ninguno de los equipos ya esté en la jornada
+        if (!teamsInMatchday.has(teamA) && !teamsInMatchday.has(teamB)) {
+          currentMatchday.push(shuffled[j]);
+          used.add(j);
+          teamsInMatchday.add(teamA);
+          teamsInMatchday.add(teamB);
+        }
+      }
+      
+      matchdays.push(currentMatchday);
+    }
+    
+    return matchdays;
+  }
+
+  /**
    * Genera el fixture completo (ida y vuelta) para todas las vueltas.
    * Garantiza que:
    * - En ida: todos juegan una vez contra todos (sin repetir)
    * - En vuelta: mismos enfrentamientos pero con localía invertida
+   * - Ningún equipo se repite en la misma jornada
    */
   static generateFixture(teams: string[], rounds: number): Match[] {
     const allMatches: Match[] = [];
@@ -86,29 +130,24 @@ export class FixtureGenerator {
     // Generar todos los enfrentamientos únicos una sola vez
     const uniqueMatchups = FixtureGenerator.generateUniqueMatchups(teams);
     
-    // Mezclar para distribución aleatoria
-    const shuffled = [...uniqueMatchups];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
+    // Agrupar enfrentamientos en jornadas (sin repetir equipos en la misma jornada)
+    const matchdays = FixtureGenerator.groupMatchupsIntoMatchdays(uniqueMatchups);
 
     // Generar partidos de ida
     let matchday = 1;
     let roundNumber = 1;
     const idaMatches: Match[] = [];
 
-    for (let i = 0; i < shuffled.length; i += 2) {
-      const matchup1 = shuffled[i];
-      const matchup2 = shuffled[i + 1];
-
+    for (const matchdayMatchups of matchdays) {
       // Primer partido de la jornada (ida)
+      const matchup1 = matchdayMatchups[0];
       const match1 = new Match(matchup1[0], matchup1[1], roundNumber, "ida", matchday);
       match1.time = "20:00";
       idaMatches.push(match1);
 
-      // Segundo partido de la jornada (ida)
-      if (matchup2) {
+      // Segundo partido de la jornada (ida) - si existe
+      if (matchdayMatchups.length > 1) {
+        const matchup2 = matchdayMatchups[1];
         const match2 = new Match(matchup2[0], matchup2[1], roundNumber, "ida", matchday);
         match2.time = "21:00";
         idaMatches.push(match2);
@@ -126,17 +165,16 @@ export class FixtureGenerator {
       roundNumber = 1;
       const vueltaMatches: Match[] = [];
 
-      for (let i = 0; i < shuffled.length; i += 2) {
-        const matchup1 = shuffled[i];
-        const matchup2 = shuffled[i + 1];
-
+      for (const matchdayMatchups of matchdays) {
         // Primer partido de la jornada (vuelta) - INVERTIR localía
+        const matchup1 = matchdayMatchups[0];
         const match1 = new Match(matchup1[1], matchup1[0], roundNumber, "vuelta", matchday);
         match1.time = "20:00";
         vueltaMatches.push(match1);
 
         // Segundo partido de la jornada (vuelta) - INVERTIR localía
-        if (matchup2) {
+        if (matchdayMatchups.length > 1) {
+          const matchup2 = matchdayMatchups[1];
           const match2 = new Match(matchup2[1], matchup2[0], roundNumber, "vuelta", matchday);
           match2.time = "21:00";
           vueltaMatches.push(match2);
