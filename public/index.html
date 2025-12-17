@@ -934,18 +934,23 @@
                 return '<div class="empty-state">No hay partidos en el fixture</div>';
             }
             
-            // Agrupar partidos por vuelta y luego por jornada
-            const matchesByRound = {};
+            // Agrupar partidos por tipo (ida/vuelta) y luego por jornada
+            const matchesByVuelta = {
+                'ida': {},
+                'vuelta': {}
+            };
+            
             matches.forEach(match => {
-                const round = match.round_number || 1;
+                const matchType = match.match_type || 'ida';
                 const matchday = match.matchday || 1;
-                if (!matchesByRound[round]) {
-                    matchesByRound[round] = {};
+                
+                if (!matchesByVuelta[matchType]) {
+                    matchesByVuelta[matchType] = {};
                 }
-                if (!matchesByRound[round][matchday]) {
-                    matchesByRound[round][matchday] = [];
+                if (!matchesByVuelta[matchType][matchday]) {
+                    matchesByVuelta[matchType][matchday] = [];
                 }
-                matchesByRound[round][matchday].push(match);
+                matchesByVuelta[matchType][matchday].push(match);
             });
             
             const champId = document.getElementById('champIdView')?.value;
@@ -953,40 +958,35 @@
             
             let html = `<div style="padding: 10px;"><h3 style="color: #667eea; margin-bottom: 20px;">📅 Fixture - ${categoryName}</h3>`;
             
-            // Ordenar vueltas
-            const rounds = Object.keys(matchesByRound).sort((a, b) => parseInt(a) - parseInt(b));
+            // Mostrar Vuelta 1 (ida) y Vuelta 2 (vuelta)
+            const vueltaOrder = ['ida', 'vuelta'];
             
-            // Determinar número de vuelta real (1 para ida, 2 para vuelta, etc.)
-            let vueltaReal = 1;
-            let lastMatchType = '';
-            
-            rounds.forEach(round => {
-                const roundData = matchesByRound[round];
-                const matchType = Object.values(roundData)[0]?.[0]?.match_type || 'ida';
+            vueltaOrder.forEach((matchType, index) => {
+                const vueltaNum = index + 1;
+                const vueltaMatches = matchesByVuelta[matchType];
                 
-                // Si cambió el tipo de partido, es una nueva vuelta
-                if (matchType !== lastMatchType && lastMatchType !== '') {
-                    vueltaReal++;
+                if (!vueltaMatches || Object.keys(vueltaMatches).length === 0) {
+                    return; // Saltar si no hay partidos de este tipo
                 }
-                lastMatchType = matchType;
-                
-                const matchdays = Object.keys(roundData).sort((a, b) => parseInt(a) - parseInt(b));
                 
                 html += `
                     <div style="margin-bottom: 30px; border: 2px solid #e0e0e0; border-radius: 10px; padding: 15px; background: #f8f9fa;">
                         <h4 style="color: #667eea; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                            <span>Vuelta ${vueltaReal}</span>
+                            <span>Vuelta ${vueltaNum}</span>
                             <span style="font-size: 0.8em; color: #666; font-weight: normal;">(${matchType})</span>
                         </h4>
                 `;
                 
+                // Ordenar jornadas
+                const matchdays = Object.keys(vueltaMatches).sort((a, b) => parseInt(a) - parseInt(b));
+                
                 // Mostrar jornadas (máximo 2 partidos por jornada)
                 matchdays.forEach(matchday => {
-                    const jornadaMatches = roundData[matchday];
+                    const jornadaMatches = vueltaMatches[matchday];
                     
                     html += `
                         <div style="margin-bottom: 20px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #e0e0e0;">
-                            <h5 style="color: #667eea; margin-bottom: 15px; font-size: 1em;">Vuelta ${vueltaReal}, Jornada ${matchday}</h5>
+                            <h5 style="color: #667eea; margin-bottom: 15px; font-size: 1em;">Vuelta ${vueltaNum}, Jornada ${matchday}</h5>
                             <div style="display: grid; gap: 15px;">
                     `;
                     
