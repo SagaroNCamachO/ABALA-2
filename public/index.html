@@ -448,6 +448,8 @@
                                 // Extraer categorías con equipos
                                 if (champData.championship.categories) {
                                     categoriesData[id] = champData.championship.categories;
+                                } else {
+                                    categoriesData[id] = {};
                                 }
                                 
                                 // Guardar en localStorage
@@ -942,14 +944,49 @@
                     }
                     // Recargar datos después de crear/modificar
                     if (action === 'createChamp' || action === 'addCategory') {
-                        // Recargar datos inmediatamente y luego de nuevo después de un segundo
-                        loadData();
+                        // Si se creó una categoría, actualizar inmediatamente los datos del campeonato
+                        if (action === 'addCategory' && data.success) {
+                            const champId = document.getElementById('champIdSelect')?.value;
+                            if (champId) {
+                                // Cargar el campeonato completo para obtener la categoría recién creada
+                                fetch(`${API_BASE}/api/championships/${champId}`)
+                                    .then(res => res.json())
+                                    .then(champData => {
+                                        if (champData.success && champData.championship) {
+                                            // Actualizar datos en memoria
+                                            championshipsData[champId] = {
+                                                name: champData.championship.name,
+                                                rounds: champData.championship.rounds,
+                                                points_per_win: champData.championship.points_per_win,
+                                                points_per_loss: champData.championship.points_per_loss,
+                                                categories: champData.championship.categories || {}
+                                            };
+                                            
+                                            // Actualizar categoriesData
+                                            if (champData.championship.categories) {
+                                                categoriesData[champId] = champData.championship.categories;
+                                            }
+                                            
+                                            // Guardar en localStorage
+                                            saveToLocalStorage(champId, championshipsData[champId]);
+                                            
+                                            // Renderizar
+                                            renderChampionships();
+                                            renderCategories();
+                                            updateForm();
+                                        }
+                                    })
+                                    .catch(err => console.error('Error actualizando categoría:', err));
+                            }
+                        }
+                        
+                        // Recargar datos después de un segundo
                         setTimeout(() => {
                             loadData();
                             renderChampionships();
                             renderCategories();
-                            updateForm(); // Actualizar formularios con nuevos datos
-                        }, 1000);
+                            updateForm();
+                        }, 1500);
                     }
                 } else {
                     showAlert(data.error || 'Error en la operación', 'error');
