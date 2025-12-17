@@ -510,12 +510,20 @@
         function renderChampionships() {
             const list = document.getElementById('championshipsList');
             
-            if (Object.keys(championshipsData).length === 0) {
+            if (!list) {
+                console.error('championshipsList no encontrado');
+                return;
+            }
+            
+            // Filtrar solo campeonatos que realmente existen
+            const validChampionships = Object.entries(championshipsData).filter(([id, champ]) => champ && champ.name);
+            
+            if (validChampionships.length === 0) {
                 list.innerHTML = '<div class="empty-state">No hay campeonatos creados</div>';
                 return;
             }
             
-            list.innerHTML = Object.entries(championshipsData).map(([id, champ]) => `
+            list.innerHTML = validChampionships.map(([id, champ]) => `
                 <div class="data-item" style="border: 2px solid #667eea; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #f8f9fa; cursor: pointer;" onclick="loadChampionshipDetails('${id}')">
                     <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
                         <div style="flex: 1;">
@@ -622,6 +630,9 @@
                     delete championshipsData[champId];
                     delete categoriesData[champId];
                     
+                    console.log(`✅ Campeonato ${champId} eliminado de memoria`);
+                    console.log(`Campeonatos restantes:`, Object.keys(championshipsData));
+                    
                     // Renderizar inmediatamente para actualizar la vista
                     renderChampionships();
                     renderCategories();
@@ -630,8 +641,8 @@
                     
                     showAlert('Campeonato eliminado exitosamente', 'success');
                     
-                    // Recargar datos después de un momento para sincronizar
-                    setTimeout(() => loadData(), 500);
+                    // NO recargar datos desde el servidor/localStorage porque podría restaurar el eliminado
+                    // Solo sincronizar después de un delay más largo si es necesario
                 } else {
                     showAlert(data.error || 'Error al eliminar', 'error');
                 }
@@ -642,6 +653,9 @@
                 delete championshipsData[champId];
                 delete categoriesData[champId];
                 
+                console.log(`✅ Campeonato ${champId} eliminado de memoria (servidor no disponible)`);
+                console.log(`Campeonatos restantes:`, Object.keys(championshipsData));
+                
                 // Renderizar inmediatamente
                 renderChampionships();
                 renderCategories();
@@ -649,7 +663,7 @@
                 updateExportSelect();
                 
                 showAlert('Campeonato eliminado del almacenamiento local (servidor no disponible)', 'warning');
-                setTimeout(() => loadData(), 500);
+                // NO recargar datos porque podría restaurar el eliminado
             }
         }
         
