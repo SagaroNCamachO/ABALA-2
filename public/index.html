@@ -1338,10 +1338,18 @@
                 // Renderizar según el tipo de vista
                 if (view === 'fixture' && data.matches) {
                     const category = document.getElementById('categoryView').value;
-                    // Verificar si se puede generar el cuadrangular
-                    checkCanGenerateQuadrangular(champId, category).then(canGenerate => {
-                        responseDiv.innerHTML = renderFixture(data.matches, category || 'Categoría', champId, category, canGenerate);
-                    });
+                    // Verificar si se puede generar el cuadrangular (solo si hay campeonato y categoría)
+                    if (champId && category) {
+                        checkCanGenerateQuadrangular(champId, category).then(canGenerate => {
+                            responseDiv.innerHTML = renderFixture(data.matches, category || 'Categoría', champId, category, canGenerate);
+                        }).catch(() => {
+                            // Si falla la verificación, renderizar sin el botón de cuadrangular
+                            responseDiv.innerHTML = renderFixture(data.matches, category || 'Categoría', champId, category, false);
+                        });
+                    } else {
+                        // Si no hay campeonato o categoría, renderizar sin verificar cuadrangular
+                        responseDiv.innerHTML = renderFixture(data.matches, category || 'Categoría', champId, category, false);
+                    }
                 } else if (view === 'standings' && data.standings) {
                     responseDiv.innerHTML = renderStandings(data.standings);
                 } else {
@@ -1354,11 +1362,18 @@
         }
         
         async function checkCanGenerateQuadrangular(champId, category) {
+            if (!champId || !category) {
+                return false;
+            }
             try {
                 const res = await fetch(`${API_BASE}/api/championships/${champId}/can-generate-quadrangular/${category}`);
+                if (!res.ok) {
+                    return false;
+                }
                 const data = await res.json();
                 return data.success && data.can_generate;
             } catch (error) {
+                console.error('Error verificando cuadrangular:', error);
                 return false;
             }
         }
@@ -1441,15 +1456,15 @@
             const partidosPendientes = totalPartidos - partidosJugados;
             
             let html = `<div style="padding: 10px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
                     <h3 style="color: #1e3c72; margin-bottom: 0; font-size: 1.8em; font-weight: 700;">📅 Fixture - ${categoryName}</h3>
-                    ${canGenerateQuadrangular && !hasQuadrangular ? `
+                    ${champId && category && canGenerateQuadrangular && !hasQuadrangular ? `
                         <button onclick="generateQuadrangular('${champId}', '${category}')" 
                             style="padding: 12px 24px; background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 700; box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4); text-transform: uppercase; letter-spacing: 0.5px;">
                             🏆 Generar Cuadrangular
                         </button>
                     ` : ''}
-                    ${canGenerateFinal ? `
+                    ${champId && category && canGenerateFinal ? `
                         <button onclick="generateFinal('${champId}', '${category}')" 
                             style="padding: 12px 24px; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 700; box-shadow: 0 4px 15px rgba(30, 60, 114, 0.4); text-transform: uppercase; letter-spacing: 0.5px;">
                             🥇 Generar Final
@@ -1559,7 +1574,7 @@
                                             style="padding: 8px 15px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; white-space: nowrap;">
                                             ${played ? 'Actualizar' : 'Guardar'}
                                         </button>
-                                        <button onclick="showPenaltyModal('${champId}', '${category}', '${match.team_a}', '${match.team_b}', '${matchId}')" 
+                                        <button onclick="showPenaltyModal('${champId || ''}', '${category || ''}', '${match.team_a}', '${match.team_b}', '${matchId}')" 
                                             style="padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; white-space: nowrap; font-size: 0.9em;">
                                             ⚠️ Sanción
                                         </button>
@@ -1635,11 +1650,11 @@
                                             style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
                                     </div>
                                     <div style="display: flex; gap: 5px; flex-direction: column;">
-                                        <button onclick="saveMatch('${champId}', '${category}', '${match.team_a}', '${match.team_b}', ${match.round_number}, ${match.matchday || 1}, '${matchId}')" 
+                                        <button onclick="saveMatch('${champId || ''}', '${category || ''}', '${match.team_a}', '${match.team_b}', ${match.round_number}, ${match.matchday || 1}, '${matchId}')" 
                                             style="padding: 10px 20px; background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap; box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);">
                                             ${played ? 'Actualizar' : 'Guardar'}
                                         </button>
-                                        <button onclick="showPenaltyModal('${champId}', '${category}', '${match.team_a}', '${match.team_b}', '${matchId}')" 
+                                        <button onclick="showPenaltyModal('${champId || ''}', '${category || ''}', '${match.team_a}', '${match.team_b}', '${matchId}')" 
                                             style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap; font-size: 0.9em; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);">
                                             ⚠️ Sanción
                                         </button>
