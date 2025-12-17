@@ -420,15 +420,23 @@
         
         async function loadData() {
             try {
-                // Primero cargar desde localStorage
-                loadFromLocalStorage();
-                
-                // Luego obtener la lista de campeonatos del servidor
+                // Obtener la lista de campeonatos del servidor PRIMERO
                 const res = await fetch(`${API_BASE}/api/championships`);
                 const data = await res.json();
                 
                 if (data.success) {
                     const champList = data.championships || {};
+                    
+                    // Limpiar datos de campeonatos que ya no existen en el servidor
+                    const serverIds = new Set(Object.keys(champList));
+                    Object.keys(championshipsData).forEach(id => {
+                        if (!serverIds.has(id)) {
+                            console.log(`Eliminando campeonato ${id} que ya no existe en el servidor`);
+                            delete championshipsData[id];
+                            delete categoriesData[id];
+                            removeChampionshipFromLocal(id);
+                        }
+                    });
                     
                     // Cargar datos completos de cada campeonato
                     const loadPromises = Object.keys(champList).map(async (id) => {
@@ -466,9 +474,18 @@
                     
                     await Promise.all(loadPromises);
                     
+                    // Cargar desde localStorage solo los que no están en el servidor (para datos offline)
+                    loadFromLocalStorage();
+                    
                     renderChampionships();
                     renderCategories();
                     updateForm(); // Actualizar formularios con datos disponibles
+                } else {
+                    // Si el servidor no responde con success, cargar desde localStorage
+                    loadFromLocalStorage();
+                    renderChampionships();
+                    renderCategories();
+                    updateForm();
                 }
             } catch (error) {
                 console.error('Error cargando datos:', error);
@@ -717,6 +734,14 @@
                     delete saved[champId];
                     localStorage.setItem('savedChampionships', JSON.stringify(saved));
                     console.log(`✅ Campeonato ${champId} eliminado de localStorage`);
+                    
+                    // Verificar que realmente se eliminó
+                    const verify = JSON.parse(localStorage.getItem('savedChampionships') || '{}');
+                    if (verify[champId]) {
+                        console.error(`❌ ERROR: Campeonato ${champId} todavía existe en localStorage después de eliminar`);
+                    } else {
+                        console.log(`✅ Verificado: Campeonato ${champId} eliminado correctamente de localStorage`);
+                    }
                 } else {
                     console.log(`⚠️ Campeonato ${champId} no encontrado en localStorage`);
                 }
