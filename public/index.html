@@ -1122,10 +1122,26 @@
         }
         
         async function executeAction() {
+            console.log('executeAction llamada');
             try {
-                const action = document.getElementById('actionSelect').value;
+                const actionSelect = document.getElementById('actionSelect');
+                if (!actionSelect) {
+                    console.error('No se encontró actionSelect');
+                    showAlert('Error: No se encontró el selector de acciones', 'error');
+                    return;
+                }
+                
+                const action = actionSelect.value;
+                console.log('Acción seleccionada:', action);
+                
                 const responseDiv = document.getElementById('response');
                 const responseCard = document.getElementById('responseCard');
+                
+                if (!responseDiv || !responseCard) {
+                    console.error('No se encontraron elementos de respuesta');
+                    showAlert('Error: Elementos de respuesta no encontrados', 'error');
+                    return;
+                }
                 
                 if (!action) {
                     showAlert('Por favor selecciona una acción', 'error');
