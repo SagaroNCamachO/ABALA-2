@@ -908,15 +908,141 @@
                 const res = await fetch(url);
                 const data = await res.json();
                 
-                responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-                
                 if (!data.success) {
                     showAlert(data.error || 'Error', 'error');
+                    responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                    return;
+                }
+                
+                // Renderizar según el tipo de vista
+                if (view === 'fixture' && data.matches) {
+                    const category = document.getElementById('categoryView').value;
+                    responseDiv.innerHTML = renderFixture(data.matches, category || 'Categoría');
+                } else if (view === 'standings' && data.standings) {
+                    responseDiv.innerHTML = renderStandings(data.standings);
+                } else {
+                    responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
                 }
             } catch (error) {
                 responseDiv.innerHTML = `<pre style="color: red;">Error: ${error.message}</pre>`;
                 showAlert('Error de conexión', 'error');
             }
+        }
+        
+        function renderFixture(matches, categoryName) {
+            if (!matches || matches.length === 0) {
+                return '<div class="empty-state">No hay partidos en el fixture</div>';
+            }
+            
+            // Agrupar partidos por vuelta
+            const matchesByRound = {};
+            matches.forEach(match => {
+                const round = match.round_number || 1;
+                if (!matchesByRound[round]) {
+                    matchesByRound[round] = [];
+                }
+                matchesByRound[round].push(match);
+            });
+            
+            let html = `<div style="padding: 10px;"><h3 style="color: #667eea; margin-bottom: 20px;">📅 Fixture - ${categoryName}</h3>`;
+            
+            // Ordenar vueltas
+            const rounds = Object.keys(matchesByRound).sort((a, b) => parseInt(a) - parseInt(b));
+            
+            rounds.forEach(round => {
+                const roundMatches = matchesByRound[round];
+                const matchType = roundMatches[0]?.match_type || 'ida';
+                
+                html += `
+                    <div style="margin-bottom: 30px; border: 2px solid #e0e0e0; border-radius: 10px; padding: 15px; background: #f8f9fa;">
+                        <h4 style="color: #667eea; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                            <span>Vuelta ${round}</span>
+                            <span style="font-size: 0.8em; color: #666; font-weight: normal;">(${matchType})</span>
+                        </h4>
+                        <div style="display: grid; gap: 10px;">
+                `;
+                
+                roundMatches.forEach(match => {
+                    const played = match.played;
+                    const scoreA = match.score_a !== null ? match.score_a : '-';
+                    const scoreB = match.score_b !== null ? match.score_b : '-';
+                    const winner = match.winner;
+                    
+                    html += `
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: white; border-radius: 8px; border-left: 4px solid ${played ? '#28a745' : '#667eea'};">
+                            <div style="flex: 1; text-align: right;">
+                                <strong style="color: ${winner === match.team_a ? '#28a745' : '#333'}">${match.team_a}</strong>
+                            </div>
+                            <div style="padding: 0 20px; font-weight: bold; font-size: 1.2em; color: ${played ? '#28a745' : '#666'}">
+                                ${scoreA} - ${scoreB}
+                            </div>
+                            <div style="flex: 1; text-align: left;">
+                                <strong style="color: ${winner === match.team_b ? '#28a745' : '#333'}">${match.team_b}</strong>
+                            </div>
+                            ${played ? '<span style="margin-left: 10px; color: #28a745;">✓</span>' : '<span style="margin-left: 10px; color: #999;">Pendiente</span>'}
+                        </div>
+                    `;
+                });
+                
+                html += `</div></div>`;
+            });
+            
+            html += `</div>`;
+            return html;
+        }
+        
+        function renderStandings(standings) {
+            if (!standings || standings.length === 0) {
+                return '<div class="empty-state">No hay datos en la tabla de posiciones</div>';
+            }
+            
+            let html = `
+                <div style="padding: 10px; overflow-x: auto;">
+                    <h3 style="color: #667eea; margin-bottom: 20px;">📊 Tabla de Posiciones</h3>
+                    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden;">
+                        <thead>
+                            <tr style="background: #667eea; color: white;">
+                                <th style="padding: 12px; text-align: left;">Pos</th>
+                                <th style="padding: 12px; text-align: left;">Equipo</th>
+                                <th style="padding: 12px; text-align: center;">PJ</th>
+                                <th style="padding: 12px; text-align: center;">PG</th>
+                                <th style="padding: 12px; text-align: center;">PP</th>
+                                <th style="padding: 12px; text-align: center;">PF</th>
+                                <th style="padding: 12px; text-align: center;">PC</th>
+                                <th style="padding: 12px; text-align: center;">Dif</th>
+                                <th style="padding: 12px; text-align: center; font-weight: bold;">Pts</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            standings.forEach((team, index) => {
+                const position = index + 1;
+                const medal = position === 1 ? '🥇' : position === 2 ? '🥈' : position === 3 ? '🥉' : '';
+                const rowColor = position <= 3 ? '#f0f8ff' : index % 2 === 0 ? '#ffffff' : '#f8f9fa';
+                
+                html += `
+                    <tr style="background: ${rowColor};">
+                        <td style="padding: 12px; font-weight: bold; color: #667eea;">${position} ${medal}</td>
+                        <td style="padding: 12px; font-weight: 600;">${team.name}</td>
+                        <td style="padding: 12px; text-align: center;">${team.pj || 0}</td>
+                        <td style="padding: 12px; text-align: center; color: #28a745;">${team.pg || 0}</td>
+                        <td style="padding: 12px; text-align: center; color: #dc3545;">${team.pp || 0}</td>
+                        <td style="padding: 12px; text-align: center;">${team.pf || 0}</td>
+                        <td style="padding: 12px; text-align: center;">${team.pc || 0}</td>
+                        <td style="padding: 12px; text-align: center; color: ${team.difference >= 0 ? '#28a745' : '#dc3545'};">${team.difference || 0}</td>
+                        <td style="padding: 12px; text-align: center; font-weight: bold; color: #667eea; font-size: 1.1em;">${team.points || 0}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            return html;
         }
         
         function showAlert(message, type) {
