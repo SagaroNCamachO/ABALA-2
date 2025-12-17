@@ -1122,16 +1122,21 @@
         }
         
         async function executeAction() {
-            const action = document.getElementById('actionSelect').value;
-            const responseDiv = document.getElementById('response');
-            const responseCard = document.getElementById('responseCard');
-            
-            responseCard.style.display = 'block';
-            responseDiv.innerHTML = '<pre>Cargando...</pre>';
-            
-            let url, options = {};
-            
             try {
+                const action = document.getElementById('actionSelect').value;
+                const responseDiv = document.getElementById('response');
+                const responseCard = document.getElementById('responseCard');
+                
+                if (!action) {
+                    showAlert('Por favor selecciona una acción', 'error');
+                    return;
+                }
+                
+                responseCard.style.display = 'block';
+                responseDiv.innerHTML = '<pre>Cargando...</pre>';
+                
+                let url, options = {};
+                
                 switch(action) {
                     case 'createChamp':
                         const champIdInput = document.getElementById('champId');
@@ -1151,11 +1156,13 @@
                         
                         if (!champIdValue) {
                             showAlert('Por favor ingresa un ID para el campeonato', 'error');
+                            responseDiv.innerHTML = '<pre style="color: red;">Error: ID del campeonato requerido</pre>';
                             return;
                         }
                         
                         if (!nameValue) {
                             showAlert('Por favor ingresa un nombre para el campeonato', 'error');
+                            responseDiv.innerHTML = '<pre style="color: red;">Error: Nombre del campeonato requerido</pre>';
                             return;
                         }
                         
@@ -1218,10 +1225,12 @@
                 }
                 
                 if (!url) {
-                    showAlert('Acción no válida', 'error');
-                    responseDiv.innerHTML = '<pre style="color: red;">Error: Acción no válida</pre>';
+                    showAlert('Error: No se pudo construir la URL', 'error');
+                    responseDiv.innerHTML = '<pre style="color: red;">Error: No se pudo construir la URL</pre>';
                     return;
                 }
+                
+                console.log('Enviando petición a:', url, options);
                 
                 const res = await fetch(url, options);
                 
@@ -1233,12 +1242,14 @@
                     } catch {
                         errorData = { error: errorText || 'Error desconocido' };
                     }
+                    console.error('Error en respuesta:', errorData);
                     responseDiv.innerHTML = `<pre style="color: red;">${JSON.stringify(errorData, null, 2)}</pre>`;
                     showAlert(errorData.error || 'Error en la operación', 'error');
                     return;
                 }
                 
                 const data = await res.json();
+                console.log('Respuesta recibida:', data);
                 
                 responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
                 
@@ -1283,7 +1294,10 @@
                 }
             } catch (error) {
                 console.error('Error en executeAction:', error);
-                responseDiv.innerHTML = `<pre style="color: red;">Error: ${error.message}</pre>`;
+                const responseDiv = document.getElementById('response');
+                if (responseDiv) {
+                    responseDiv.innerHTML = `<pre style="color: red;">Error: ${error.message}\n\nStack: ${error.stack}</pre>`;
+                }
                 showAlert('Error de conexión: ' + error.message, 'error');
             }
         }
