@@ -448,10 +448,6 @@
                                 // Extraer categorías con equipos
                                 if (champData.championship.categories) {
                                     categoriesData[id] = champData.championship.categories;
-                                } else {
-                                    categoriesData[id] = {};
-                                } else {
-                                    categoriesData[id] = {};
                                 }
                                 
                                 // Guardar en localStorage
@@ -618,40 +614,23 @@
                 
                 const data = await res.json();
                 
-                if (data.success || res.status === 200) {
-                    // Eliminar del localStorage PRIMERO
+                if (data.success) {
+                    // Eliminar del localStorage
                     removeChampionshipFromLocal(champId);
-                    
-                    // Eliminar de memoria
+                    // Eliminar de los datos en memoria
                     delete championshipsData[champId];
                     delete categoriesData[champId];
                     
-                    // Renderizar inmediatamente para actualizar la vista
-                    renderChampionships();
-                    renderCategories();
-                    updateForm();
-                    updateExportSelect();
-                    
                     showAlert('Campeonato eliminado exitosamente', 'success');
-                    
-                    // Recargar datos después de un momento
                     setTimeout(() => loadData(), 500);
                 } else {
                     showAlert(data.error || 'Error al eliminar', 'error');
                 }
             } catch (error) {
-                console.error('Error eliminando campeonato:', error);
                 // Si falla el servidor, eliminar solo del localStorage
                 removeChampionshipFromLocal(champId);
                 delete championshipsData[champId];
                 delete categoriesData[champId];
-                
-                // Renderizar inmediatamente
-                renderChampionships();
-                renderCategories();
-                updateForm();
-                updateExportSelect();
-                
                 showAlert('Campeonato eliminado del almacenamiento local (servidor no disponible)', 'warning');
                 setTimeout(() => loadData(), 500);
             }
@@ -698,11 +677,8 @@
         function removeChampionshipFromLocal(champId) {
             try {
                 const saved = JSON.parse(localStorage.getItem('savedChampionships') || '{}');
-                if (saved[champId]) {
-                    delete saved[champId];
-                    localStorage.setItem('savedChampionships', JSON.stringify(saved));
-                    console.log(`Campeonato ${champId} eliminado de localStorage`);
-                }
+                delete saved[champId];
+                localStorage.setItem('savedChampionships', JSON.stringify(saved));
             } catch (error) {
                 console.error('Error al eliminar del localStorage:', error);
             }
@@ -758,20 +734,8 @@
         }
         
         function updateForm() {
-            const actionSelect = document.getElementById('actionSelect');
-            if (!actionSelect) {
-                console.error('actionSelect no encontrado');
-                return;
-            }
-            
-            const action = actionSelect.value || 'createChamp';
+            const action = document.getElementById('actionSelect').value;
             const formDiv = document.getElementById('dynamicForm');
-            
-            if (!formDiv) {
-                console.error('dynamicForm no encontrado');
-                return;
-            }
-            
             let html = '';
             
             // Obtener IDs de campeonatos disponibles
@@ -978,49 +942,14 @@
                     }
                     // Recargar datos después de crear/modificar
                     if (action === 'createChamp' || action === 'addCategory') {
-                        // Si se creó una categoría, actualizar inmediatamente los datos del campeonato
-                        if (action === 'addCategory' && data.success) {
-                            const champId = document.getElementById('champIdSelect')?.value;
-                            if (champId) {
-                                // Cargar el campeonato completo para obtener la categoría recién creada
-                                fetch(`${API_BASE}/api/championships/${champId}`)
-                                    .then(res => res.json())
-                                    .then(champData => {
-                                        if (champData.success && champData.championship) {
-                                            // Actualizar datos en memoria
-                                            championshipsData[champId] = {
-                                                name: champData.championship.name,
-                                                rounds: champData.championship.rounds,
-                                                points_per_win: champData.championship.points_per_win,
-                                                points_per_loss: champData.championship.points_per_loss,
-                                                categories: champData.championship.categories || {}
-                                            };
-                                            
-                                            // Actualizar categoriesData
-                                            if (champData.championship.categories) {
-                                                categoriesData[champId] = champData.championship.categories;
-                                            }
-                                            
-                                            // Guardar en localStorage
-                                            saveToLocalStorage(champId, championshipsData[champId]);
-                                            
-                                            // Renderizar
-                                            renderChampionships();
-                                            renderCategories();
-                                            updateForm();
-                                        }
-                                    })
-                                    .catch(err => console.error('Error actualizando categoría:', err));
-                            }
-                        }
-                        
-                        // Recargar datos después de un segundo
+                        // Recargar datos inmediatamente y luego de nuevo después de un segundo
+                        loadData();
                         setTimeout(() => {
                             loadData();
                             renderChampionships();
                             renderCategories();
-                            updateForm();
-                        }, 1500);
+                            updateForm(); // Actualizar formularios con nuevos datos
+                        }, 1000);
                     }
                 } else {
                     showAlert(data.error || 'Error en la operación', 'error');
@@ -1746,19 +1675,9 @@
             updateExportSelect();
         };
         
-        // Inicializar cuando el DOM esté listo
-        function initializeApp() {
-            console.log('Inicializando aplicación...');
-            updateForm();
-            loadData();
-        }
-        
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeApp);
-        } else {
-            // Si el DOM ya está listo, ejecutar inmediatamente con un pequeño delay
-            setTimeout(initializeApp, 100);
-        }
+        // Inicializar
+        updateForm();
+        loadData();
     </script>
 </body>
 </html>
