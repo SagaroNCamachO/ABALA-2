@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ABALA - Gestión de Campeonatos</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
-        
         * {
             margin: 0;
             padding: 0;
@@ -14,341 +12,176 @@
         }
         
         body {
-            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 25%, #ff6b35 75%, #f7931e 100%);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
-            position: relative;
-            overflow-x: hidden;
-        }
-        
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(255, 107, 53, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(30, 60, 114, 0.1) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 0;
         }
         
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            position: relative;
-            z-index: 1;
         }
         
         .header {
             text-align: center;
             color: white;
-            margin-bottom: 40px;
-            position: relative;
+            margin-bottom: 30px;
         }
         
         .header h1 {
-            font-size: 3.5em;
-            font-weight: 800;
+            font-size: 2.5em;
             margin-bottom: 10px;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
-            background: linear-gradient(135deg, #fff 0%, #ffd700 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -1px;
-            animation: bounce 2s ease infinite;
-        }
-        
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        .header::after {
-            content: '🏀';
-            font-size: 4em;
-            display: block;
-            margin-top: -20px;
-            animation: rotate 3s linear infinite;
-        }
-        
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
         
         .main-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 25px;
-            margin-bottom: 25px;
+            gap: 20px;
+            margin-bottom: 20px;
         }
         
         @media (max-width: 968px) {
             .main-grid {
                 grid-template-columns: 1fr;
             }
-            .header h1 {
-                font-size: 2.5em;
-            }
         }
         
         .card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, #ff6b35 0%, #f7931e 50%, #1e3c72 100%);
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 25px 70px rgba(0,0,0,0.4);
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         
         .card h2 {
-            color: #1e3c72;
-            margin-bottom: 25px;
-            font-size: 1.6em;
-            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.4em;
             display: flex;
             align-items: center;
-            gap: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        #dynamicForm {
-            min-height: 200px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
-        
-        #createTab {
-            display: block !important;
-        }
-        
-        #createTab.active {
-            display: block !important;
+            gap: 10px;
         }
         
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         
         .form-group label {
             display: block;
-            margin-bottom: 8px;
-            color: #1e3c72;
+            margin-bottom: 6px;
+            color: #333;
             font-weight: 600;
-            font-size: 0.95em;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 0.9em;
         }
         
         .form-group input,
         .form-group select {
             width: 100%;
-            padding: 14px 16px;
-            border: 2px solid #e0e7ff;
-            border-radius: 12px;
-            font-size: 15px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
             transition: all 0.3s;
-            background: #f8f9ff;
-            font-family: 'Poppins', sans-serif;
         }
         
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #ff6b35;
-            box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1);
-            background: white;
-            transform: translateY(-2px);
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
         
         .btn {
-            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 16px 32px;
-            border-radius: 12px;
+            padding: 14px 30px;
+            border-radius: 8px;
             font-size: 16px;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
             width: 100%;
             margin-top: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-        
-        .btn:hover::before {
-            width: 300px;
-            height: 300px;
         }
         
         .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
         
         .btn:active {
-            transform: translateY(-1px);
+            transform: translateY(0);
         }
         
         .btn-secondary {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            background: #6c757d;
             margin-top: 5px;
-            box-shadow: 0 4px 15px rgba(30, 60, 114, 0.4);
         }
         
         .btn-secondary:hover {
-            box-shadow: 0 6px 20px rgba(30, 60, 114, 0.6);
+            background: #5a6268;
         }
         
         .data-section {
-            max-height: 500px;
+            max-height: 400px;
             overflow-y: auto;
-            padding-right: 10px;
-        }
-        
-        .data-section::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .data-section::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        
-        .data-section::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-            border-radius: 10px;
         }
         
         .data-item {
-            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 15px;
-            border-left: 5px solid #ff6b35;
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
             cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.2s;
         }
         
         .data-item:hover {
-            background: linear-gradient(135deg, #fff5f0 0%, #ffffff 100%);
-            transform: translateX(8px) scale(1.02);
-            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.3);
-            border-left-color: #1e3c72;
+            background: #e9ecef;
+            transform: translateX(5px);
         }
         
         .data-item strong {
-            color: #1e3c72;
+            color: #667eea;
             display: block;
-            margin-bottom: 8px;
-            font-weight: 700;
+            margin-bottom: 5px;
         }
         
         .data-item .info {
-            font-size: 0.9em;
+            font-size: 0.85em;
             color: #666;
         }
         
         .tabs {
             display: flex;
-            gap: 5px;
-            margin-bottom: 25px;
-            background: #f8f9ff;
-            padding: 5px;
-            border-radius: 12px;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
         }
         
         .tab {
-            padding: 12px 24px;
+            padding: 10px 20px;
             cursor: pointer;
             border: none;
-            background: transparent;
-            font-size: 15px;
+            background: none;
+            font-size: 16px;
             color: #666;
             font-weight: 600;
-            border-radius: 8px;
+            border-bottom: 3px solid transparent;
             transition: all 0.3s;
-            flex: 1;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
         
         .tab.active {
-            color: white;
-            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
-        }
-        
-        .tab:hover:not(.active) {
-            background: rgba(255, 107, 53, 0.1);
-            color: #ff6b35;
+            color: #667eea;
+            border-bottom-color: #667eea;
         }
         
         .tab-content {
             display: none;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
         }
         
         .tab-content.active {
@@ -357,13 +190,12 @@
         
         .response {
             margin-top: 20px;
-            padding: 20px;
-            background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
-            border-radius: 15px;
-            border-left: 5px solid #28a745;
-            max-height: 400px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+            max-height: 300px;
             overflow-y: auto;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         
         .response pre {
@@ -376,141 +208,77 @@
         
         .status-badge {
             display: inline-block;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85em;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
             font-weight: 600;
             margin-left: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
         
         .status-badge.success {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
-            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+            background: #d4edda;
+            color: #155724;
         }
         
         .status-badge.info {
-            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
-            color: white;
-            box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);
+            background: #d1ecf1;
+            color: #0c5460;
         }
         
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
+            padding: 40px;
             color: #999;
-            font-size: 1.1em;
         }
         
         .empty-state::before {
-            content: "🏀";
-            font-size: 4em;
+            content: "📋";
+            font-size: 3em;
             display: block;
-            margin-bottom: 15px;
-            animation: bounce 2s ease infinite;
+            margin-bottom: 10px;
         }
         
         .chips {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
+            gap: 5px;
+            margin-top: 8px;
         }
         
         .chip {
-            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            background: #667eea;
             color: white;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.75em;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
             font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
         }
         
         .alert {
-            padding: 18px 24px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            animation: slideIn 0.3s ease;
-            font-size: 0.95em;
-        }
-        
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        
-        .alert-success {
-            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-            color: #155724;
-            border-left: 5px solid #28a745;
-        }
-        
-        .alert-error {
-            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-            color: #721c24;
-            border-left: 5px solid #dc3545;
-        }
-        
-        .alert-warning {
-            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-            color: #856404;
-            border-left: 5px solid #ffc107;
-        }
-        
-        /* Mejoras para tablas */
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        
-        th {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-            padding: 16px;
-            text-align: left;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
             font-size: 0.9em;
         }
         
-        td {
-            padding: 14px 16px;
-            border-bottom: 1px solid #e0e7ff;
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
         }
         
-        tr:hover {
-            background: #f8f9ff;
-        }
-        
-        tr:last-child td {
-            border-bottom: none;
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>ABALA</h1>
-            <p style="font-size: 1.3em; font-weight: 500; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">Gestión Profesional de Campeonatos de Básquetbol</p>
+            <h1>🏀 ABALA</h1>
+            <p style="font-size: 1.1em; opacity: 0.95;">Sistema de Gestión de Campeonatos de Básquetbol</p>
         </div>
         
         <div class="main-grid">
@@ -528,7 +296,7 @@
                     <div class="form-group">
                         <label>Acción:</label>
                         <select id="actionSelect" onchange="updateForm()">
-                            <option value="createChamp" selected>Crear Campeonato</option>
+                            <option value="createChamp">Crear Campeonato</option>
                             <option value="addCategory">Agregar Categoría</option>
                         </select>
                     </div>
@@ -780,23 +548,6 @@
                 const data = await res.json();
                 
                 if (data.success) {
-                    const categories = Object.keys(data.championship.categories || {});
-                    
-                    // Cambiar a la pestaña "Gestionar"
-                    switchTab('manage');
-                    
-                    // Pre-seleccionar el campeonato en el dropdown
-                    const champSelect = document.getElementById('champIdView');
-                    if (champSelect) {
-                        champSelect.value = champId;
-                        // Disparar evento para cargar categorías
-                        if (champSelect.onchange) {
-                            champSelect.onchange();
-                        } else {
-                            loadViewCategories();
-                        }
-                    }
-                    
                     // Mostrar detalles en el panel de respuesta
                     const responseCard = document.getElementById('responseCard');
                     const responseDiv = document.getElementById('response');
@@ -804,47 +555,37 @@
                     responseCard.style.display = 'block';
                     responseDiv.innerHTML = `
                         <div style="padding: 20px;">
-                            <h3 style="color: #1e3c72; margin-bottom: 20px; font-size: 1.5em; font-weight: 700;">📋 ${data.championship.name}</h3>
-                            <div style="background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                                <p style="margin-bottom: 10px;"><strong>ID:</strong> <code style="background: #e0e7ff; padding: 4px 8px; border-radius: 6px;">${champId}</code></p>
-                                <p style="margin-bottom: 10px;"><strong>Vueltas:</strong> ${data.championship.rounds}</p>
-                                <p style="margin-bottom: 10px;"><strong>Puntos por Victoria:</strong> ${data.championship.points_per_win}</p>
+                            <h3 style="color: #667eea; margin-bottom: 15px;">📋 Detalles del Campeonato: ${data.championship.name}</h3>
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <p><strong>ID:</strong> <code>${champId}</code></p>
+                                <p><strong>Vueltas:</strong> ${data.championship.rounds}</p>
+                                <p><strong>Puntos por Victoria:</strong> ${data.championship.points_per_win}</p>
                                 <p><strong>Puntos por Derrota:</strong> ${data.championship.points_per_loss}</p>
                             </div>
                             
-                            <h4 style="color: #1e3c72; margin-top: 25px; margin-bottom: 15px; font-weight: 700;">Categorías:</h4>
-                            ${categories.length > 0 
+                            <h4 style="color: #667eea; margin-top: 20px; margin-bottom: 10px;">Categorías:</h4>
+                            ${Object.keys(data.championship.categories || {}).length > 0 
                                 ? Object.entries(data.championship.categories || {}).map(([catName, cat]) => `
-                                    <div style="background: white; padding: 18px; border-radius: 12px; margin-bottom: 15px; border-left: 5px solid #ff6b35; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                                        <strong style="color: #1e3c72; font-size: 1.1em;">${catName}</strong>
-                                        <div style="margin-top: 12px;">
-                                            <strong style="color: #666;">Equipos (${cat.teams?.length || 0}):</strong>
-                                            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
-                                                ${cat.teams?.map(t => `<span style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.85em; font-weight: 600;">${t.name || t}</span>`).join('') || 'Sin equipos'}
+                                    <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #667eea;">
+                                        <strong>${catName}</strong>
+                                        <div style="margin-top: 8px;">
+                                            <strong>Equipos (${cat.teams?.length || 0}):</strong>
+                                            <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px;">
+                                                ${cat.teams?.map(t => `<span style="background: #e9ecef; padding: 4px 8px; border-radius: 4px; font-size: 0.9em;">${t.name || t}</span>`).join('') || 'Sin equipos'}
                                             </div>
-                                        </div>
-                                        <div style="margin-top: 15px; display: flex; gap: 10px;">
-                                            <button onclick="navigateToView('${champId}', '${catName}', 'fixture')" 
-                                                style="padding: 10px 20px; background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);">
-                                                📅 Ver Fixture
-                                            </button>
-                                            <button onclick="navigateToView('${champId}', '${catName}', 'standings')" 
-                                                style="padding: 10px 20px; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 15px rgba(30, 60, 114, 0.4);">
-                                                📊 Ver Tabla
-                                            </button>
                                         </div>
                                     </div>
                                 `).join('')
-                                : '<p style="color: #666; padding: 20px; text-align: center; background: #f8f9ff; border-radius: 12px;">No hay categorías creadas</p>'
+                                : '<p style="color: #666;">No hay categorías creadas</p>'
                             }
                             
-                            <div style="margin-top: 25px; padding-top: 20px; border-top: 2px solid #e0e7ff; display: flex; gap: 10px; flex-wrap: wrap;">
+                            <div style="margin-top: 20px; display: flex; gap: 10px;">
                                 <button onclick="saveChampionshipToLocal('${champId}')" 
-                                    style="padding: 12px 24px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);">
+                                    style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">
                                     💾 Guardar Localmente
                                 </button>
                                 <button onclick="loadChampionshipFromLocal('${champId}')" 
-                                    style="padding: 12px 24px; background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 15px rgba(23, 162, 184, 0.4);">
+                                    style="padding: 10px 20px; background: #17a2b8; color: white; border: none; border-radius: 5px; cursor: pointer;">
                                     📂 Cargar desde Local
                                 </button>
                             </div>
@@ -852,54 +593,11 @@
                     `;
                     
                     // Scroll a la respuesta
-                    setTimeout(() => {
-                        responseCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    }, 100);
+                    responseCard.scrollIntoView({ behavior: 'smooth' });
                 }
             } catch (error) {
                 showAlert('Error al cargar detalles: ' + error.message, 'error');
             }
-        }
-        
-        function navigateToView(champId, category, viewType) {
-            // Cambiar a la pestaña "Gestionar" si no está activa
-            switchTab('manage');
-            
-            // Seleccionar el tipo de vista
-            const viewSelect = document.getElementById('viewSelect');
-            if (viewSelect) {
-                viewSelect.value = viewType;
-                loadView();
-            }
-            
-            // Pre-seleccionar campeonato
-            const champSelect = document.getElementById('champIdView');
-            if (champSelect) {
-                champSelect.value = champId;
-                // Cargar categorías
-                setTimeout(() => {
-                    loadViewCategories();
-                    // Pre-seleccionar categoría
-                    setTimeout(() => {
-                        const categorySelect = document.getElementById('categoryView');
-                        if (categorySelect) {
-                            categorySelect.value = category;
-                            // Cargar la vista automáticamente
-                            setTimeout(() => {
-                                loadViewData();
-                            }, 300);
-                        }
-                    }, 200);
-                }, 100);
-            }
-            
-            // Scroll a la sección de gestión
-            setTimeout(() => {
-                const manageTab = document.getElementById('manageTab');
-                if (manageTab) {
-                    manageTab.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            }, 500);
         }
         
         async function deleteChampionship(champId) {
@@ -1035,27 +733,8 @@
         }
         
         function updateForm() {
-            console.log('=== updateForm() INICIADA ===');
-            const actionSelect = document.getElementById('actionSelect');
-            if (!actionSelect) {
-                console.error('❌ actionSelect no encontrado');
-                alert('Error: No se encontró el selector de acciones. Por favor, recarga la página.');
-                return;
-            }
-            
-            const action = actionSelect.value || 'createChamp';
-            console.log('✅ Acción seleccionada:', action);
-            
+            const action = document.getElementById('actionSelect').value;
             const formDiv = document.getElementById('dynamicForm');
-            
-            if (!formDiv) {
-                console.error('❌ dynamicForm no encontrado');
-                alert('Error: No se encontró el contenedor del formulario. Por favor, recarga la página.');
-                return;
-            }
-            
-            console.log('✅ formDiv encontrado, generando HTML...');
-            
             let html = '';
             
             // Obtener IDs de campeonatos disponibles
@@ -1068,27 +747,26 @@
                 case 'createChamp':
                     html = `
                         <div class="form-group">
-                            <label style="font-weight: 600; color: #1e3c72; display: block; margin-bottom: 8px;">ID del Campeonato:</label>
+                            <label>ID del Campeonato:</label>
                             <input type="text" id="champId" placeholder="champ1" value="champ${champIds.length + 1}">
                         </div>
                         <div class="form-group">
-                            <label style="font-weight: 600; color: #1e3c72; display: block; margin-bottom: 8px;">Nombre:</label>
+                            <label>Nombre:</label>
                             <input type="text" id="name" placeholder="Campeonato 2024" value="Campeonato ${new Date().getFullYear()}">
                         </div>
                         <div class="form-group">
-                            <label style="font-weight: 600; color: #1e3c72; display: block; margin-bottom: 8px;">Vueltas:</label>
+                            <label>Vueltas:</label>
                             <input type="number" id="rounds" value="2" min="1">
                         </div>
                         <div class="form-group">
-                            <label style="font-weight: 600; color: #1e3c72; display: block; margin-bottom: 8px;">Puntos por Victoria:</label>
+                            <label>Puntos por Victoria:</label>
                             <input type="number" id="pointsWin" value="2" min="0">
                         </div>
                         <div class="form-group">
-                            <label style="font-weight: 600; color: #1e3c72; display: block; margin-bottom: 8px;">Puntos por Derrota:</label>
+                            <label>Puntos por Derrota:</label>
                             <input type="number" id="pointsLoss" value="0" min="0">
                         </div>
                     `;
-                    console.log('✅ HTML generado para createChamp, longitud:', html.length);
                     break;
                 case 'addCategory':
                     html = `
@@ -1117,40 +795,9 @@
                         </div>
                     `;
                     break;
-                default:
-                    html = '<div class="form-group"><p style="color: #666;">Selecciona una acción para continuar</p></div>';
             }
             
-            console.log('✅ Asignando HTML al formulario...');
             formDiv.innerHTML = html;
-            
-            // Forzar visibilidad con estilos inline
-            formDiv.style.cssText = `
-                display: block !important;
-                visibility: visible !important;
-                opacity: 1 !important;
-                min-height: 200px !important;
-                padding: 20px !important;
-                background: rgba(255, 255, 255, 0.95) !important;
-                border-radius: 15px !important;
-                margin-top: 20px !important;
-                margin-bottom: 20px !important;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
-            `;
-            
-            // Asegurar que el tab esté visible
-            const createTab = document.getElementById('createTab');
-            if (createTab) {
-                createTab.classList.add('active');
-                createTab.style.cssText = 'display: block !important;';
-                console.log('✅ Tab "Crear" activado y visible');
-            }
-            
-            console.log('✅ Formulario actualizado. HTML asignado:', html.length, 'caracteres');
-            console.log('✅ Contenido del formulario (primeros 300 chars):', formDiv.innerHTML.substring(0, 300));
-            console.log('✅ Altura del formulario:', formDiv.offsetHeight, 'px');
-            console.log('✅ Ancho del formulario:', formDiv.offsetWidth, 'px');
-            console.log('=== updateForm() COMPLETADA ===');
         }
         
         function loadCategoryTeams() {
@@ -1194,76 +841,28 @@
         }
         
         async function executeAction() {
-            console.log('executeAction llamada');
+            const action = document.getElementById('actionSelect').value;
+            const responseDiv = document.getElementById('response');
+            const responseCard = document.getElementById('responseCard');
+            
+            responseCard.style.display = 'block';
+            responseDiv.innerHTML = '<pre>Cargando...</pre>';
+            
+            let url, options = {};
+            
             try {
-                const actionSelect = document.getElementById('actionSelect');
-                if (!actionSelect) {
-                    console.error('No se encontró actionSelect');
-                    showAlert('Error: No se encontró el selector de acciones', 'error');
-                    return;
-                }
-                
-                const action = actionSelect.value;
-                console.log('Acción seleccionada:', action);
-                
-                const responseDiv = document.getElementById('response');
-                const responseCard = document.getElementById('responseCard');
-                
-                if (!responseDiv || !responseCard) {
-                    console.error('No se encontraron elementos de respuesta');
-                    showAlert('Error: Elementos de respuesta no encontrados', 'error');
-                    return;
-                }
-                
-                if (!action) {
-                    showAlert('Por favor selecciona una acción', 'error');
-                    return;
-                }
-                
-                responseCard.style.display = 'block';
-                responseDiv.innerHTML = '<pre>Cargando...</pre>';
-                
-                let url, options = {};
-                
                 switch(action) {
                     case 'createChamp':
-                        const champIdInput = document.getElementById('champId');
-                        const nameInput = document.getElementById('name');
-                        const roundsInput = document.getElementById('rounds');
-                        const pointsWinInput = document.getElementById('pointsWin');
-                        const pointsLossInput = document.getElementById('pointsLoss');
-                        
-                        if (!champIdInput || !nameInput || !roundsInput || !pointsWinInput || !pointsLossInput) {
-                            showAlert('Error: No se encontraron los campos del formulario. Por favor, recarga la página.', 'error');
-                            responseDiv.innerHTML = '<pre style="color: red;">Error: Campos del formulario no encontrados</pre>';
-                            return;
-                        }
-                        
-                        const champIdValue = champIdInput.value.trim();
-                        const nameValue = nameInput.value.trim();
-                        
-                        if (!champIdValue) {
-                            showAlert('Por favor ingresa un ID para el campeonato', 'error');
-                            responseDiv.innerHTML = '<pre style="color: red;">Error: ID del campeonato requerido</pre>';
-                            return;
-                        }
-                        
-                        if (!nameValue) {
-                            showAlert('Por favor ingresa un nombre para el campeonato', 'error');
-                            responseDiv.innerHTML = '<pre style="color: red;">Error: Nombre del campeonato requerido</pre>';
-                            return;
-                        }
-                        
                         url = `${API_BASE}/api/championships`;
                         options = {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                                id: champIdValue,
-                                name: nameValue,
-                                rounds: parseInt(roundsInput.value) || 1,
-                                points_per_win: parseInt(pointsWinInput.value) || 2,
-                                points_per_loss: parseInt(pointsLossInput.value) || 0
+                                id: document.getElementById('champId').value,
+                                name: document.getElementById('name').value,
+                                rounds: parseInt(document.getElementById('rounds').value),
+                                points_per_win: parseInt(document.getElementById('pointsWin').value),
+                                points_per_loss: parseInt(document.getElementById('pointsLoss').value)
                             })
                         };
                         break;
@@ -1312,32 +911,8 @@
                         break;
                 }
                 
-                if (!url) {
-                    showAlert('Error: No se pudo construir la URL', 'error');
-                    responseDiv.innerHTML = '<pre style="color: red;">Error: No se pudo construir la URL</pre>';
-                    return;
-                }
-                
-                console.log('Enviando petición a:', url, options);
-                
                 const res = await fetch(url, options);
-                
-                if (!res.ok) {
-                    const errorText = await res.text();
-                    let errorData;
-                    try {
-                        errorData = JSON.parse(errorText);
-                    } catch {
-                        errorData = { error: errorText || 'Error desconocido' };
-                    }
-                    console.error('Error en respuesta:', errorData);
-                    responseDiv.innerHTML = `<pre style="color: red;">${JSON.stringify(errorData, null, 2)}</pre>`;
-                    showAlert(errorData.error || 'Error en la operación', 'error');
-                    return;
-                }
-                
                 const data = await res.json();
-                console.log('Respuesta recibida:', data);
                 
                 responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
                 
@@ -1366,27 +941,14 @@
                     }
                     // Recargar datos después de crear/modificar
                     if (action === 'createChamp' || action === 'addCategory') {
-                        setTimeout(() => {
-                            loadData();
-                            // Limpiar formulario después de crear
-                            if (action === 'createChamp') {
-                                const formDiv = document.getElementById('dynamicForm');
-                                if (formDiv) {
-                                    updateForm(); // Recargar el formulario
-                                }
-                            }
-                        }, 1000);
+                        setTimeout(() => loadData(), 1000);
                     }
                 } else {
                     showAlert(data.error || 'Error en la operación', 'error');
                 }
             } catch (error) {
-                console.error('Error en executeAction:', error);
-                const responseDiv = document.getElementById('response');
-                if (responseDiv) {
-                    responseDiv.innerHTML = `<pre style="color: red;">Error: ${error.message}\n\nStack: ${error.stack}</pre>`;
-                }
-                showAlert('Error de conexión: ' + error.message, 'error');
+                responseDiv.innerHTML = `<pre style="color: red;">Error: ${error.message}</pre>`;
+                showAlert('Error de conexión', 'error');
             }
         }
         
@@ -1478,7 +1040,6 @@
                     url = `${API_BASE}/api/championships/${champId}/fixture/${category}`;
                     if (round) url += `?round=${round}`;
                     window.currentCategory = category; // Guardar para usar en renderFixture
-                    window.currentChampId = champId; // Guardar para usar en renderFixture
                 } else {
                     url = `${API_BASE}/api/championships/${champId}`;
                 }
@@ -1495,18 +1056,7 @@
                 // Renderizar según el tipo de vista
                 if (view === 'fixture' && data.matches) {
                     const category = document.getElementById('categoryView').value;
-                    // Verificar si se puede generar el cuadrangular (solo si hay campeonato y categoría)
-                    if (champId && category) {
-                        checkCanGenerateQuadrangular(champId, category).then(canGenerate => {
-                            responseDiv.innerHTML = renderFixture(data.matches, category || 'Categoría', champId, category, canGenerate);
-                        }).catch(() => {
-                            // Si falla la verificación, renderizar sin el botón de cuadrangular
-                            responseDiv.innerHTML = renderFixture(data.matches, category || 'Categoría', champId, category, false);
-                        });
-                    } else {
-                        // Si no hay campeonato o categoría, renderizar sin verificar cuadrangular
-                        responseDiv.innerHTML = renderFixture(data.matches, category || 'Categoría', champId, category, false);
-                    }
+                    responseDiv.innerHTML = renderFixture(data.matches, category || 'Categoría');
                 } else if (view === 'standings' && data.standings) {
                     responseDiv.innerHTML = renderStandings(data.standings);
                 } else {
@@ -1518,71 +1068,10 @@
             }
         }
         
-        async function checkCanGenerateQuadrangular(champId, category) {
-            if (!champId || !category) {
-                return false;
-            }
-            try {
-                const res = await fetch(`${API_BASE}/api/championships/${champId}/can-generate-quadrangular/${category}`);
-                if (!res.ok) {
-                    return false;
-                }
-                const data = await res.json();
-                return data.success && data.can_generate;
-            } catch (error) {
-                console.error('Error verificando cuadrangular:', error);
-                return false;
-            }
-        }
-        
-        async function generateQuadrangular(champId, category) {
-            try {
-                const res = await fetch(`${API_BASE}/api/championships/${champId}/generate-quadrangular/${category}`, {
-                    method: 'POST'
-                });
-                const data = await res.json();
-                
-                if (data.success) {
-                    showAlert('Cuadrangular generado exitosamente', 'success');
-                    setTimeout(() => loadViewData(), 1000);
-                } else {
-                    showAlert(data.error || 'Error al generar el cuadrangular', 'error');
-                }
-            } catch (error) {
-                showAlert('Error: ' + error.message, 'error');
-            }
-        }
-        
-        async function generateFinal(champId, category) {
-            try {
-                const res = await fetch(`${API_BASE}/api/championships/${champId}/generate-final/${category}`, {
-                    method: 'POST'
-                });
-                const data = await res.json();
-                
-                if (data.success) {
-                    showAlert('Final generada exitosamente', 'success');
-                    setTimeout(() => loadViewData(), 1000);
-                } else {
-                    showAlert(data.error || 'Error al generar la final', 'error');
-                }
-            } catch (error) {
-                showAlert('Error: ' + error.message, 'error');
-            }
-        }
-        
-        function renderFixture(matches, categoryName, champId = null, category = null, canGenerateQuadrangular = false) {
+        function renderFixture(matches, categoryName) {
             if (!matches || matches.length === 0) {
                 return '<div class="empty-state">No hay partidos en el fixture</div>';
             }
-            
-            // Separar partidos regulares del cuadrangular
-            const regularMatches = matches.filter(m => !m.match_type || (m.match_type !== 'semifinal' && m.match_type !== 'final'));
-            const quadrangularMatches = matches.filter(m => m.match_type === 'semifinal' || m.match_type === 'final');
-            const hasQuadrangular = quadrangularMatches.length > 0;
-            const semifinals = quadrangularMatches.filter(m => m.match_type === 'semifinal');
-            const final = quadrangularMatches.find(m => m.match_type === 'final');
-            const canGenerateFinal = semifinals.length === 2 && semifinals.every(m => m.played && m.winner && m.winner !== "Empate") && !final;
             
             // Agrupar partidos por tipo (ida/vuelta) y luego por jornada
             const matchesByVuelta = {
@@ -1590,8 +1079,7 @@
                 'vuelta': {}
             };
             
-            // Solo procesar partidos regulares (excluir cuadrangular)
-            regularMatches.forEach(match => {
+            matches.forEach(match => {
                 const matchType = match.match_type || 'ida';
                 const matchday = match.matchday || 1;
                 
@@ -1604,30 +1092,16 @@
                 matchesByVuelta[matchType][matchday].push(match);
             });
             
-            const champId = document.getElementById('champIdView')?.value || window.currentChampId;
-            const category = document.getElementById('categoryView')?.value || window.currentCategory;
+            const champId = document.getElementById('champIdView')?.value;
+            const category = document.getElementById('categoryView')?.value;
             
-            // Calcular total de partidos (solo regulares)
-            const totalPartidos = regularMatches.length;
-            const partidosJugados = regularMatches.filter(m => m.played).length;
+            // Calcular total de partidos
+            const totalPartidos = matches.length;
+            const partidosJugados = matches.filter(m => m.played).length;
             const partidosPendientes = totalPartidos - partidosJugados;
             
             let html = `<div style="padding: 10px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
-                    <h3 style="color: #1e3c72; margin-bottom: 0; font-size: 1.8em; font-weight: 700;">📅 Fixture - ${categoryName}</h3>
-                    ${champId && category && canGenerateQuadrangular && !hasQuadrangular ? `
-                        <button onclick="generateQuadrangular('${champId}', '${category}')" 
-                            style="padding: 12px 24px; background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 700; box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4); text-transform: uppercase; letter-spacing: 0.5px;">
-                            🏆 Generar Cuadrangular
-                        </button>
-                    ` : ''}
-                    ${champId && category && canGenerateFinal ? `
-                        <button onclick="generateFinal('${champId}', '${category}')" 
-                            style="padding: 12px 24px; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 700; box-shadow: 0 4px 15px rgba(30, 60, 114, 0.4); text-transform: uppercase; letter-spacing: 0.5px;">
-                            🥇 Generar Final
-                        </button>
-                    ` : ''}
-                </div>
+                <h3 style="color: #667eea; margin-bottom: 10px;">📅 Fixture - ${categoryName}</h3>
                 <div style="background: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 15px;">
                     <div style="text-align: center;">
                         <div style="font-size: 2em; font-weight: bold; color: #667eea;">${totalPartidos}</div>
@@ -1726,14 +1200,10 @@
                                         <input type="time" id="${matchId}_time" value="${time}" 
                                             style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 5px;">
                                     </div>
-                                    <div style="display: flex; gap: 5px; flex-direction: column;">
+                                    <div>
                                         <button onclick="saveMatch('${champId}', '${category}', '${match.team_a}', '${match.team_b}', ${match.round_number}, ${match.matchday}, '${matchId}')" 
                                             style="padding: 8px 15px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; white-space: nowrap;">
                                             ${played ? 'Actualizar' : 'Guardar'}
-                                        </button>
-                                        <button onclick="showPenaltyModal('${champId || ''}', '${category || ''}', '${match.team_a}', '${match.team_b}', '${matchId}')" 
-                                            style="padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; white-space: nowrap; font-size: 0.9em;">
-                                            ⚠️ Sanción
                                         </button>
                                     </div>
                                 </div>
@@ -1748,249 +1218,7 @@
             });
             
             html += `</div>`;
-            
-            // Mostrar cuadrangular si existe
-            if (hasQuadrangular) {
-                html += `
-                    <div style="margin-top: 40px; padding: 25px; background: linear-gradient(135deg, #fff5f0 0%, #ffffff 100%); border-radius: 15px; border: 3px solid #ff6b35; box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);">
-                        <h3 style="color: #ff6b35; margin-bottom: 20px; font-size: 1.5em; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: 1px;">
-                            🏆 CUADRANGULAR FINAL
-                        </h3>
-                `;
-                
-                // Mostrar semifinales
-                if (semifinals.length > 0) {
-                    html += `
-                        <div style="margin-bottom: 30px;">
-                            <h4 style="color: #1e3c72; margin-bottom: 15px; font-weight: 700; font-size: 1.2em;">Semifinales</h4>
-                    `;
-                    
-                    semifinals.forEach((match, idx) => {
-                        const matchId = `quad_semi_${idx}`;
-                        const played = match.played;
-                        const scoreA = match.score_a !== null ? match.score_a : '';
-                        const scoreB = match.score_b !== null ? match.score_b : '';
-                        const date = match.date || '';
-                        const time = match.time || '';
-                        
-                        html += `
-                            <div style="padding: 20px; background: white; border-radius: 12px; margin-bottom: 15px; border-left: 5px solid #ff6b35; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                                <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 15px; align-items: center; margin-bottom: 15px;">
-                                    <div style="text-align: right;">
-                                        <strong style="font-size: 1.1em; color: #1e3c72;">${match.team_a}</strong>
-                                    </div>
-                                    <div style="display: flex; gap: 10px; align-items: center;">
-                                        <input type="number" id="${matchId}_scoreA" value="${scoreA}" 
-                                            placeholder="0" min="0" 
-                                            style="width: 70px; padding: 10px; text-align: center; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1.1em; font-weight: 600;"
-                                            ${played ? 'readonly' : ''}>
-                                        <span style="font-weight: bold; color: #666; font-size: 1.2em;">-</span>
-                                        <input type="number" id="${matchId}_scoreB" value="${scoreB}" 
-                                            placeholder="0" min="0" 
-                                            style="width: 70px; padding: 10px; text-align: center; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1.1em; font-weight: 600;"
-                                            ${played ? 'readonly' : ''}>
-                                    </div>
-                                    <div style="text-align: left;">
-                                        <strong style="font-size: 1.1em; color: #1e3c72;">${match.team_b}</strong>
-                                    </div>
-                                </div>
-                                
-                                <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: center;">
-                                    <div>
-                                        <label style="font-size: 0.9em; color: #666; display: block; margin-bottom: 5px; font-weight: 600;">Fecha:</label>
-                                        <input type="date" id="${matchId}_date" value="${date}" 
-                                            style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                                    </div>
-                                    <div>
-                                        <label style="font-size: 0.9em; color: #666; display: block; margin-bottom: 5px; font-weight: 600;">Horario:</label>
-                                        <input type="time" id="${matchId}_time" value="${time}" 
-                                            style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                                    </div>
-                                    <div style="display: flex; gap: 5px; flex-direction: column;">
-                                        <button onclick="saveMatch('${champId || ''}', '${category || ''}', '${match.team_a}', '${match.team_b}', ${match.round_number}, ${match.matchday || 1}, '${matchId}')" 
-                                            style="padding: 10px 20px; background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap; box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);">
-                                            ${played ? 'Actualizar' : 'Guardar'}
-                                        </button>
-                                        <button onclick="showPenaltyModal('${champId || ''}', '${category || ''}', '${match.team_a}', '${match.team_b}', '${matchId}')" 
-                                            style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap; font-size: 0.9em; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);">
-                                            ⚠️ Sanción
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    
-                    html += `</div>`;
-                }
-                
-                // Mostrar final
-                if (final) {
-                    const matchId = 'quad_final';
-                    const played = final.played;
-                    const scoreA = final.score_a !== null ? final.score_a : '';
-                    const scoreB = final.score_b !== null ? final.score_b : '';
-                    const date = final.date || '';
-                    const time = final.time || '';
-                    
-                    html += `
-                        <div style="margin-top: 30px; padding: 25px; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); border-radius: 15px; box-shadow: 0 8px 25px rgba(30, 60, 114, 0.4);">
-                            <h4 style="color: white; margin-bottom: 20px; font-weight: 700; font-size: 1.3em; text-align: center; text-transform: uppercase; letter-spacing: 1px;">
-                                🥇 FINAL
-                            </h4>
-                            <div style="padding: 20px; background: white; border-radius: 12px; margin-bottom: 15px;">
-                                <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 15px; align-items: center; margin-bottom: 15px;">
-                                    <div style="text-align: right;">
-                                        <strong style="font-size: 1.3em; color: #1e3c72;">${final.team_a}</strong>
-                                    </div>
-                                    <div style="display: flex; gap: 10px; align-items: center;">
-                                        <input type="number" id="${matchId}_scoreA" value="${scoreA}" 
-                                            placeholder="0" min="0" 
-                                            style="width: 80px; padding: 12px; text-align: center; border: 3px solid #ff6b35; border-radius: 10px; font-size: 1.3em; font-weight: 700;"
-                                            ${played ? 'readonly' : ''}>
-                                        <span style="font-weight: bold; color: #1e3c72; font-size: 1.5em;">-</span>
-                                        <input type="number" id="${matchId}_scoreB" value="${scoreB}" 
-                                            placeholder="0" min="0" 
-                                            style="width: 80px; padding: 12px; text-align: center; border: 3px solid #ff6b35; border-radius: 10px; font-size: 1.3em; font-weight: 700;"
-                                            ${played ? 'readonly' : ''}>
-                                    </div>
-                                    <div style="text-align: left;">
-                                        <strong style="font-size: 1.3em; color: #1e3c72;">${final.team_b}</strong>
-                                    </div>
-                                </div>
-                                
-                                <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: center;">
-                                    <div>
-                                        <label style="font-size: 0.9em; color: #666; display: block; margin-bottom: 5px; font-weight: 600;">Fecha:</label>
-                                        <input type="date" id="${matchId}_date" value="${date}" 
-                                            style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                                    </div>
-                                    <div>
-                                        <label style="font-size: 0.9em; color: #666; display: block; margin-bottom: 5px; font-weight: 600;">Horario:</label>
-                                        <input type="time" id="${matchId}_time" value="${time}" 
-                                            style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                                    </div>
-                                    <div style="display: flex; gap: 5px; flex-direction: column;">
-                                        <button onclick="saveMatch('${champId}', '${category}', '${final.team_a}', '${final.team_b}', ${final.round_number}, ${final.matchday || 2}, '${matchId}')" 
-                                            style="padding: 12px 24px; background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; white-space: nowrap; box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4); font-size: 1.1em;">
-                                            ${played ? 'Actualizar' : 'Guardar'}
-                                        </button>
-                                        <button onclick="showPenaltyModal('${champId}', '${category}', '${final.team_a}', '${final.team_b}', '${matchId}')" 
-                                            style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap; font-size: 0.9em; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);">
-                                            ⚠️ Sanción
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                html += `</div>`;
-            }
-            
-            html += `</div>`;
             return html;
-        }
-        
-        function showPenaltyModal(champId, category, teamA, teamB, matchId) {
-            const modal = document.createElement('div');
-            modal.id = 'penaltyModal';
-            modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.5);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 10000;
-            `;
-            
-            modal.innerHTML = `
-                <div style="background: white; padding: 30px; border-radius: 10px; max-width: 500px; width: 90%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                    <h3 style="color: #dc3545; margin-bottom: 20px;">⚠️ Aplicar Sanción de Puntos</h3>
-                    <p style="margin-bottom: 15px; color: #666;">Partido: <strong>${teamA}</strong> vs <strong>${teamB}</strong></p>
-                    
-                    <div class="form-group" style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Equipo a sancionar:</label>
-                        <select id="penaltyTeam" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 5px;">
-                            <option value="${teamA}">${teamA}</option>
-                            <option value="${teamB}">${teamB}</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Puntos a descontar (positivo = descuento, negativo = bonificación):</label>
-                        <input type="number" id="penaltyPoints" value="0" step="0.5" 
-                            style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 5px;">
-                        <small style="color: #666; font-size: 0.85em;">Ejemplo: 2 = descuenta 2 puntos, -1 = suma 1 punto</small>
-                    </div>
-                    
-                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                        <button onclick="document.getElementById('penaltyModal').remove()" 
-                            style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                            Cancelar
-                        </button>
-                        <button onclick="applyPenaltyFromFixture('${champId}', '${category}', '${matchId}')" 
-                            style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
-                            Aplicar Sanción
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(modal);
-            
-            // Cerrar al hacer clic fuera del modal
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.remove();
-                }
-            });
-        }
-        
-        async function applyPenaltyFromFixture(champId, category, matchId) {
-            const team = document.getElementById('penaltyTeam').value;
-            const points = parseFloat(document.getElementById('penaltyPoints').value);
-            
-            if (isNaN(points) || points === 0) {
-                showAlert('Ingresa un valor válido diferente de cero', 'error');
-                return;
-            }
-            
-            try {
-                const res = await fetch(`${API_BASE}/api/championships/${champId}/penalty`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        category: category,
-                        team: team,
-                        points: points
-                    })
-                });
-                
-                const data = await res.json();
-                
-                if (data.success) {
-                    showAlert(`Sanción aplicada: ${points > 0 ? 'Descuento' : 'Bonificación'} de ${Math.abs(points)} puntos a ${team}`, 'success');
-                    document.getElementById('penaltyModal').remove();
-                    
-                    // Recargar vista para actualizar tabla de posiciones
-                    setTimeout(() => {
-                        const view = document.getElementById('viewSelect').value;
-                        if (view === 'standings' || view === 'fixture') {
-                            loadViewData();
-                        }
-                    }, 500);
-                } else {
-                    showAlert(data.error || 'Error al aplicar sanción', 'error');
-                }
-            } catch (error) {
-                showAlert('Error: ' + error.message, 'error');
-            }
         }
         
         async function saveMatch(champId, category, teamA, teamB, roundNumber, matchday, matchId) {
@@ -2439,47 +1667,9 @@
             updateExportSelect();
         };
         
-        // Inicializar cuando el DOM esté listo
-        function initializeApp() {
-            console.log('=== INICIALIZANDO APLICACIÓN ===');
-            
-            // Asegurar que el tab "Crear" esté activo
-            const createTab = document.getElementById('createTab');
-            const manageTab = document.getElementById('manageTab');
-            if (createTab) {
-                createTab.classList.add('active');
-                createTab.style.display = 'block';
-                console.log('✅ Tab "Crear" activado');
-            }
-            if (manageTab) {
-                manageTab.classList.remove('active');
-                manageTab.style.display = 'none';
-            }
-            
-            // Asegurar que el selector tenga el valor correcto
-            const actionSelect = document.getElementById('actionSelect');
-            if (actionSelect) {
-                actionSelect.value = 'createChamp';
-                console.log('✅ Selector de acción configurado a "createChamp"');
-            }
-            
-            // Actualizar formulario
-            console.log('Llamando a updateForm()...');
-            updateForm();
-            
-            // Cargar datos
-            console.log('Llamando a loadData()...');
-            loadData();
-            
-            console.log('=== INICIALIZACIÓN COMPLETADA ===');
-        }
-        
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeApp);
-        } else {
-            // Si el DOM ya está listo, ejecutar inmediatamente
-            setTimeout(initializeApp, 100);
-        }
+        // Inicializar
+        updateForm();
+        loadData();
     </script>
 </body>
 </html>
