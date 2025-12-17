@@ -476,6 +476,7 @@
                 loadFromLocalStorage();
                 renderChampionships();
                 renderCategories();
+                updateForm(); // Actualizar formularios con datos cargados
                 showAlert('Cargando desde almacenamiento local (servidor no disponible)', 'warning');
             }
         }
@@ -941,7 +942,14 @@
                     }
                     // Recargar datos después de crear/modificar
                     if (action === 'createChamp' || action === 'addCategory') {
-                        setTimeout(() => loadData(), 1000);
+                        // Recargar datos inmediatamente y luego de nuevo después de un segundo
+                        loadData();
+                        setTimeout(() => {
+                            loadData();
+                            renderChampionships();
+                            renderCategories();
+                            updateForm(); // Actualizar formularios con nuevos datos
+                        }, 1000);
                     }
                 } else {
                     showAlert(data.error || 'Error en la operación', 'error');
