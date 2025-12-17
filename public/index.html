@@ -1040,6 +1040,7 @@
                     url = `${API_BASE}/api/championships/${champId}/fixture/${category}`;
                     if (round) url += `?round=${round}`;
                     window.currentCategory = category; // Guardar para usar en renderFixture
+                    window.currentChampId = champId; // Guardar para usar en renderFixture
                 } else {
                     url = `${API_BASE}/api/championships/${champId}`;
                 }
@@ -1092,8 +1093,8 @@
                 matchesByVuelta[matchType][matchday].push(match);
             });
             
-            const champId = document.getElementById('champIdView')?.value;
-            const category = document.getElementById('categoryView')?.value;
+            const champId = document.getElementById('champIdView')?.value || window.currentChampId;
+            const category = document.getElementById('categoryView')?.value || window.currentCategory;
             
             // Calcular total de partidos
             const totalPartidos = matches.length;
@@ -1200,10 +1201,14 @@
                                         <input type="time" id="${matchId}_time" value="${time}" 
                                             style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 5px;">
                                     </div>
-                                    <div>
+                                    <div style="display: flex; gap: 5px; flex-direction: column;">
                                         <button onclick="saveMatch('${champId}', '${category}', '${match.team_a}', '${match.team_b}', ${match.round_number}, ${match.matchday}, '${matchId}')" 
                                             style="padding: 8px 15px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; white-space: nowrap;">
                                             ${played ? 'Actualizar' : 'Guardar'}
+                                        </button>
+                                        <button onclick="showPenaltyModal('${champId}', '${category}', '${match.team_a}', '${match.team_b}', '${matchId}')" 
+                                            style="padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; white-space: nowrap; font-size: 0.9em;">
+                                            ⚠️ Sanción
                                         </button>
                                     </div>
                                 </div>
@@ -1219,6 +1224,106 @@
             
             html += `</div>`;
             return html;
+        }
+        
+        function showPenaltyModal(champId, category, teamA, teamB, matchId) {
+            const modal = document.createElement('div');
+            modal.id = 'penaltyModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: white; padding: 30px; border-radius: 10px; max-width: 500px; width: 90%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <h3 style="color: #dc3545; margin-bottom: 20px;">⚠️ Aplicar Sanción de Puntos</h3>
+                    <p style="margin-bottom: 15px; color: #666;">Partido: <strong>${teamA}</strong> vs <strong>${teamB}</strong></p>
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Equipo a sancionar:</label>
+                        <select id="penaltyTeam" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 5px;">
+                            <option value="${teamA}">${teamA}</option>
+                            <option value="${teamB}">${teamB}</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Puntos a descontar (positivo = descuento, negativo = bonificación):</label>
+                        <input type="number" id="penaltyPoints" value="0" step="0.5" 
+                            style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 5px;">
+                        <small style="color: #666; font-size: 0.85em;">Ejemplo: 2 = descuenta 2 puntos, -1 = suma 1 punto</small>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button onclick="document.getElementById('penaltyModal').remove()" 
+                            style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            Cancelar
+                        </button>
+                        <button onclick="applyPenaltyFromFixture('${champId}', '${category}', '${matchId}')" 
+                            style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                            Aplicar Sanción
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Cerrar al hacer clic fuera del modal
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+        
+        async function applyPenaltyFromFixture(champId, category, matchId) {
+            const team = document.getElementById('penaltyTeam').value;
+            const points = parseFloat(document.getElementById('penaltyPoints').value);
+            
+            if (isNaN(points) || points === 0) {
+                showAlert('Ingresa un valor válido diferente de cero', 'error');
+                return;
+            }
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/championships/${champId}/penalty`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        category: category,
+                        team: team,
+                        points: points
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    showAlert(`Sanción aplicada: ${points > 0 ? 'Descuento' : 'Bonificación'} de ${Math.abs(points)} puntos a ${team}`, 'success');
+                    document.getElementById('penaltyModal').remove();
+                    
+                    // Recargar vista para actualizar tabla de posiciones
+                    setTimeout(() => {
+                        const view = document.getElementById('viewSelect').value;
+                        if (view === 'standings' || view === 'fixture') {
+                            loadViewData();
+                        }
+                    }, 500);
+                } else {
+                    showAlert(data.error || 'Error al aplicar sanción', 'error');
+                }
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+            }
         }
         
         async function saveMatch(champId, category, teamA, teamB, roundNumber, matchday, matchId) {
