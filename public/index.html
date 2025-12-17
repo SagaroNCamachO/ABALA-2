@@ -393,19 +393,45 @@
         
         async function loadData() {
             try {
+                // Primero obtener la lista de campeonatos
                 const res = await fetch(`${API_BASE}/api/championships`);
                 const data = await res.json();
                 
                 if (data.success) {
-                    championshipsData = data.championships || {};
+                    const champList = data.championships || {};
+                    championshipsData = {};
                     categoriesData = {};
                     
-                    // Extraer categorías de cada campeonato
-                    for (const [id, champ] of Object.entries(championshipsData)) {
-                        if (champ.categories) {
-                            categoriesData[id] = champ.categories;
+                    // Cargar datos completos de cada campeonato
+                    const loadPromises = Object.keys(champList).map(async (id) => {
+                        try {
+                            const champRes = await fetch(`${API_BASE}/api/championships/${id}`);
+                            const champData = await champRes.json();
+                            
+                            if (champData.success && champData.championship) {
+                                championshipsData[id] = {
+                                    name: champData.championship.name,
+                                    rounds: champData.championship.rounds,
+                                    points_per_win: champData.championship.points_per_win,
+                                    points_per_loss: champData.championship.points_per_loss,
+                                    categories: champData.championship.categories || {}
+                                };
+                                
+                                // Extraer categorías con equipos
+                                if (champData.championship.categories) {
+                                    categoriesData[id] = champData.championship.categories;
+                                }
+                            } else {
+                                // Si falla, usar datos del resumen
+                                championshipsData[id] = champList[id];
+                            }
+                        } catch (error) {
+                            console.error(`Error cargando campeonato ${id}:`, error);
+                            championshipsData[id] = champList[id];
                         }
-                    }
+                    });
+                    
+                    await Promise.all(loadPromises);
                     
                     renderChampionships();
                     renderCategories();
@@ -413,6 +439,7 @@
                 }
             } catch (error) {
                 console.error('Error cargando datos:', error);
+                showAlert('Error al cargar datos: ' + error.message, 'error');
             }
         }
         
@@ -694,18 +721,39 @@
                         break;
                     case 'addCategory':
                         const champId = document.getElementById('champIdSelect').value;
+                        
+                        if (!champId) {
+                            showAlert('Por favor selecciona un campeonato', 'error');
+                            return;
+                        }
+                        
+                        const categoryName = document.getElementById('categoryName').value;
+                        if (!categoryName) {
+                            showAlert('Por favor ingresa el nombre de la categoría', 'error');
+                            return;
+                        }
+                        
                         url = `${API_BASE}/api/championships/${champId}/categories`;
                         const teamsInput = document.getElementById('teams').value;
                         const numTeams = document.getElementById('numTeams').value;
                         
                         const body = {
-                            name: document.getElementById('categoryName').value
+                            name: categoryName
                         };
                         
-                        if (teamsInput.trim()) {
-                            body.teams = teamsInput.split(',').map(t => t.trim());
-                        } else if (numTeams) {
+                        if (teamsInput && teamsInput.trim()) {
+                            const teams = teamsInput.split(',').map(t => t.trim()).filter(t => t.length > 0);
+                            if (teams.length > 0) {
+                                body.teams = teams;
+                            } else {
+                                showAlert('Por favor ingresa al menos un equipo', 'error');
+                                return;
+                            }
+                        } else if (numTeams && parseInt(numTeams) >= 2) {
                             body.num_teams = parseInt(numTeams);
+                        } else {
+                            showAlert('Debes proporcionar equipos (separados por comas) o un número de equipos (mínimo 2)', 'error');
+                            return;
                         }
                         
                         options = {
