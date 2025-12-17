@@ -1025,14 +1025,77 @@
         
         function loadViewCategories() {
             const champId = document.getElementById('champIdView')?.value;
-            if (!champId || !categoriesData[champId]) return;
+            if (!champId) {
+                const categoryView = document.getElementById('categoryView');
+                if (categoryView) {
+                    categoryView.innerHTML = '<option value="">Selecciona categoría</option>';
+                }
+                return;
+            }
             
-            const categories = Object.keys(categoriesData[champId]);
+            // Intentar obtener categorías de categoriesData primero
+            let categories = [];
+            if (categoriesData[champId]) {
+                categories = Object.keys(categoriesData[champId]);
+            } else if (championshipsData[champId] && championshipsData[champId].categories) {
+                // Si no está en categoriesData, intentar desde championshipsData
+                categories = Object.keys(championshipsData[champId].categories);
+                // Actualizar categoriesData para futuras referencias
+                categoriesData[champId] = championshipsData[champId].categories;
+            } else {
+                // Si no hay categorías en memoria, intentar cargar desde el servidor
+                fetch(`${API_BASE}/api/championships/${champId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success && data.championship && data.championship.categories) {
+                            categories = Object.keys(data.championship.categories);
+                            // Actualizar datos en memoria
+                            if (!categoriesData[champId]) {
+                                categoriesData[champId] = data.championship.categories;
+                            }
+                            if (!championshipsData[champId]) {
+                                championshipsData[champId] = {
+                                    name: data.championship.name,
+                                    rounds: data.championship.rounds,
+                                    points_per_win: data.championship.points_per_win,
+                                    points_per_loss: data.championship.points_per_loss,
+                                    categories: data.championship.categories
+                                };
+                            } else {
+                                championshipsData[champId].categories = data.championship.categories;
+                            }
+                            
+                            // Actualizar el selector
+                            const categoryView = document.getElementById('categoryView');
+                            if (categoryView) {
+                                categoryView.innerHTML = '<option value="">Selecciona categoría</option>' +
+                                    categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+                            }
+                        } else {
+                            const categoryView = document.getElementById('categoryView');
+                            if (categoryView) {
+                                categoryView.innerHTML = '<option value="">No hay categorías</option>';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error cargando categorías:', error);
+                        const categoryView = document.getElementById('categoryView');
+                        if (categoryView) {
+                            categoryView.innerHTML = '<option value="">Error al cargar categorías</option>';
+                        }
+                    });
+                return; // Salir temprano si estamos cargando desde el servidor
+            }
+            
             const categoryView = document.getElementById('categoryView');
-            
             if (categoryView) {
-                categoryView.innerHTML = '<option value="">Selecciona categoría</option>' +
-                    categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+                if (categories.length > 0) {
+                    categoryView.innerHTML = '<option value="">Selecciona categoría</option>' +
+                        categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+                } else {
+                    categoryView.innerHTML = '<option value="">No hay categorías</option>';
+                }
             }
         }
         
