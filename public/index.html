@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ABALA - Gestión de Campeonatos de Básquetbol</title>
+    <title>ABALA - Gestión de Campeonatos</title>
     <style>
         * {
             margin: 0;
@@ -19,67 +19,49 @@
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
         
         .header {
             text-align: center;
             color: white;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
         
         .header h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
         
-        .header p {
-            font-size: 1.2em;
-            opacity: 0.9;
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 968px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
         }
         
         .card {
             background: white;
-            border-radius: 10px;
-            padding: 30px;
-            margin-bottom: 20px;
+            border-radius: 15px;
+            padding: 25px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         
         .card h2 {
             color: #667eea;
             margin-bottom: 20px;
-            font-size: 1.5em;
-        }
-        
-        .endpoint-list {
-            list-style: none;
-        }
-        
-        .endpoint-list li {
-            padding: 15px;
-            margin-bottom: 10px;
-            background: #f8f9fa;
-            border-radius: 5px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .endpoint-list li strong {
-            color: #667eea;
-            display: block;
-            margin-bottom: 5px;
-        }
-        
-        .endpoint-list li code {
-            background: #e9ecef;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-        }
-        
-        .test-section {
-            margin-top: 30px;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .form-group {
@@ -88,48 +70,131 @@
         
         .form-group label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
             color: #333;
             font-weight: 600;
+            font-size: 0.9em;
         }
         
         .form-group input,
         .form-group select {
             width: 100%;
-            padding: 10px;
-            border: 2px solid #e9ecef;
-            border-radius: 5px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
             font-size: 14px;
+            transition: all 0.3s;
         }
         
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
             border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
         
         .btn {
-            background: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 12px 30px;
-            border-radius: 5px;
+            padding: 14px 30px;
+            border-radius: 8px;
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
         }
         
         .btn:hover {
-            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .data-section {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .data-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .data-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        
+        .data-item strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .data-item .info {
+            font-size: 0.85em;
+            color: #666;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            color: #666;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
         }
         
         .response {
             margin-top: 20px;
             padding: 15px;
             background: #f8f9fa;
-            border-radius: 5px;
+            border-radius: 8px;
             border-left: 4px solid #28a745;
-            max-height: 400px;
+            max-height: 300px;
             overflow-y: auto;
         }
         
@@ -138,25 +203,74 @@
             word-wrap: break-word;
             font-family: 'Courier New', monospace;
             font-size: 12px;
+            margin: 0;
         }
         
-        .status {
+        .status-badge {
             display: inline-block;
-            padding: 5px 10px;
-            border-radius: 3px;
-            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
             font-weight: 600;
             margin-left: 10px;
         }
         
-        .status.healthy {
+        .status-badge.success {
             background: #d4edda;
             color: #155724;
         }
         
-        .status.operational {
+        .status-badge.info {
             background: #d1ecf1;
             color: #0c5460;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        .empty-state::before {
+            content: "📋";
+            font-size: 3em;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 8px;
+        }
+        
+        .chip {
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
         }
     </style>
 </head>
@@ -164,106 +278,235 @@
     <div class="container">
         <div class="header">
             <h1>🏀 ABALA</h1>
-            <p>Sistema de Gestión de Campeonatos de Básquetbol</p>
-            <p style="font-size: 0.9em; margin-top: 10px;">
-                <span class="status operational">API Operacional</span>
-                <span class="status healthy" id="healthStatus">Verificando...</span>
-            </p>
+            <p style="font-size: 1.1em; opacity: 0.95;">Sistema de Gestión de Campeonatos de Básquetbol</p>
         </div>
         
-        <div class="card">
-            <h2>📡 Endpoints Disponibles</h2>
-            <ul class="endpoint-list">
-                <li>
-                    <strong>POST /api/championships</strong>
-                    <span>Crear un nuevo campeonato</span>
-                </li>
-                <li>
-                    <strong>GET /api/championships</strong>
-                    <span>Listar todos los campeonatos</span>
-                </li>
-                <li>
-                    <strong>GET /api/championships/:id</strong>
-                    <span>Obtener un campeonato específico</span>
-                </li>
-                <li>
-                    <strong>POST /api/championships/:id/categories</strong>
-                    <span>Agregar una categoría a un campeonato</span>
-                </li>
-                <li>
-                    <strong>POST /api/championships/:id/results</strong>
-                    <span>Registrar el resultado de un partido</span>
-                </li>
-                <li>
-                    <strong>GET /api/championships/:id/standings/:category</strong>
-                    <span>Obtener la tabla de posiciones de una categoría</span>
-                </li>
-                <li>
-                    <strong>GET /api/championships/:id/fixture/:category</strong>
-                    <span>Obtener el fixture de una categoría</span>
-                </li>
-                <li>
-                    <strong>POST /api/championships/:id/penalty</strong>
-                    <span>Aplicar una multa o bonificación de puntos</span>
-                </li>
-            </ul>
-        </div>
-        
-        <div class="card test-section">
-            <h2>🧪 Probar API</h2>
-            
-            <div class="form-group">
-                <label>Acción:</label>
-                <select id="actionSelect" onchange="updateForm()">
-                    <option value="create">Crear Campeonato</option>
-                    <option value="list">Listar Campeonatos</option>
-                    <option value="addCategory">Agregar Categoría</option>
-                    <option value="registerResult">Registrar Resultado</option>
-                    <option value="getStandings">Ver Tabla de Posiciones</option>
-                    <option value="getFixture">Ver Fixture</option>
-                </select>
+        <div class="main-grid">
+            <!-- Panel Izquierdo: Crear/Gestionar -->
+            <div class="card">
+                <h2>⚙️ Gestión</h2>
+                
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('create')">Crear</button>
+                    <button class="tab" onclick="switchTab('manage')">Gestionar</button>
+                </div>
+                
+                <!-- Tab: Crear -->
+                <div id="createTab" class="tab-content active">
+                    <div class="form-group">
+                        <label>Acción:</label>
+                        <select id="actionSelect" onchange="updateForm()">
+                            <option value="createChamp">Crear Campeonato</option>
+                            <option value="addCategory">Agregar Categoría</option>
+                            <option value="registerResult">Registrar Resultado</option>
+                            <option value="applyPenalty">Aplicar Multa</option>
+                        </select>
+                    </div>
+                    
+                    <div id="dynamicForm"></div>
+                    
+                    <button class="btn" onclick="executeAction()">Ejecutar</button>
+                    <button class="btn btn-secondary" onclick="loadData()">🔄 Actualizar Datos</button>
+                </div>
+                
+                <!-- Tab: Gestionar -->
+                <div id="manageTab" class="tab-content">
+                    <div class="form-group">
+                        <label>Ver:</label>
+                        <select id="viewSelect" onchange="loadView()">
+                            <option value="standings">Tabla de Posiciones</option>
+                            <option value="fixture">Fixture</option>
+                            <option value="championship">Campeonato Completo</option>
+                        </select>
+                    </div>
+                    
+                    <div id="viewForm"></div>
+                    <button class="btn" onclick="loadViewData()">Ver</button>
+                </div>
             </div>
             
-            <div id="dynamicForm"></div>
-            
-            <button class="btn" onclick="testEndpoint()">Ejecutar</button>
-            
-            <div id="response" class="response" style="display: none;"></div>
+            <!-- Panel Derecho: Datos Creados -->
+            <div class="card">
+                <h2>📊 Datos Creados</h2>
+                
+                <div class="tabs">
+                    <button class="tab active" onclick="switchDataTab('championships')">Campeonatos</button>
+                    <button class="tab" onclick="switchDataTab('categories')">Categorías</button>
+                </div>
+                
+                <div id="championshipsTab" class="tab-content active data-section">
+                    <div id="championshipsList"></div>
+                </div>
+                
+                <div id="categoriesTab" class="tab-content data-section">
+                    <div id="categoriesList"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Respuesta -->
+        <div class="card" id="responseCard" style="display: none;">
+            <h2>📤 Respuesta</h2>
+            <div id="response" class="response"></div>
         </div>
     </div>
     
     <script>
         const API_BASE = window.location.origin;
+        let championshipsData = {};
+        let categoriesData = {};
         
-        // Verificar salud de la API
-        fetch(`${API_BASE}/health`)
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('healthStatus').textContent = 'API Saludable';
-            })
-            .catch(() => {
-                document.getElementById('healthStatus').textContent = 'Error de Conexión';
-                document.getElementById('healthStatus').classList.remove('healthy');
-                document.getElementById('healthStatus').classList.add('status');
-                document.getElementById('healthStatus').style.background = '#f8d7da';
-                document.getElementById('healthStatus').style.color = '#721c24';
+        // Cargar datos al iniciar
+        window.onload = () => {
+            loadData();
+        };
+        
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            if (tab === 'create') {
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                document.getElementById('createTab').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('manageTab').classList.add('active');
+            }
+        }
+        
+        function switchDataTab(tab) {
+            document.querySelectorAll('#championshipsTab, #categoriesTab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach((t, i) => {
+                if ((tab === 'championships' && i === 0) || (tab === 'categories' && i === 1)) {
+                    t.classList.add('active');
+                } else {
+                    t.classList.remove('active');
+                }
             });
+            
+            if (tab === 'championships') {
+                document.getElementById('championshipsTab').classList.add('active');
+            } else {
+                document.getElementById('categoriesTab').classList.add('active');
+            }
+        }
+        
+        async function loadData() {
+            try {
+                const res = await fetch(`${API_BASE}/api/championships`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    championshipsData = data.championships || {};
+                    categoriesData = {};
+                    
+                    // Extraer categorías de cada campeonato
+                    for (const [id, champ] of Object.entries(championshipsData)) {
+                        if (champ.categories) {
+                            categoriesData[id] = champ.categories;
+                        }
+                    }
+                    
+                    renderChampionships();
+                    renderCategories();
+                    updateForm(); // Actualizar formularios con datos disponibles
+                }
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+            }
+        }
+        
+        function renderChampionships() {
+            const list = document.getElementById('championshipsList');
+            
+            if (Object.keys(championshipsData).length === 0) {
+                list.innerHTML = '<div class="empty-state">No hay campeonatos creados</div>';
+                return;
+            }
+            
+            list.innerHTML = Object.entries(championshipsData).map(([id, champ]) => `
+                <div class="data-item" onclick="selectChampionship('${id}')">
+                    <strong>${champ.name || id}</strong>
+                    <div class="info">
+                        ID: ${id}<br>
+                        Vueltas: ${champ.rounds || 'N/A'}<br>
+                        Categorías: ${champ.categories ? Object.keys(champ.categories).length : 0}
+                    </div>
+                    ${champ.categories ? `<div class="chips">${Object.keys(champ.categories).map(cat => `<span class="chip">${cat}</span>`).join('')}</div>` : ''}
+                </div>
+            `).join('');
+        }
+        
+        function renderCategories() {
+            const list = document.getElementById('categoriesList');
+            
+            if (Object.keys(categoriesData).length === 0) {
+                list.innerHTML = '<div class="empty-state">No hay categorías creadas</div>';
+                return;
+            }
+            
+            let html = '';
+            for (const [champId, categories] of Object.entries(categoriesData)) {
+                for (const [catName, cat] of Object.entries(categories)) {
+                    html += `
+                        <div class="data-item" onclick="selectCategory('${champId}', '${catName}')">
+                            <strong>${catName}</strong>
+                            <div class="info">
+                                Campeonato: ${championshipsData[champId]?.name || champId}<br>
+                                Equipos: ${cat.teams ? cat.teams.length : 0}<br>
+                                Partidos: ${cat.matches ? cat.matches.length : 0}
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            list.innerHTML = html || '<div class="empty-state">No hay categorías</div>';
+        }
+        
+        function selectChampionship(id) {
+            const champ = championshipsData[id];
+            if (!champ) return;
+            
+            // Auto-rellenar formularios
+            document.getElementById('champId')?.setAttribute('value', id);
+            document.getElementById('champIdSelect')?.setAttribute('value', id);
+            document.getElementById('champIdView')?.setAttribute('value', id);
+            
+            // Mostrar alerta
+            showAlert(`Campeonato "${champ.name || id}" seleccionado`, 'success');
+        }
+        
+        function selectCategory(champId, catName) {
+            // Auto-rellenar formularios
+            document.getElementById('categoryName')?.setAttribute('value', catName);
+            document.getElementById('categorySelect')?.setAttribute('value', catName);
+            document.getElementById('categoryView')?.setAttribute('value', catName);
+            document.getElementById('champId')?.setAttribute('value', champId);
+            
+            showAlert(`Categoría "${catName}" seleccionada`, 'success');
+        }
         
         function updateForm() {
             const action = document.getElementById('actionSelect').value;
             const formDiv = document.getElementById('dynamicForm');
             let html = '';
             
+            // Obtener IDs de campeonatos disponibles
+            const champIds = Object.keys(championshipsData);
+            const champOptions = champIds.length > 0 
+                ? champIds.map(id => `<option value="${id}">${championshipsData[id].name || id}</option>`).join('')
+                : '<option value="">No hay campeonatos</option>';
+            
             switch(action) {
-                case 'create':
+                case 'createChamp':
                     html = `
                         <div class="form-group">
                             <label>ID del Campeonato:</label>
-                            <input type="text" id="champId" placeholder="champ1" value="champ1">
+                            <input type="text" id="champId" placeholder="champ1" value="champ${champIds.length + 1}">
                         </div>
                         <div class="form-group">
                             <label>Nombre:</label>
-                            <input type="text" id="name" placeholder="Campeonato 2024" value="Campeonato 2024">
+                            <input type="text" id="name" placeholder="Campeonato 2024" value="Campeonato ${new Date().getFullYear()}">
                         </div>
                         <div class="form-group">
                             <label>Vueltas:</label>
@@ -273,41 +516,64 @@
                             <label>Puntos por Victoria:</label>
                             <input type="number" id="pointsWin" value="2" min="0">
                         </div>
+                        <div class="form-group">
+                            <label>Puntos por Derrota:</label>
+                            <input type="number" id="pointsLoss" value="0" min="0">
+                        </div>
                     `;
                     break;
                 case 'addCategory':
                     html = `
                         <div class="form-group">
-                            <label>ID del Campeonato:</label>
-                            <input type="text" id="champId" placeholder="champ1" value="champ1">
+                            <label>Campeonato:</label>
+                            <select id="champIdSelect" onchange="loadCategoryTeams()">
+                                ${champOptions}
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Nombre de la Categoría:</label>
-                            <input type="text" id="categoryName" placeholder="TC" value="TC">
+                            <input type="text" id="categoryName" placeholder="TC" list="categorySuggestions">
+                            <datalist id="categorySuggestions">
+                                <option value="TC">
+                                <option value="Senior">
+                                <option value="Super Senior">
+                            </datalist>
                         </div>
                         <div class="form-group">
                             <label>Equipos (separados por comas):</label>
-                            <input type="text" id="teams" placeholder="Equipo A, Equipo B, Equipo C" value="Equipo A, Equipo B, Equipo C">
+                            <input type="text" id="teams" placeholder="Equipo A, Equipo B, Equipo C">
+                        </div>
+                        <div class="form-group">
+                            <label>O número de equipos (nombres automáticos):</label>
+                            <input type="number" id="numTeams" placeholder="4" min="2">
                         </div>
                     `;
                     break;
                 case 'registerResult':
                     html = `
                         <div class="form-group">
-                            <label>ID del Campeonato:</label>
-                            <input type="text" id="champId" placeholder="champ1" value="champ1">
+                            <label>Campeonato:</label>
+                            <select id="champIdSelect" onchange="loadCategoryTeams()">
+                                ${champOptions}
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Categoría:</label>
-                            <input type="text" id="category" placeholder="TC" value="TC">
+                            <select id="categorySelect" onchange="loadTeams()">
+                                <option value="">Selecciona categoría</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Equipo A:</label>
-                            <input type="text" id="teamA" placeholder="Equipo A" value="Equipo A">
+                            <select id="teamA">
+                                <option value="">Selecciona equipo</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Equipo B:</label>
-                            <input type="text" id="teamB" placeholder="Equipo B" value="Equipo B">
+                            <select id="teamB">
+                                <option value="">Selecciona equipo</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Vuelta:</label>
@@ -315,130 +581,315 @@
                         </div>
                         <div class="form-group">
                             <label>Puntos Equipo A:</label>
-                            <input type="number" id="scoreA" value="95" min="0">
+                            <input type="number" id="scoreA" value="0" min="0">
                         </div>
                         <div class="form-group">
                             <label>Puntos Equipo B:</label>
-                            <input type="number" id="scoreB" value="82" min="0">
+                            <input type="number" id="scoreB" value="0" min="0">
                         </div>
                     `;
+                    if (champIds.length > 0) {
+                        setTimeout(() => loadCategoryTeams(), 100);
+                    }
                     break;
-                case 'getStandings':
+                case 'applyPenalty':
                     html = `
                         <div class="form-group">
-                            <label>ID del Campeonato:</label>
-                            <input type="text" id="champId" placeholder="champ1" value="champ1">
+                            <label>Campeonato:</label>
+                            <select id="champIdSelect" onchange="loadCategoryTeams()">
+                                ${champOptions}
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Categoría:</label>
-                            <input type="text" id="category" placeholder="TC" value="TC">
+                            <select id="categorySelect" onchange="loadTeams()">
+                                <option value="">Selecciona categoría</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Equipo:</label>
+                            <select id="teamSelect">
+                                <option value="">Selecciona equipo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Puntos (positivo para multa, negativo para bonificación):</label>
+                            <input type="number" id="penaltyPoints" value="0">
                         </div>
                     `;
-                    break;
-                case 'getFixture':
-                    html = `
-                        <div class="form-group">
-                            <label>ID del Campeonato:</label>
-                            <input type="text" id="champId" placeholder="champ1" value="champ1">
-                        </div>
-                        <div class="form-group">
-                            <label>Categoría:</label>
-                            <input type="text" id="category" placeholder="TC" value="TC">
-                        </div>
-                        <div class="form-group">
-                            <label>Vuelta (opcional):</label>
-                            <input type="number" id="round" placeholder="Dejar vacío para todas" min="1">
-                        </div>
-                    `;
+                    if (champIds.length > 0) {
+                        setTimeout(() => loadCategoryTeams(), 100);
+                    }
                     break;
             }
             
             formDiv.innerHTML = html;
         }
         
-        function testEndpoint() {
+        function loadCategoryTeams() {
+            const champId = document.getElementById('champIdSelect')?.value;
+            if (!champId || !championshipsData[champId]) return;
+            
+            const categories = categoriesData[champId] || {};
+            const categorySelect = document.getElementById('categorySelect');
+            
+            if (categorySelect) {
+                categorySelect.innerHTML = '<option value="">Selecciona categoría</option>' +
+                    Object.keys(categories).map(cat => 
+                        `<option value="${cat}">${cat}</option>`
+                    ).join('');
+                
+                categorySelect.onchange = loadTeams;
+            }
+            
+            loadTeams();
+        }
+        
+        function loadTeams() {
+            const champId = document.getElementById('champIdSelect')?.value;
+            const category = document.getElementById('categorySelect')?.value;
+            
+            if (!champId || !category || !categoriesData[champId] || !categoriesData[champId][category]) {
+                return;
+            }
+            
+            const teams = categoriesData[champId][category].teams || [];
+            const teamOptions = teams.map(team => 
+                `<option value="${team.name || team}">${team.name || team}</option>`
+            ).join('');
+            
+            ['teamA', 'teamB', 'teamSelect'].forEach(id => {
+                const select = document.getElementById(id);
+                if (select) {
+                    select.innerHTML = '<option value="">Selecciona equipo</option>' + teamOptions;
+                }
+            });
+        }
+        
+        async function executeAction() {
             const action = document.getElementById('actionSelect').value;
             const responseDiv = document.getElementById('response');
-            responseDiv.style.display = 'block';
+            const responseCard = document.getElementById('responseCard');
+            
+            responseCard.style.display = 'block';
             responseDiv.innerHTML = '<pre>Cargando...</pre>';
             
             let url, options = {};
             
-            switch(action) {
-                case 'create':
-                    url = `${API_BASE}/api/championships`;
-                    options = {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            id: document.getElementById('champId').value,
-                            name: document.getElementById('name').value,
-                            rounds: parseInt(document.getElementById('rounds').value),
-                            points_per_win: parseInt(document.getElementById('pointsWin').value)
-                        })
-                    };
-                    break;
-                case 'list':
-                    url = `${API_BASE}/api/championships`;
-                    options = { method: 'GET' };
-                    break;
-                case 'addCategory':
-                    const champId = document.getElementById('champId').value;
-                    url = `${API_BASE}/api/championships/${champId}/categories`;
-                    options = {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            name: document.getElementById('categoryName').value,
-                            teams: document.getElementById('teams').value.split(',').map(t => t.trim())
-                        })
-                    };
-                    break;
-                case 'registerResult':
-                    const champId2 = document.getElementById('champId').value;
-                    url = `${API_BASE}/api/championships/${champId2}/results`;
-                    options = {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            category: document.getElementById('category').value,
-                            team_a: document.getElementById('teamA').value,
-                            team_b: document.getElementById('teamB').value,
-                            round_number: parseInt(document.getElementById('roundNumber').value),
-                            score_a: parseInt(document.getElementById('scoreA').value),
-                            score_b: parseInt(document.getElementById('scoreB').value)
-                        })
-                    };
-                    break;
-                case 'getStandings':
-                    const champId3 = document.getElementById('champId').value;
-                    const category = document.getElementById('category').value;
-                    url = `${API_BASE}/api/championships/${champId3}/standings/${category}`;
-                    options = { method: 'GET' };
-                    break;
-                case 'getFixture':
-                    const champId4 = document.getElementById('champId').value;
-                    const category2 = document.getElementById('category').value;
-                    const round = document.getElementById('round').value;
-                    url = `${API_BASE}/api/championships/${champId4}/fixture/${category2}`;
-                    if (round) url += `?round=${round}`;
-                    options = { method: 'GET' };
-                    break;
+            try {
+                switch(action) {
+                    case 'createChamp':
+                        url = `${API_BASE}/api/championships`;
+                        options = {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                id: document.getElementById('champId').value,
+                                name: document.getElementById('name').value,
+                                rounds: parseInt(document.getElementById('rounds').value),
+                                points_per_win: parseInt(document.getElementById('pointsWin').value),
+                                points_per_loss: parseInt(document.getElementById('pointsLoss').value)
+                            })
+                        };
+                        break;
+                    case 'addCategory':
+                        const champId = document.getElementById('champIdSelect').value;
+                        url = `${API_BASE}/api/championships/${champId}/categories`;
+                        const teamsInput = document.getElementById('teams').value;
+                        const numTeams = document.getElementById('numTeams').value;
+                        
+                        const body = {
+                            name: document.getElementById('categoryName').value
+                        };
+                        
+                        if (teamsInput.trim()) {
+                            body.teams = teamsInput.split(',').map(t => t.trim());
+                        } else if (numTeams) {
+                            body.num_teams = parseInt(numTeams);
+                        }
+                        
+                        options = {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(body)
+                        };
+                        break;
+                    case 'registerResult':
+                        const champId2 = document.getElementById('champIdSelect').value;
+                        url = `${API_BASE}/api/championships/${champId2}/results`;
+                        options = {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                category: document.getElementById('categorySelect').value,
+                                team_a: document.getElementById('teamA').value,
+                                team_b: document.getElementById('teamB').value,
+                                round_number: parseInt(document.getElementById('roundNumber').value),
+                                score_a: parseInt(document.getElementById('scoreA').value),
+                                score_b: parseInt(document.getElementById('scoreB').value)
+                            })
+                        };
+                        break;
+                    case 'applyPenalty':
+                        const champId3 = document.getElementById('champIdSelect').value;
+                        url = `${API_BASE}/api/championships/${champId3}/penalty`;
+                        options = {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                category: document.getElementById('categorySelect').value,
+                                team: document.getElementById('teamSelect').value,
+                                points: parseInt(document.getElementById('penaltyPoints').value)
+                            })
+                        };
+                        break;
+                }
+                
+                const res = await fetch(url, options);
+                const data = await res.json();
+                
+                responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                
+                if (data.success) {
+                    showAlert('Operación exitosa', 'success');
+                    // Recargar datos después de crear/modificar
+                    if (action === 'createChamp' || action === 'addCategory' || action === 'registerResult') {
+                        setTimeout(() => loadData(), 1000);
+                    }
+                } else {
+                    showAlert(data.error || 'Error en la operación', 'error');
+                }
+            } catch (error) {
+                responseDiv.innerHTML = `<pre style="color: red;">Error: ${error.message}</pre>`;
+                showAlert('Error de conexión', 'error');
             }
-            
-            fetch(url, options)
-                .then(res => res.json())
-                .then(data => {
-                    responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-                })
-                .catch(error => {
-                    responseDiv.innerHTML = `<pre style="color: red;">Error: ${error.message}</pre>`;
-                });
         }
         
-        // Inicializar formulario
+        function loadView() {
+            const view = document.getElementById('viewSelect').value;
+            const formDiv = document.getElementById('viewForm');
+            const champIds = Object.keys(championshipsData);
+            const champOptions = champIds.map(id => `<option value="${id}">${championshipsData[id].name || id}</option>`).join('');
+            
+            let html = `
+                <div class="form-group">
+                    <label>Campeonato:</label>
+                    <select id="champIdView" onchange="loadViewCategories()">
+                        ${champOptions}
+                    </select>
+                </div>
+            `;
+            
+            if (view === 'standings' || view === 'fixture') {
+                html += `
+                    <div class="form-group">
+                        <label>Categoría:</label>
+                        <select id="categoryView">
+                            <option value="">Selecciona categoría</option>
+                        </select>
+                    </div>
+                `;
+                
+                if (view === 'fixture') {
+                    html += `
+                        <div class="form-group">
+                            <label>Vuelta (opcional):</label>
+                            <input type="number" id="roundView" placeholder="Dejar vacío para todas" min="1">
+                        </div>
+                    `;
+                }
+            }
+            
+            formDiv.innerHTML = html;
+            if (champIds.length > 0) {
+                setTimeout(() => loadViewCategories(), 100);
+            }
+        }
+        
+        function loadViewCategories() {
+            const champId = document.getElementById('champIdView')?.value;
+            if (!champId || !categoriesData[champId]) return;
+            
+            const categories = Object.keys(categoriesData[champId]);
+            const categoryView = document.getElementById('categoryView');
+            
+            if (categoryView) {
+                categoryView.innerHTML = '<option value="">Selecciona categoría</option>' +
+                    categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+            }
+        }
+        
+        async function loadViewData() {
+            const view = document.getElementById('viewSelect').value;
+            const champId = document.getElementById('champIdView')?.value;
+            const responseDiv = document.getElementById('response');
+            const responseCard = document.getElementById('responseCard');
+            
+            if (!champId) {
+                showAlert('Selecciona un campeonato', 'error');
+                return;
+            }
+            
+            responseCard.style.display = 'block';
+            responseDiv.innerHTML = '<pre>Cargando...</pre>';
+            
+            try {
+                let url;
+                
+                if (view === 'standings') {
+                    const category = document.getElementById('categoryView').value;
+                    if (!category) {
+                        showAlert('Selecciona una categoría', 'error');
+                        return;
+                    }
+                    url = `${API_BASE}/api/championships/${champId}/standings/${category}`;
+                } else if (view === 'fixture') {
+                    const category = document.getElementById('categoryView').value;
+                    if (!category) {
+                        showAlert('Selecciona una categoría', 'error');
+                        return;
+                    }
+                    const round = document.getElementById('roundView').value;
+                    url = `${API_BASE}/api/championships/${champId}/fixture/${category}`;
+                    if (round) url += `?round=${round}`;
+                } else {
+                    url = `${API_BASE}/api/championships/${champId}`;
+                }
+                
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                
+                if (!data.success) {
+                    showAlert(data.error || 'Error', 'error');
+                }
+            } catch (error) {
+                responseDiv.innerHTML = `<pre style="color: red;">Error: ${error.message}</pre>`;
+                showAlert('Error de conexión', 'error');
+            }
+        }
+        
+        function showAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alert.style.position = 'fixed';
+            alert.style.top = '20px';
+            alert.style.right = '20px';
+            alert.style.zIndex = '1000';
+            alert.style.minWidth = '300px';
+            document.body.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                alert.style.transition = 'opacity 0.3s';
+                setTimeout(() => alert.remove(), 300);
+            }, 3000);
+        }
+        
+        // Inicializar
         updateForm();
     </script>
 </body>
 </html>
-
