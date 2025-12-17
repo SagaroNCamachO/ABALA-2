@@ -614,23 +614,40 @@
                 
                 const data = await res.json();
                 
-                if (data.success) {
-                    // Eliminar del localStorage
+                if (data.success || res.status === 200 || res.ok) {
+                    // Eliminar del localStorage PRIMERO
                     removeChampionshipFromLocal(champId);
+                    
                     // Eliminar de los datos en memoria
                     delete championshipsData[champId];
                     delete categoriesData[champId];
                     
+                    // Renderizar inmediatamente para actualizar la vista
+                    renderChampionships();
+                    renderCategories();
+                    updateForm();
+                    updateExportSelect();
+                    
                     showAlert('Campeonato eliminado exitosamente', 'success');
+                    
+                    // Recargar datos después de un momento para sincronizar
                     setTimeout(() => loadData(), 500);
                 } else {
                     showAlert(data.error || 'Error al eliminar', 'error');
                 }
             } catch (error) {
+                console.error('Error eliminando campeonato:', error);
                 // Si falla el servidor, eliminar solo del localStorage
                 removeChampionshipFromLocal(champId);
                 delete championshipsData[champId];
                 delete categoriesData[champId];
+                
+                // Renderizar inmediatamente
+                renderChampionships();
+                renderCategories();
+                updateForm();
+                updateExportSelect();
+                
                 showAlert('Campeonato eliminado del almacenamiento local (servidor no disponible)', 'warning');
                 setTimeout(() => loadData(), 500);
             }
@@ -677,8 +694,13 @@
         function removeChampionshipFromLocal(champId) {
             try {
                 const saved = JSON.parse(localStorage.getItem('savedChampionships') || '{}');
-                delete saved[champId];
-                localStorage.setItem('savedChampionships', JSON.stringify(saved));
+                if (saved[champId]) {
+                    delete saved[champId];
+                    localStorage.setItem('savedChampionships', JSON.stringify(saved));
+                    console.log(`✅ Campeonato ${champId} eliminado de localStorage`);
+                } else {
+                    console.log(`⚠️ Campeonato ${champId} no encontrado en localStorage`);
+                }
             } catch (error) {
                 console.error('Error al eliminar del localStorage:', error);
             }
