@@ -14,10 +14,18 @@ app.use(express.static(path.join(__dirname, '../public')));
 const championships: Map<string, Championship> = new Map();
 
 /**
- * Endpoint raíz con información de la API.
+ * Endpoint raíz - Servir interfaz HTML o JSON según Accept header.
  */
 app.get('/', (_req: Request, res: Response) => {
-  res.json({
+  const accept = _req.headers.accept || '';
+  
+  // Si el cliente acepta HTML, servir la interfaz web
+  if (accept.includes('text/html')) {
+    return res.sendFile(path.join(__dirname, '../public/index.html'));
+  }
+  
+  // Si no, devolver JSON (para APIs)
+  return res.json({
     message: "API de Gestión de Campeonatos de Básquetbol",
     version: "1.0.0",
     status: "operational",
@@ -30,7 +38,8 @@ app.get('/', (_req: Request, res: Response) => {
       "GET /api/championships/:id/standings/:category": "Obtener tabla de posiciones",
       "GET /api/championships/:id/fixture/:category": "Obtener fixture",
       "POST /api/championships/:id/penalty": "Aplicar multa"
-    }
+    },
+    web_interface: "Visita esta URL en un navegador para ver la interfaz web"
   });
 });
 
