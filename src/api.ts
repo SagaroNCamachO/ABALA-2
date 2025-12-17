@@ -367,7 +367,6 @@ app.put('/api/championships/:id/fixture/:category/result', (req: Request, res: R
   const teamA = data.team_a;
   const teamB = data.team_b;
   const roundNumber = data.round_number;
-  const matchday = data.matchday;
   const scoreA = data.score_a;
   const scoreB = data.score_b;
 
