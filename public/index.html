@@ -759,6 +759,23 @@
                 const data = await res.json();
                 
                 if (data.success) {
+                    const categories = Object.keys(data.championship.categories || {});
+                    
+                    // Cambiar a la pestaña "Gestionar"
+                    switchTab('manage');
+                    
+                    // Pre-seleccionar el campeonato en el dropdown
+                    const champSelect = document.getElementById('champIdView');
+                    if (champSelect) {
+                        champSelect.value = champId;
+                        // Disparar evento para cargar categorías
+                        if (champSelect.onchange) {
+                            champSelect.onchange();
+                        } else {
+                            loadViewCategories();
+                        }
+                    }
+                    
                     // Mostrar detalles en el panel de respuesta
                     const responseCard = document.getElementById('responseCard');
                     const responseDiv = document.getElementById('response');
@@ -766,37 +783,47 @@
                     responseCard.style.display = 'block';
                     responseDiv.innerHTML = `
                         <div style="padding: 20px;">
-                            <h3 style="color: #667eea; margin-bottom: 15px;">📋 Detalles del Campeonato: ${data.championship.name}</h3>
-                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                                <p><strong>ID:</strong> <code>${champId}</code></p>
-                                <p><strong>Vueltas:</strong> ${data.championship.rounds}</p>
-                                <p><strong>Puntos por Victoria:</strong> ${data.championship.points_per_win}</p>
+                            <h3 style="color: #1e3c72; margin-bottom: 20px; font-size: 1.5em; font-weight: 700;">📋 ${data.championship.name}</h3>
+                            <div style="background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                <p style="margin-bottom: 10px;"><strong>ID:</strong> <code style="background: #e0e7ff; padding: 4px 8px; border-radius: 6px;">${champId}</code></p>
+                                <p style="margin-bottom: 10px;"><strong>Vueltas:</strong> ${data.championship.rounds}</p>
+                                <p style="margin-bottom: 10px;"><strong>Puntos por Victoria:</strong> ${data.championship.points_per_win}</p>
                                 <p><strong>Puntos por Derrota:</strong> ${data.championship.points_per_loss}</p>
                             </div>
                             
-                            <h4 style="color: #667eea; margin-top: 20px; margin-bottom: 10px;">Categorías:</h4>
-                            ${Object.keys(data.championship.categories || {}).length > 0 
+                            <h4 style="color: #1e3c72; margin-top: 25px; margin-bottom: 15px; font-weight: 700;">Categorías:</h4>
+                            ${categories.length > 0 
                                 ? Object.entries(data.championship.categories || {}).map(([catName, cat]) => `
-                                    <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #667eea;">
-                                        <strong>${catName}</strong>
-                                        <div style="margin-top: 8px;">
-                                            <strong>Equipos (${cat.teams?.length || 0}):</strong>
-                                            <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px;">
-                                                ${cat.teams?.map(t => `<span style="background: #e9ecef; padding: 4px 8px; border-radius: 4px; font-size: 0.9em;">${t.name || t}</span>`).join('') || 'Sin equipos'}
+                                    <div style="background: white; padding: 18px; border-radius: 12px; margin-bottom: 15px; border-left: 5px solid #ff6b35; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                        <strong style="color: #1e3c72; font-size: 1.1em;">${catName}</strong>
+                                        <div style="margin-top: 12px;">
+                                            <strong style="color: #666;">Equipos (${cat.teams?.length || 0}):</strong>
+                                            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                                                ${cat.teams?.map(t => `<span style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.85em; font-weight: 600;">${t.name || t}</span>`).join('') || 'Sin equipos'}
                                             </div>
+                                        </div>
+                                        <div style="margin-top: 15px; display: flex; gap: 10px;">
+                                            <button onclick="navigateToView('${champId}', '${catName}', 'fixture')" 
+                                                style="padding: 10px 20px; background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);">
+                                                📅 Ver Fixture
+                                            </button>
+                                            <button onclick="navigateToView('${champId}', '${catName}', 'standings')" 
+                                                style="padding: 10px 20px; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 15px rgba(30, 60, 114, 0.4);">
+                                                📊 Ver Tabla
+                                            </button>
                                         </div>
                                     </div>
                                 `).join('')
-                                : '<p style="color: #666;">No hay categorías creadas</p>'
+                                : '<p style="color: #666; padding: 20px; text-align: center; background: #f8f9ff; border-radius: 12px;">No hay categorías creadas</p>'
                             }
                             
-                            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                            <div style="margin-top: 25px; padding-top: 20px; border-top: 2px solid #e0e7ff; display: flex; gap: 10px; flex-wrap: wrap;">
                                 <button onclick="saveChampionshipToLocal('${champId}')" 
-                                    style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                    style="padding: 12px 24px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);">
                                     💾 Guardar Localmente
                                 </button>
                                 <button onclick="loadChampionshipFromLocal('${champId}')" 
-                                    style="padding: 10px 20px; background: #17a2b8; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                    style="padding: 12px 24px; background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 15px rgba(23, 162, 184, 0.4);">
                                     📂 Cargar desde Local
                                 </button>
                             </div>
@@ -804,11 +831,54 @@
                     `;
                     
                     // Scroll a la respuesta
-                    responseCard.scrollIntoView({ behavior: 'smooth' });
+                    setTimeout(() => {
+                        responseCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 100);
                 }
             } catch (error) {
                 showAlert('Error al cargar detalles: ' + error.message, 'error');
             }
+        }
+        
+        function navigateToView(champId, category, viewType) {
+            // Cambiar a la pestaña "Gestionar" si no está activa
+            switchTab('manage');
+            
+            // Seleccionar el tipo de vista
+            const viewSelect = document.getElementById('viewSelect');
+            if (viewSelect) {
+                viewSelect.value = viewType;
+                loadView();
+            }
+            
+            // Pre-seleccionar campeonato
+            const champSelect = document.getElementById('champIdView');
+            if (champSelect) {
+                champSelect.value = champId;
+                // Cargar categorías
+                setTimeout(() => {
+                    loadViewCategories();
+                    // Pre-seleccionar categoría
+                    setTimeout(() => {
+                        const categorySelect = document.getElementById('categoryView');
+                        if (categorySelect) {
+                            categorySelect.value = category;
+                            // Cargar la vista automáticamente
+                            setTimeout(() => {
+                                loadViewData();
+                            }, 300);
+                        }
+                    }, 200);
+                }, 100);
+            }
+            
+            // Scroll a la sección de gestión
+            setTimeout(() => {
+                const manageTab = document.getElementById('manageTab');
+                if (manageTab) {
+                    manageTab.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 500);
         }
         
         async function deleteChampionship(champId) {
