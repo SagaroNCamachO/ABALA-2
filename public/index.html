@@ -1217,7 +1217,27 @@
                         break;
                 }
                 
+                if (!url) {
+                    showAlert('Acción no válida', 'error');
+                    responseDiv.innerHTML = '<pre style="color: red;">Error: Acción no válida</pre>';
+                    return;
+                }
+                
                 const res = await fetch(url, options);
+                
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    let errorData;
+                    try {
+                        errorData = JSON.parse(errorText);
+                    } catch {
+                        errorData = { error: errorText || 'Error desconocido' };
+                    }
+                    responseDiv.innerHTML = `<pre style="color: red;">${JSON.stringify(errorData, null, 2)}</pre>`;
+                    showAlert(errorData.error || 'Error en la operación', 'error');
+                    return;
+                }
+                
                 const data = await res.json();
                 
                 responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
@@ -1247,14 +1267,24 @@
                     }
                     // Recargar datos después de crear/modificar
                     if (action === 'createChamp' || action === 'addCategory') {
-                        setTimeout(() => loadData(), 1000);
+                        setTimeout(() => {
+                            loadData();
+                            // Limpiar formulario después de crear
+                            if (action === 'createChamp') {
+                                const formDiv = document.getElementById('dynamicForm');
+                                if (formDiv) {
+                                    updateForm(); // Recargar el formulario
+                                }
+                            }
+                        }, 1000);
                     }
                 } else {
                     showAlert(data.error || 'Error en la operación', 'error');
                 }
             } catch (error) {
+                console.error('Error en executeAction:', error);
                 responseDiv.innerHTML = `<pre style="color: red;">Error: ${error.message}</pre>`;
-                showAlert('Error de conexión', 'error');
+                showAlert('Error de conexión: ' + error.message, 'error');
             }
         }
         
