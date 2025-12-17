@@ -1109,8 +1109,13 @@
                     html = '<div class="form-group"><p style="color: #666;">Selecciona una acción para continuar</p></div>';
             }
             
+            console.log('✅ Asignando HTML al formulario...');
             formDiv.innerHTML = html;
-            console.log('Formulario actualizado para acción:', action);
+            formDiv.style.display = 'block';
+            formDiv.style.visibility = 'visible';
+            formDiv.style.opacity = '1';
+            console.log('✅ Formulario actualizado. HTML asignado:', html.length, 'caracteres');
+            console.log('=== updateForm() COMPLETADA ===');
         }
         
         function loadCategoryTeams() {
