@@ -1338,7 +1338,10 @@
                 // Renderizar según el tipo de vista
                 if (view === 'fixture' && data.matches) {
                     const category = document.getElementById('categoryView').value;
-                    responseDiv.innerHTML = renderFixture(data.matches, category || 'Categoría');
+                    // Verificar si se puede generar el cuadrangular
+                    checkCanGenerateQuadrangular(champId, category).then(canGenerate => {
+                        responseDiv.innerHTML = renderFixture(data.matches, category || 'Categoría', champId, category, canGenerate);
+                    });
                 } else if (view === 'standings' && data.standings) {
                     responseDiv.innerHTML = renderStandings(data.standings);
                 } else {
@@ -1350,10 +1353,64 @@
             }
         }
         
-        function renderFixture(matches, categoryName) {
+        async function checkCanGenerateQuadrangular(champId, category) {
+            try {
+                const res = await fetch(`${API_BASE}/api/championships/${champId}/can-generate-quadrangular/${category}`);
+                const data = await res.json();
+                return data.success && data.can_generate;
+            } catch (error) {
+                return false;
+            }
+        }
+        
+        async function generateQuadrangular(champId, category) {
+            try {
+                const res = await fetch(`${API_BASE}/api/championships/${champId}/generate-quadrangular/${category}`, {
+                    method: 'POST'
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    showAlert('Cuadrangular generado exitosamente', 'success');
+                    setTimeout(() => loadViewData(), 1000);
+                } else {
+                    showAlert(data.error || 'Error al generar el cuadrangular', 'error');
+                }
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+            }
+        }
+        
+        async function generateFinal(champId, category) {
+            try {
+                const res = await fetch(`${API_BASE}/api/championships/${champId}/generate-final/${category}`, {
+                    method: 'POST'
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    showAlert('Final generada exitosamente', 'success');
+                    setTimeout(() => loadViewData(), 1000);
+                } else {
+                    showAlert(data.error || 'Error al generar la final', 'error');
+                }
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+            }
+        }
+        
+        function renderFixture(matches, categoryName, champId = null, category = null, canGenerateQuadrangular = false) {
             if (!matches || matches.length === 0) {
                 return '<div class="empty-state">No hay partidos en el fixture</div>';
             }
+            
+            // Separar partidos regulares del cuadrangular
+            const regularMatches = matches.filter(m => !m.match_type || (m.match_type !== 'semifinal' && m.match_type !== 'final'));
+            const quadrangularMatches = matches.filter(m => m.match_type === 'semifinal' || m.match_type === 'final');
+            const hasQuadrangular = quadrangularMatches.length > 0;
+            const semifinals = quadrangularMatches.filter(m => m.match_type === 'semifinal');
+            const final = quadrangularMatches.find(m => m.match_type === 'final');
+            const canGenerateFinal = semifinals.length === 2 && semifinals.every(m => m.played && m.winner && m.winner !== "Empate") && !final;
             
             // Agrupar partidos por tipo (ida/vuelta) y luego por jornada
             const matchesByVuelta = {
@@ -1377,13 +1434,27 @@
             const champId = document.getElementById('champIdView')?.value || window.currentChampId;
             const category = document.getElementById('categoryView')?.value || window.currentCategory;
             
-            // Calcular total de partidos
-            const totalPartidos = matches.length;
-            const partidosJugados = matches.filter(m => m.played).length;
+            // Calcular total de partidos (solo regulares)
+            const totalPartidos = regularMatches.length;
+            const partidosJugados = regularMatches.filter(m => m.played).length;
             const partidosPendientes = totalPartidos - partidosJugados;
             
             let html = `<div style="padding: 10px;">
-                <h3 style="color: #667eea; margin-bottom: 10px;">📅 Fixture - ${categoryName}</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="color: #1e3c72; margin-bottom: 0; font-size: 1.8em; font-weight: 700;">📅 Fixture - ${categoryName}</h3>
+                    ${canGenerateQuadrangular && !hasQuadrangular ? `
+                        <button onclick="generateQuadrangular('${champId}', '${category}')" 
+                            style="padding: 12px 24px; background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 700; box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4); text-transform: uppercase; letter-spacing: 0.5px;">
+                            🏆 Generar Cuadrangular
+                        </button>
+                    ` : ''}
+                    ${canGenerateFinal ? `
+                        <button onclick="generateFinal('${champId}', '${category}')" 
+                            style="padding: 12px 24px; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 700; box-shadow: 0 4px 15px rgba(30, 60, 114, 0.4); text-transform: uppercase; letter-spacing: 0.5px;">
+                            🥇 Generar Final
+                        </button>
+                    ` : ''}
+                </div>
                 <div style="background: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 15px;">
                     <div style="text-align: center;">
                         <div style="font-size: 2em; font-weight: bold; color: #667eea;">${totalPartidos}</div>

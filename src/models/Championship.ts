@@ -126,6 +126,73 @@ export class Championship {
   }
 
   /**
+   * Verifica si se puede generar el cuadrangular para una categoría.
+   * Requiere que todas las rondas estén completas y que haya al menos 4 equipos.
+   */
+  canGenerateQuadrangular(categoryName: string): boolean {
+    const category = this.getCategory(categoryName);
+    if (!category) {
+      return false;
+    }
+
+    // Verificar que todas las rondas estén completas
+    if (!category.isAllRoundsCompleted()) {
+      return false;
+    }
+
+    // Verificar que haya al menos 4 equipos
+    if (category.teams.size < 4) {
+      return false;
+    }
+
+    // Verificar que no exista ya un cuadrangular
+    const hasQuadrangular = category.matches.some(m => m.matchType === 'semifinal' || m.matchType === 'final');
+    return !hasQuadrangular;
+  }
+
+  /**
+   * Genera el cuadrangular para una categoría.
+   */
+  generateQuadrangular(categoryName: string): boolean {
+    const category = this.getCategory(categoryName);
+    if (!category) {
+      return false;
+    }
+
+    if (!this.canGenerateQuadrangular(categoryName)) {
+      return false;
+    }
+
+    try {
+      category.generateQuadrangular();
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Genera la final del cuadrangular si las semifinales están completas.
+   */
+  generateFinal(categoryName: string): boolean {
+    const category = this.getCategory(categoryName);
+    if (!category) {
+      return false;
+    }
+
+    if (!category.canGenerateFinal()) {
+      return false;
+    }
+
+    try {
+      category.generateFinal();
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
    * Convierte el campeonato completo a un objeto JSON.
    */
   toDict(): Record<string, any> {

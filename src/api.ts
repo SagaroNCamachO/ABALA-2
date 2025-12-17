@@ -440,6 +440,89 @@ app.post('/api/championships/:id/penalty', (req: Request, res: Response) => {
   });
 });
 
+/**
+ * Verificar si se puede generar el cuadrangular para una categoría.
+ */
+app.get('/api/championships/:id/can-generate-quadrangular/:category', (req: Request, res: Response) => {
+  const champId = req.params.id;
+  const championship = championships.get(champId);
+
+  if (!championship) {
+    return res.status(404).json({
+      success: false,
+      error: "Campeonato no encontrado"
+    });
+  }
+
+  const categoryName = req.params.category;
+  const canGenerate = championship.canGenerateQuadrangular(categoryName);
+
+  return res.json({
+    success: true,
+    can_generate: canGenerate
+  });
+});
+
+/**
+ * Generar el cuadrangular para una categoría.
+ */
+app.post('/api/championships/:id/generate-quadrangular/:category', (req: Request, res: Response) => {
+  const champId = req.params.id;
+  const championship = championships.get(champId);
+
+  if (!championship) {
+    return res.status(404).json({
+      success: false,
+      error: "Campeonato no encontrado"
+    });
+  }
+
+  const categoryName = req.params.category;
+  const success = championship.generateQuadrangular(categoryName);
+
+  if (success) {
+    return res.json({
+      success: true,
+      message: "Cuadrangular generado exitosamente"
+    });
+  } else {
+    return res.status(400).json({
+      success: false,
+      error: "No se pudo generar el cuadrangular. Verifica que todas las rondas estén completas y haya al menos 4 equipos."
+    });
+  }
+});
+
+/**
+ * Generar la final del cuadrangular.
+ */
+app.post('/api/championships/:id/generate-final/:category', (req: Request, res: Response) => {
+  const champId = req.params.id;
+  const championship = championships.get(champId);
+
+  if (!championship) {
+    return res.status(404).json({
+      success: false,
+      error: "Campeonato no encontrado"
+    });
+  }
+
+  const categoryName = req.params.category;
+  const success = championship.generateFinal(categoryName);
+
+  if (success) {
+    return res.json({
+      success: true,
+      message: "Final generada exitosamente"
+    });
+  } else {
+    return res.status(400).json({
+      success: false,
+      error: "No se pudo generar la final. Verifica que las semifinales estén completas."
+    });
+  }
+});
+
 // Para desarrollo local
 if (require.main === module) {
   const PORT = process.env.PORT || 3000;

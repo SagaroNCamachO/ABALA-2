@@ -139,6 +139,101 @@ export class Category {
   }
 
   /**
+   * Verifica si todas las rondas están completas (todos los partidos jugados).
+   */
+  isAllRoundsCompleted(): boolean {
+    if (this.matches.length === 0) {
+      return false;
+    }
+    return this.matches.every(match => match.played);
+  }
+
+  /**
+   * Obtiene los 4 primeros equipos de la tabla de posiciones.
+   * En caso de empate en puntos, se usa la diferencia de puntos.
+   */
+  getTop4Teams(): string[] {
+    const standings = this.getStandings();
+    
+    // Ordenar por puntos (descendente) y luego por diferencia de puntos (descendente)
+    const sorted = standings.sort((a, b) => {
+      // Primero por puntos
+      if (b.points !== a.points) {
+        return b.points - a.points;
+      }
+      // Si hay empate, por diferencia de puntos
+      return b.getDifference() - a.getDifference();
+    });
+
+    // Tomar los primeros 4
+    return sorted.slice(0, 4).map(team => team.name);
+  }
+
+  /**
+   * Genera el fixture del cuadrangular con los 4 primeros equipos.
+   * Formato: Semifinal 1 (1° vs 4°), Semifinal 2 (2° vs 3°), Final (ganadores)
+   */
+  generateQuadrangular(): void {
+    const top4 = this.getTop4Teams();
+    
+    if (top4.length < 4) {
+      throw new Error("Se necesitan al menos 4 equipos para generar el cuadrangular");
+    }
+
+    // Limpiar partidos de cuadrangular anteriores si existen
+    this.matches = this.matches.filter(m => !m.matchType || (m.matchType !== 'semifinal' && m.matchType !== 'final'));
+
+    // Semifinal 1: 1° vs 4°
+    const semifinal1 = new Match(top4[0], top4[3], 999, 'semifinal', 1);
+    semifinal1.time = "20:00";
+    this.matches.push(semifinal1);
+
+    // Semifinal 2: 2° vs 3°
+    const semifinal2 = new Match(top4[1], top4[2], 999, 'semifinal', 1);
+    semifinal2.time = "21:00";
+    this.matches.push(semifinal2);
+
+    // La final se generará después de que se jueguen las semifinales
+  }
+
+  /**
+   * Genera la final del cuadrangular después de que se jueguen las semifinales.
+   */
+  generateFinal(): void {
+    const semifinals = this.matches.filter(m => m.matchType === 'semifinal' && m.played);
+    
+    if (semifinals.length < 2) {
+      throw new Error("Las semifinales deben estar completas para generar la final");
+    }
+
+    // Obtener ganadores de las semifinales
+    const winners: string[] = [];
+    for (const semi of semifinals) {
+      if (semi.winner && semi.winner !== "Empate") {
+        winners.push(semi.winner);
+      } else {
+        throw new Error("Todas las semifinales deben tener un ganador");
+      }
+    }
+
+    // Eliminar final anterior si existe
+    this.matches = this.matches.filter(m => m.matchType !== 'final');
+
+    // Final: ganador semifinal 1 vs ganador semifinal 2
+    const final = new Match(winners[0], winners[1], 999, 'final', 2);
+    final.time = "20:00";
+    this.matches.push(final);
+  }
+
+  /**
+   * Verifica si las semifinales están completas y puede generarse la final.
+   */
+  canGenerateFinal(): boolean {
+    const semifinals = this.matches.filter(m => m.matchType === 'semifinal');
+    return semifinals.length === 2 && semifinals.every(m => m.played && m.winner && m.winner !== "Empate");
+  }
+
+  /**
    * Convierte la categoría a un objeto JSON.
    */
   toDict(): Record<string, any> {
