@@ -1325,20 +1325,20 @@
             const partidosJugados = matches.filter(m => m.played).length;
             const partidosPendientes = totalPartidos - partidosJugados;
             
-            let html = `<div style="padding: 25px; font-size: 16px;">
-                <h3 style="color: #667eea; margin-bottom: 20px; font-size: 2em; font-weight: 700;">📅 Fixture - ${categoryName}</h3>
-                <div style="background: linear-gradient(135deg, #f0f8ff 0%, #e0e8f0 100%); padding: 25px; border-radius: 15px; margin-bottom: 30px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+            let html = `<div class="fixture-container" style="padding: 25px; font-size: 16px;">
+                <h3 class="fixture-title" style="color: #667eea; margin-bottom: 20px; font-size: 2em; font-weight: 700;">📅 Fixture - ${categoryName}</h3>
+                <div class="fixture-stats" style="background: linear-gradient(135deg, #f0f8ff 0%, #e0e8f0 100%); padding: 25px; border-radius: 15px; margin-bottom: 30px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                     <div style="text-align: center;">
-                        <div style="font-size: 3.5em; font-weight: bold; color: #667eea; margin-bottom: 8px;">${totalPartidos}</div>
-                        <div style="font-size: 1.2em; color: #666; font-weight: 600;">Total Partidos</div>
+                        <div class="fixture-stat-number" style="font-size: 3.5em; font-weight: bold; color: #667eea; margin-bottom: 8px;">${totalPartidos}</div>
+                        <div class="fixture-stat-label" style="font-size: 1.2em; color: #666; font-weight: 600;">Total Partidos</div>
                     </div>
                     <div style="text-align: center;">
-                        <div style="font-size: 3.5em; font-weight: bold; color: #28a745; margin-bottom: 8px;">${partidosJugados}</div>
-                        <div style="font-size: 1.2em; color: #666; font-weight: 600;">Jugados</div>
+                        <div class="fixture-stat-number" style="font-size: 3.5em; font-weight: bold; color: #28a745; margin-bottom: 8px;">${partidosJugados}</div>
+                        <div class="fixture-stat-label" style="font-size: 1.2em; color: #666; font-weight: 600;">Jugados</div>
                     </div>
                     <div style="text-align: center;">
-                        <div style="font-size: 3.5em; font-weight: bold; color: #dc3545; margin-bottom: 8px;">${partidosPendientes}</div>
-                        <div style="font-size: 1.2em; color: #666; font-weight: 600;">Pendientes</div>
+                        <div class="fixture-stat-number" style="font-size: 3.5em; font-weight: bold; color: #dc3545; margin-bottom: 8px;">${partidosPendientes}</div>
+                        <div class="fixture-stat-label" style="font-size: 1.2em; color: #666; font-weight: 600;">Pendientes</div>
                     </div>
                 </div>
             `;
@@ -1375,10 +1375,10 @@
                     }
                     
                     html += `
-                        <div style="margin-bottom: 30px; padding: 25px; background: linear-gradient(135deg, #fdfdfd 0%, #f0f0f0 100%); border-radius: 15px; border-left: 6px solid #667eea; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-                            <h5 style="color: #667eea; margin-bottom: 20px; font-size: 1.5em; font-weight: 700;">
-                                Jornada ${matchday}
-                                <span style="font-size: 0.6em; color: #999; font-weight: normal; background: #e9ecef; padding: 4px 10px; border-radius: 8px; margin-left: 10px;">(${jornadaMatches.length} partido${jornadaMatches.length > 1 ? 's' : ''})</span>
+                        <div class="fixture-jornada" style="margin-bottom: 30px; padding: 25px; background: linear-gradient(135deg, #fdfdfd 0%, #f0f0f0 100%); border-radius: 15px; border-left: 6px solid #667eea; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                            <h5 class="fixture-jornada-title" style="color: #667eea; margin-bottom: 20px; font-size: 1.5em; font-weight: 700; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <span>Jornada ${matchday}</span>
+                                <span style="font-size: 0.6em; color: #999; font-weight: normal; background: #e9ecef; padding: 4px 10px; border-radius: 8px;">(${jornadaMatches.length} partido${jornadaMatches.length > 1 ? 's' : ''})</span>
                             </h5>
                             <div style="display: grid; gap: 20px;">
                     `;
