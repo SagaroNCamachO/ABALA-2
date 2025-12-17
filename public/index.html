@@ -1134,16 +1134,41 @@
             try {
                 switch(action) {
                     case 'createChamp':
+                        const champIdInput = document.getElementById('champId');
+                        const nameInput = document.getElementById('name');
+                        const roundsInput = document.getElementById('rounds');
+                        const pointsWinInput = document.getElementById('pointsWin');
+                        const pointsLossInput = document.getElementById('pointsLoss');
+                        
+                        if (!champIdInput || !nameInput || !roundsInput || !pointsWinInput || !pointsLossInput) {
+                            showAlert('Error: No se encontraron los campos del formulario. Por favor, recarga la página.', 'error');
+                            responseDiv.innerHTML = '<pre style="color: red;">Error: Campos del formulario no encontrados</pre>';
+                            return;
+                        }
+                        
+                        const champIdValue = champIdInput.value.trim();
+                        const nameValue = nameInput.value.trim();
+                        
+                        if (!champIdValue) {
+                            showAlert('Por favor ingresa un ID para el campeonato', 'error');
+                            return;
+                        }
+                        
+                        if (!nameValue) {
+                            showAlert('Por favor ingresa un nombre para el campeonato', 'error');
+                            return;
+                        }
+                        
                         url = `${API_BASE}/api/championships`;
                         options = {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                                id: document.getElementById('champId').value,
-                                name: document.getElementById('name').value,
-                                rounds: parseInt(document.getElementById('rounds').value),
-                                points_per_win: parseInt(document.getElementById('pointsWin').value),
-                                points_per_loss: parseInt(document.getElementById('pointsLoss').value)
+                                id: champIdValue,
+                                name: nameValue,
+                                rounds: parseInt(roundsInput.value) || 1,
+                                points_per_win: parseInt(pointsWinInput.value) || 2,
+                                points_per_loss: parseInt(pointsLossInput.value) || 0
                             })
                         };
                         break;
