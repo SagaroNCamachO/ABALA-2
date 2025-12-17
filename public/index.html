@@ -1746,9 +1746,19 @@
             updateExportSelect();
         };
         
-        // Inicializar
-        updateForm();
-        loadData();
+        // Inicializar cuando el DOM esté listo
+        function initializeApp() {
+            console.log('Inicializando aplicación...');
+            updateForm();
+            loadData();
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            // Si el DOM ya está listo, ejecutar inmediatamente con un pequeño delay
+            setTimeout(initializeApp, 100);
+        }
     </script>
 </body>
 </html>
