@@ -758,8 +758,20 @@
         }
         
         function updateForm() {
-            const action = document.getElementById('actionSelect').value;
+            const actionSelect = document.getElementById('actionSelect');
+            if (!actionSelect) {
+                console.error('actionSelect no encontrado');
+                return;
+            }
+            
+            const action = actionSelect.value || 'createChamp';
             const formDiv = document.getElementById('dynamicForm');
+            
+            if (!formDiv) {
+                console.error('dynamicForm no encontrado');
+                return;
+            }
+            
             let html = '';
             
             // Obtener IDs de campeonatos disponibles
