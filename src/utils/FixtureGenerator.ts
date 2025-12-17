@@ -49,8 +49,8 @@ export class FixtureGenerator {
         }
       }
 
-      // Agrupar partidos en jornadas de máximo 2
-      // NOTA: El matchday se asignará después en generateFixture para que sea continuo
+      // Agrupar partidos en jornadas de EXACTAMENTE 2 partidos
+      // Si hay número impar de partidos, el último se queda solo en su jornada
       for (let i = 0; i < roundMatches.length; i += 2) {
         const match1 = roundMatches[i];
         const match2 = roundMatches[i + 1];
@@ -61,11 +61,10 @@ export class FixtureGenerator {
         if (match2) {
           // Asignar horario por defecto: segundo partido 21:00
           match2.time = "21:00";
-        }
-        
-        matches.push(match1);
-        if (match2) {
-          matches.push(match2);
+          matches.push(match1, match2);
+        } else {
+          // Si solo hay un partido en la última jornada, se agrega solo
+          matches.push(match1);
         }
       }
 
