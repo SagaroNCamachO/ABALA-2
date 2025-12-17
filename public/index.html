@@ -537,8 +537,12 @@
                 return;
             }
             
-            // Filtrar solo campeonatos que realmente existen
-            const validChampionships = Object.entries(championshipsData).filter(([id, champ]) => champ && champ.name);
+            // Filtrar solo campeonatos que realmente existen y tienen datos válidos
+            const validChampionships = Object.entries(championshipsData).filter(([id, champ]) => {
+                return champ && champ.name && id;
+            });
+            
+            console.log(`Renderizando ${validChampionships.length} campeonatos:`, validChampionships.map(([id]) => id));
             
             if (validChampionships.length === 0) {
                 list.innerHTML = '<div class="empty-state">No hay campeonatos creados</div>';
