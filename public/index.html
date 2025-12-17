@@ -322,6 +322,35 @@
                     
                     <div id="viewForm"></div>
                     <button class="btn" onclick="loadViewData()">Ver</button>
+                    
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
+                        <h3 style="color: #667eea; font-size: 1.1em; margin-bottom: 15px;">💾 Guardar y Exportar</h3>
+                        
+                        <div class="form-group">
+                            <label>Campeonato:</label>
+                            <select id="exportChampSelect">
+                                <option value="">Selecciona campeonato</option>
+                            </select>
+                        </div>
+                        
+                        <button class="btn" onclick="saveChampionship()" style="background: #28a745; margin-bottom: 10px;">
+                            💾 Guardar Campeonato (JSON)
+                        </button>
+                        
+                        <button class="btn btn-secondary" onclick="loadChampionship()" style="background: #17a2b8; margin-bottom: 10px;">
+                            📂 Cargar Campeonato Guardado
+                        </button>
+                        
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0e0e0;">
+                            <button class="btn btn-secondary" onclick="exportFixture()" style="background: #ffc107; color: #000; margin-bottom: 10px;">
+                                📄 Exportar Fixture (PDF)
+                            </button>
+                            
+                            <button class="btn btn-secondary" onclick="exportStandings()" style="background: #ffc107; color: #000;">
+                                📊 Exportar Tabla de Posiciones (PDF)
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
             
