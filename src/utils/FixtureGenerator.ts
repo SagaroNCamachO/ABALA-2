@@ -84,10 +84,6 @@ export class FixtureGenerator {
    */
   static generateFixture(teams: string[], rounds: number): Match[] {
     const allMatches: Match[] = [];
-    const n = teams.length;
-    // Número de fechas necesarias para que todos jueguen contra todos (una vez)
-    const totalRoundsPerCycle = n % 2 === 0 ? n - 1 : n;
-    let globalMatchday = 1; // Jornada global continua
 
     for (let cycle = 0; cycle < rounds; cycle++) {
       // Vuelta de ida (siempre es vuelta 1, 3, 5, etc.)
