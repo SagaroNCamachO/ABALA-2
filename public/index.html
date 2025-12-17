@@ -1014,8 +1014,20 @@
         }
         
         function updateForm() {
-            const action = document.getElementById('actionSelect').value;
+            const actionSelect = document.getElementById('actionSelect');
+            if (!actionSelect) {
+                console.error('actionSelect no encontrado');
+                return;
+            }
+            
+            const action = actionSelect.value;
             const formDiv = document.getElementById('dynamicForm');
+            
+            if (!formDiv) {
+                console.error('dynamicForm no encontrado');
+                return;
+            }
+            
             let html = '';
             
             // Obtener IDs de campeonatos disponibles
@@ -1076,9 +1088,12 @@
                         </div>
                     `;
                     break;
+                default:
+                    html = '<div class="form-group"><p style="color: #666;">Selecciona una acción para continuar</p></div>';
             }
             
             formDiv.innerHTML = html;
+            console.log('Formulario actualizado para acción:', action);
         }
         
         function loadCategoryTeams() {
