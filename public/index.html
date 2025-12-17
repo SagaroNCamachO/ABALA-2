@@ -507,7 +507,7 @@
                     <div class="form-group">
                         <label>Acción:</label>
                         <select id="actionSelect" onchange="updateForm()">
-                            <option value="createChamp">Crear Campeonato</option>
+                            <option value="createChamp" selected>Crear Campeonato</option>
                             <option value="addCategory">Agregar Categoría</option>
                         </select>
                     </div>
@@ -2382,9 +2382,18 @@
             updateExportSelect();
         };
         
-        // Inicializar
-        updateForm();
-        loadData();
+        // Inicializar cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('DOM cargado, inicializando formulario...');
+                updateForm();
+                loadData();
+            });
+        } else {
+            console.log('DOM ya listo, inicializando formulario...');
+            updateForm();
+            loadData();
+        }
     </script>
 </body>
 </html>
