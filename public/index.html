@@ -298,8 +298,6 @@
                         <select id="actionSelect" onchange="updateForm()">
                             <option value="createChamp">Crear Campeonato</option>
                             <option value="addCategory">Agregar Categoría</option>
-                            <option value="registerResult">Registrar Resultado</option>
-                            <option value="applyPenalty">Aplicar Multa</option>
                         </select>
                     </div>
                     
@@ -605,78 +603,6 @@
                         </div>
                     `;
                     break;
-                case 'registerResult':
-                    html = `
-                        <div class="form-group">
-                            <label>Campeonato:</label>
-                            <select id="champIdSelect" onchange="loadCategoryTeams()">
-                                ${champOptions}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Categoría:</label>
-                            <select id="categorySelect" onchange="loadTeams()">
-                                <option value="">Selecciona categoría</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Equipo A:</label>
-                            <select id="teamA">
-                                <option value="">Selecciona equipo</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Equipo B:</label>
-                            <select id="teamB">
-                                <option value="">Selecciona equipo</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Vuelta:</label>
-                            <input type="number" id="roundNumber" value="1" min="1">
-                        </div>
-                        <div class="form-group">
-                            <label>Puntos Equipo A:</label>
-                            <input type="number" id="scoreA" value="0" min="0">
-                        </div>
-                        <div class="form-group">
-                            <label>Puntos Equipo B:</label>
-                            <input type="number" id="scoreB" value="0" min="0">
-                        </div>
-                    `;
-                    if (champIds.length > 0) {
-                        setTimeout(() => loadCategoryTeams(), 100);
-                    }
-                    break;
-                case 'applyPenalty':
-                    html = `
-                        <div class="form-group">
-                            <label>Campeonato:</label>
-                            <select id="champIdSelect" onchange="loadCategoryTeams()">
-                                ${champOptions}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Categoría:</label>
-                            <select id="categorySelect" onchange="loadTeams()">
-                                <option value="">Selecciona categoría</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Equipo:</label>
-                            <select id="teamSelect">
-                                <option value="">Selecciona equipo</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Puntos (positivo para multa, negativo para bonificación):</label>
-                            <input type="number" id="penaltyPoints" value="0">
-                        </div>
-                    `;
-                    if (champIds.length > 0) {
-                        setTimeout(() => loadCategoryTeams(), 100);
-                    }
-                    break;
             }
             
             formDiv.innerHTML = html;
@@ -791,35 +717,6 @@
                             body: JSON.stringify(body)
                         };
                         break;
-                    case 'registerResult':
-                        const champId2 = document.getElementById('champIdSelect').value;
-                        url = `${API_BASE}/api/championships/${champId2}/results`;
-                        options = {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                category: document.getElementById('categorySelect').value,
-                                team_a: document.getElementById('teamA').value,
-                                team_b: document.getElementById('teamB').value,
-                                round_number: parseInt(document.getElementById('roundNumber').value),
-                                score_a: parseInt(document.getElementById('scoreA').value),
-                                score_b: parseInt(document.getElementById('scoreB').value)
-                            })
-                        };
-                        break;
-                    case 'applyPenalty':
-                        const champId3 = document.getElementById('champIdSelect').value;
-                        url = `${API_BASE}/api/championships/${champId3}/penalty`;
-                        options = {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                category: document.getElementById('categorySelect').value,
-                                team: document.getElementById('teamSelect').value,
-                                points: parseInt(document.getElementById('penaltyPoints').value)
-                            })
-                        };
-                        break;
                 }
                 
                 const res = await fetch(url, options);
@@ -830,7 +727,7 @@
                 if (data.success) {
                     showAlert('Operación exitosa', 'success');
                     // Recargar datos después de crear/modificar
-                    if (action === 'createChamp' || action === 'addCategory' || action === 'registerResult') {
+                    if (action === 'createChamp' || action === 'addCategory') {
                         setTimeout(() => loadData(), 1000);
                     }
                 } else {
