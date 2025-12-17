@@ -956,15 +956,26 @@
             // Ordenar vueltas
             const rounds = Object.keys(matchesByRound).sort((a, b) => parseInt(a) - parseInt(b));
             
+            // Determinar número de vuelta real (1 para ida, 2 para vuelta, etc.)
+            let vueltaReal = 1;
+            let lastMatchType = '';
+            
             rounds.forEach(round => {
                 const roundData = matchesByRound[round];
                 const matchType = Object.values(roundData)[0]?.[0]?.match_type || 'ida';
+                
+                // Si cambió el tipo de partido, es una nueva vuelta
+                if (matchType !== lastMatchType && lastMatchType !== '') {
+                    vueltaReal++;
+                }
+                lastMatchType = matchType;
+                
                 const matchdays = Object.keys(roundData).sort((a, b) => parseInt(a) - parseInt(b));
                 
                 html += `
                     <div style="margin-bottom: 30px; border: 2px solid #e0e0e0; border-radius: 10px; padding: 15px; background: #f8f9fa;">
                         <h4 style="color: #667eea; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                            <span>Vuelta ${round}</span>
+                            <span>Vuelta ${vueltaReal}</span>
                             <span style="font-size: 0.8em; color: #666; font-weight: normal;">(${matchType})</span>
                         </h4>
                 `;
@@ -975,7 +986,7 @@
                     
                     html += `
                         <div style="margin-bottom: 20px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #e0e0e0;">
-                            <h5 style="color: #667eea; margin-bottom: 15px; font-size: 1em;">Jornada ${matchday}</h5>
+                            <h5 style="color: #667eea; margin-bottom: 15px; font-size: 1em;">Vuelta ${vueltaReal}, Jornada ${matchday}</h5>
                             <div style="display: grid; gap: 15px;">
                     `;
                     

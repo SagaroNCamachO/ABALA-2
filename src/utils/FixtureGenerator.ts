@@ -50,17 +50,15 @@ export class FixtureGenerator {
       }
 
       // Agrupar partidos en jornadas de máximo 2
-      let matchday = 1;
+      // NOTA: El matchday se asignará después en generateFixture para que sea continuo
       for (let i = 0; i < roundMatches.length; i += 2) {
         const match1 = roundMatches[i];
         const match2 = roundMatches[i + 1];
         
-        match1.matchday = matchday;
         // Asignar horario por defecto: primer partido 20:00
         match1.time = "20:00";
         
         if (match2) {
-          match2.matchday = matchday;
           // Asignar horario por defecto: segundo partido 21:00
           match2.time = "21:00";
         }
@@ -69,8 +67,6 @@ export class FixtureGenerator {
         if (match2) {
           matches.push(match2);
         }
-        
-        matchday++;
       }
 
       // Rotar equipos (excepto el primero)
@@ -84,37 +80,60 @@ export class FixtureGenerator {
 
   /**
    * Genera el fixture completo (ida y vuelta) para todas las vueltas.
+   * Las jornadas se numeran de forma continua dentro de cada vuelta.
    */
   static generateFixture(teams: string[], rounds: number): Match[] {
     const allMatches: Match[] = [];
     const n = teams.length;
     // Número de fechas necesarias para que todos jueguen contra todos (una vez)
     const totalRoundsPerCycle = n % 2 === 0 ? n - 1 : n;
-    let currentRound = 1;
+    let globalMatchday = 1; // Jornada global continua
 
     for (let cycle = 0; cycle < rounds; cycle++) {
-      // Generar partidos de ida
+      // Vuelta de ida (siempre es vuelta 1, 3, 5, etc.)
+      const vueltaIda = cycle * 2 + 1;
       const idaMatches = FixtureGenerator.generateRoundRobin(
         teams,
-        currentRound,
+        vueltaIda,
         "ida"
       );
+      
+      // Renumerar jornadas de forma continua para la vuelta de ida
+      let matchdayInVuelta = 1;
+      for (let i = 0; i < idaMatches.length; i += 2) {
+        idaMatches[i].matchday = matchdayInVuelta;
+        if (idaMatches[i + 1]) {
+          idaMatches[i + 1].matchday = matchdayInVuelta;
+        }
+        matchdayInVuelta++;
+      }
+      
       allMatches.push(...idaMatches);
-      currentRound += totalRoundsPerCycle;
 
-      // Generar partidos de vuelta (si hay más de una vuelta o se requiere)
+      // Vuelta de vuelta (si hay más de una vuelta o se requiere)
       if (rounds > 1 || cycle === 0) {
+        const vueltaVuelta = cycle * 2 + 2;
         const vueltaMatches = FixtureGenerator.generateRoundRobin(
           teams,
-          currentRound,
+          vueltaVuelta,
           "vuelta"
         );
         // Invertir localía en vuelta
         for (const match of vueltaMatches) {
           [match.teamA, match.teamB] = [match.teamB, match.teamA];
         }
+        
+        // Renumerar jornadas de forma continua para la vuelta de vuelta
+        matchdayInVuelta = 1;
+        for (let i = 0; i < vueltaMatches.length; i += 2) {
+          vueltaMatches[i].matchday = matchdayInVuelta;
+          if (vueltaMatches[i + 1]) {
+            vueltaMatches[i + 1].matchday = matchdayInVuelta;
+          }
+          matchdayInVuelta++;
+        }
+        
         allMatches.push(...vueltaMatches);
-        currentRound += totalRoundsPerCycle;
       }
     }
 
