@@ -485,8 +485,13 @@
             try {
                 const saved = JSON.parse(localStorage.getItem('savedChampionships') || '{}');
                 Object.entries(saved).forEach(([id, champ]) => {
-                    if (!championshipsData[id]) {
+                    // Solo cargar si no existe en memoria y tiene datos válidos
+                    if (!championshipsData[id] && champ && champ.name) {
                         championshipsData[id] = champ;
+                        // También actualizar categoriesData si hay categorías
+                        if (champ.categories) {
+                            categoriesData[id] = champ.categories;
+                        }
                     }
                 });
             } catch (error) {
