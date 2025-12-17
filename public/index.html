@@ -1023,19 +1023,26 @@
         }
         
         function updateForm() {
+            console.log('=== updateForm() INICIADA ===');
             const actionSelect = document.getElementById('actionSelect');
             if (!actionSelect) {
-                console.error('actionSelect no encontrado');
+                console.error('❌ actionSelect no encontrado');
+                alert('Error: No se encontró el selector de acciones. Por favor, recarga la página.');
                 return;
             }
             
-            const action = actionSelect.value;
+            const action = actionSelect.value || 'createChamp';
+            console.log('✅ Acción seleccionada:', action);
+            
             const formDiv = document.getElementById('dynamicForm');
             
             if (!formDiv) {
-                console.error('dynamicForm no encontrado');
+                console.error('❌ dynamicForm no encontrado');
+                alert('Error: No se encontró el contenedor del formulario. Por favor, recarga la página.');
                 return;
             }
+            
+            console.log('✅ formDiv encontrado, generando HTML...');
             
             let html = '';
             
@@ -1049,26 +1056,27 @@
                 case 'createChamp':
                     html = `
                         <div class="form-group">
-                            <label>ID del Campeonato:</label>
+                            <label style="font-weight: 600; color: #1e3c72; display: block; margin-bottom: 8px;">ID del Campeonato:</label>
                             <input type="text" id="champId" placeholder="champ1" value="champ${champIds.length + 1}">
                         </div>
                         <div class="form-group">
-                            <label>Nombre:</label>
+                            <label style="font-weight: 600; color: #1e3c72; display: block; margin-bottom: 8px;">Nombre:</label>
                             <input type="text" id="name" placeholder="Campeonato 2024" value="Campeonato ${new Date().getFullYear()}">
                         </div>
                         <div class="form-group">
-                            <label>Vueltas:</label>
+                            <label style="font-weight: 600; color: #1e3c72; display: block; margin-bottom: 8px;">Vueltas:</label>
                             <input type="number" id="rounds" value="2" min="1">
                         </div>
                         <div class="form-group">
-                            <label>Puntos por Victoria:</label>
+                            <label style="font-weight: 600; color: #1e3c72; display: block; margin-bottom: 8px;">Puntos por Victoria:</label>
                             <input type="number" id="pointsWin" value="2" min="0">
                         </div>
                         <div class="form-group">
-                            <label>Puntos por Derrota:</label>
+                            <label style="font-weight: 600; color: #1e3c72; display: block; margin-bottom: 8px;">Puntos por Derrota:</label>
                             <input type="number" id="pointsLoss" value="0" min="0">
                         </div>
                     `;
+                    console.log('✅ HTML generado para createChamp, longitud:', html.length);
                     break;
                 case 'addCategory':
                     html = `
