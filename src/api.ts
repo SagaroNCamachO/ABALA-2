@@ -293,6 +293,107 @@ app.get('/api/championships/:id/fixture/:category', (req: Request, res: Response
 });
 
 /**
+ * Actualizar fecha/horario de un partido.
+ */
+app.put('/api/championships/:id/fixture/:category/schedule', (req: Request, res: Response) => {
+  const champId = req.params.id;
+  const championship = championships.get(champId);
+
+  if (!championship) {
+    return res.status(404).json({
+      success: false,
+      error: "Campeonato no encontrado"
+    });
+  }
+
+  const categoryName = req.params.category;
+  const category = championship.getCategory(categoryName);
+
+  if (!category) {
+    return res.status(404).json({
+      success: false,
+      error: "Categoría no encontrada"
+    });
+  }
+
+  const data = req.body || {};
+  const teamA = data.team_a;
+  const teamB = data.team_b;
+  const roundNumber = data.round_number;
+  const matchday = data.matchday;
+  const date = data.date;
+  const time = data.time;
+
+  // Buscar el partido
+  let match = category.matches.find(m => {
+    const teamsMatch = (m.teamA === teamA && m.teamB === teamB) || (m.teamA === teamB && m.teamB === teamA);
+    const roundMatch = m.roundNumber === roundNumber;
+    const matchdayMatch = matchday === undefined || m.matchday === matchday;
+    return teamsMatch && roundMatch && matchdayMatch;
+  });
+
+  if (!match) {
+    return res.status(404).json({
+      success: false,
+      error: "Partido no encontrado"
+    });
+  }
+
+  match.setSchedule(date, time);
+
+  return res.json({
+    success: true,
+    message: "Fecha y horario actualizados",
+    match: match.toDict()
+  });
+});
+
+/**
+ * Actualizar resultado de un partido desde el fixture.
+ */
+app.put('/api/championships/:id/fixture/:category/result', (req: Request, res: Response) => {
+  const champId = req.params.id;
+  const championship = championships.get(champId);
+
+  if (!championship) {
+    return res.status(404).json({
+      success: false,
+      error: "Campeonato no encontrado"
+    });
+  }
+
+  const categoryName = req.params.category;
+  const data = req.body || {};
+  const teamA = data.team_a;
+  const teamB = data.team_b;
+  const roundNumber = data.round_number;
+  const matchday = data.matchday;
+  const scoreA = data.score_a;
+  const scoreB = data.score_b;
+
+  const success = championship.registerMatchResult(
+    categoryName,
+    teamA,
+    teamB,
+    roundNumber,
+    scoreA,
+    scoreB
+  );
+
+  if (success) {
+    return res.json({
+      success: true,
+      message: "Resultado actualizado"
+    });
+  } else {
+    return res.status(400).json({
+      success: false,
+      error: "No se pudo actualizar el resultado"
+    });
+  }
+});
+
+/**
  * Aplicar una multa o bonificación de puntos.
  */
 app.post('/api/championships/:id/penalty', (req: Request, res: Response) => {

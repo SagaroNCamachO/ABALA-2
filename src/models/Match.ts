@@ -6,16 +6,28 @@ export class Match {
   teamB: string;
   roundNumber: number;
   matchType: string; // 'ida' o 'vuelta'
+  matchday: number; // Jornada dentro de la vuelta (máximo 2 partidos por jornada)
   played: boolean = false;
   scoreA: number | null = null;
   scoreB: number | null = null;
   winner: string | null = null;
+  date: string | null = null; // Fecha del partido (YYYY-MM-DD)
+  time: string | null = null; // Horario del partido (HH:MM)
 
-  constructor(teamA: string, teamB: string, roundNumber: number, matchType: string = "ida") {
+  constructor(teamA: string, teamB: string, roundNumber: number, matchType: string = "ida", matchday: number = 1) {
     this.teamA = teamA;
     this.teamB = teamB;
     this.roundNumber = roundNumber;
     this.matchType = matchType;
+    this.matchday = matchday;
+  }
+  
+  /**
+   * Actualiza la fecha y horario del partido.
+   */
+  setSchedule(date: string, time: string): void {
+    this.date = date;
+    this.time = time;
   }
 
   /**
@@ -44,10 +56,13 @@ export class Match {
       team_b: this.teamB,
       round_number: this.roundNumber,
       match_type: this.matchType,
+      matchday: this.matchday,
       played: this.played,
       score_a: this.scoreA,
       score_b: this.scoreB,
-      winner: this.winner
+      winner: this.winner,
+      date: this.date,
+      time: this.time
     };
   }
 

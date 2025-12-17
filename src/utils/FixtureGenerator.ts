@@ -27,8 +27,10 @@ export class FixtureGenerator {
     }
 
     // Algoritmo round-robin - cada iteración es una fecha
+    // Agrupar partidos en jornadas de máximo 2 partidos
     for (let dateIdx = 0; dateIdx < numDates; dateIdx++) {
       const currentRound = startRound + dateIdx;
+      const roundMatches: Match[] = [];
 
       for (let j = 0; j < n / 2; j++) {
         const home = teamsList[j];
@@ -43,8 +45,27 @@ export class FixtureGenerator {
             // Alternar localía
             match = new Match(away, home, currentRound, matchType);
           }
-          matches.push(match);
+          roundMatches.push(match);
         }
+      }
+
+      // Agrupar partidos en jornadas de máximo 2
+      let matchday = 1;
+      for (let i = 0; i < roundMatches.length; i += 2) {
+        const match1 = roundMatches[i];
+        const match2 = roundMatches[i + 1];
+        
+        match1.matchday = matchday;
+        if (match2) {
+          match2.matchday = matchday;
+        }
+        
+        matches.push(match1);
+        if (match2) {
+          matches.push(match2);
+        }
+        
+        matchday++;
       }
 
       // Rotar equipos (excepto el primero)
