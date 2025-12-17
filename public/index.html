@@ -150,7 +150,19 @@
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
             margin-top: 20px;
+            margin-bottom: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        #createTab {
+            display: block !important;
+        }
+        
+        #createTab.active {
+            display: block !important;
         }
         
         .form-group {
@@ -2405,16 +2417,45 @@
         };
         
         // Inicializar cuando el DOM esté listo
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                console.log('DOM cargado, inicializando formulario...');
-                updateForm();
-                loadData();
-            });
-        } else {
-            console.log('DOM ya listo, inicializando formulario...');
+        function initializeApp() {
+            console.log('=== INICIALIZANDO APLICACIÓN ===');
+            
+            // Asegurar que el tab "Crear" esté activo
+            const createTab = document.getElementById('createTab');
+            const manageTab = document.getElementById('manageTab');
+            if (createTab) {
+                createTab.classList.add('active');
+                createTab.style.display = 'block';
+                console.log('✅ Tab "Crear" activado');
+            }
+            if (manageTab) {
+                manageTab.classList.remove('active');
+                manageTab.style.display = 'none';
+            }
+            
+            // Asegurar que el selector tenga el valor correcto
+            const actionSelect = document.getElementById('actionSelect');
+            if (actionSelect) {
+                actionSelect.value = 'createChamp';
+                console.log('✅ Selector de acción configurado a "createChamp"');
+            }
+            
+            // Actualizar formulario
+            console.log('Llamando a updateForm()...');
             updateForm();
+            
+            // Cargar datos
+            console.log('Llamando a loadData()...');
             loadData();
+            
+            console.log('=== INICIALIZACIÓN COMPLETADA ===');
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            // Si el DOM ya está listo, ejecutar inmediatamente
+            setTimeout(initializeApp, 100);
         }
     </script>
 </body>
