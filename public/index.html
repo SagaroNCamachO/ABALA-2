@@ -562,19 +562,41 @@
         };
         
         function switchTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            // Obtener solo las pestañas del panel de Gestión (primer .tabs)
+            const gestionCard = document.querySelector('.card');
+            if (!gestionCard) return;
             
+            const tabs = gestionCard.querySelectorAll('.tabs .tab');
+            const tabContents = gestionCard.querySelectorAll('.tab-content');
+            
+            // Remover active de todos
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            
+            // Activar según el tab seleccionado
             if (tab === 'dashboard') {
-                document.querySelectorAll('.tab')[0].classList.add('active');
-                document.getElementById('dashboardTab').classList.add('active');
-                loadDashboard(); // Cargar automáticamente al cambiar a dashboard
+                const dashboardTab = document.getElementById('dashboardTab');
+                if (dashboardTab && tabs[0]) {
+                    tabs[0].classList.add('active');
+                    dashboardTab.classList.add('active');
+                    loadDashboard(); // Cargar automáticamente al cambiar a dashboard
+                }
             } else if (tab === 'create') {
-                document.querySelectorAll('.tab')[1].classList.add('active');
-                document.getElementById('createTab').classList.add('active');
-            } else {
-                document.querySelectorAll('.tab')[2].classList.add('active');
-                document.getElementById('manageTab').classList.add('active');
+                const createTab = document.getElementById('createTab');
+                if (createTab && tabs[1]) {
+                    tabs[1].classList.add('active');
+                    createTab.classList.add('active');
+                    // Asegurar que el formulario se actualice
+                    updateForm();
+                }
+            } else if (tab === 'manage') {
+                const manageTab = document.getElementById('manageTab');
+                if (manageTab && tabs[2]) {
+                    tabs[2].classList.add('active');
+                    manageTab.classList.add('active');
+                    // Asegurar que el formulario de vista se actualice
+                    loadView();
+                }
             }
         }
         
