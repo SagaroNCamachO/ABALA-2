@@ -2390,17 +2390,53 @@
         });
         
         // También ejecutar inmediatamente si el DOM ya está listo
-        if (document.readyState === 'loading') {
-            // DOM aún no está listo, esperar al evento
-        } else {
+        if (document.readyState !== 'loading') {
             // DOM ya está listo
             try {
-                updateForm();
-                loadData();
+                console.log('🟡 DOM ya está listo - Inicializando...');
+                if (typeof window.updateForm === 'function') {
+                    window.updateForm();
+                }
+                if (typeof window.loadData === 'function') {
+                    window.loadData();
+                }
             } catch (error) {
-                console.error('Error en inicialización inmediata:', error);
+                console.error('❌ Error en inicialización inmediata:', error);
             }
         }
+        
+        // Agregar event listeners como respaldo para los botones de pestañas
+        // Esto asegura que funcionen incluso si onclick no funciona
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                console.log('🔴 Agregando event listeners de respaldo para pestañas...');
+                const tabButtons = document.querySelectorAll('.tabs .tab');
+                tabButtons.forEach((button, index) => {
+                    // Remover onclick existente y agregar event listener
+                    const onclickAttr = button.getAttribute('onclick');
+                    if (onclickAttr) {
+                        button.removeAttribute('onclick');
+                        const match = onclickAttr.match(/switchTab\('([^']+)'\)/);
+                        if (match) {
+                            const tabName = match[1];
+                            button.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                console.log('🔴 Click en pestaña detectado:', tabName);
+                                if (typeof window.switchTab === 'function') {
+                                    window.switchTab(tabName);
+                                } else {
+                                    console.error('❌ window.switchTab no está disponible');
+                                    alert('Error: La función switchTab no está disponible. Por favor, recargue la página.');
+                                }
+                            });
+                            console.log('✅ Event listener agregado para pestaña:', tabName);
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('❌ Error agregando event listeners:', error);
+            }
+        });
     </script>
 </body>
 </html>
