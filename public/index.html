@@ -1738,7 +1738,8 @@
                 responseCard.style.display = 'block';
                 responseDiv.innerHTML = '<pre>Cargando...</pre>';
                 
-                let url, options = {};
+                let url = '';
+                let options = {};
                 switch(action) {
                     case 'createChamp':
                         url = `${API_BASE}/api/championships`;
