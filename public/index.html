@@ -564,24 +564,10 @@
         // Asegurar que showAlert esté disponible globalmente
         window.showAlert = showAlert;
         
-        // Cargar datos al iniciar
-        window.onload = () => {
-            try {
-                loadData();
-                // Cargar dashboard después de un pequeño delay para asegurar que la página esté lista
-                setTimeout(() => {
-                    const dashboardTab = document.getElementById('dashboardTab');
-                    if (dashboardTab && dashboardTab.classList.contains('active')) {
-                        loadDashboard();
-                    }
-                }, 500);
-            } catch (error) {
-                console.error('Error en window.onload:', error);
-            }
-        };
-        
-        // Asegurar que switchTab esté disponible globalmente
+        // Asegurar que switchTab esté disponible globalmente ANTES de cualquier otra cosa
         window.switchTab = function(tab) {
+            console.log('🔵 switchTab llamado con:', tab);
+            console.log('🔵 window.switchTab existe?', typeof window.switchTab);
             try {
                 console.log('switchTab llamado con:', tab);
                 
