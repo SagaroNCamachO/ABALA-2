@@ -61,7 +61,7 @@ git reset --hard v1.0.0-estable
 
 El commit exacto de este punto de recuperación es:
 ```
-$(git rev-parse v1.0.0-estable)
+757e0c4
 ```
 
 ## Notas
