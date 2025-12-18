@@ -28,10 +28,15 @@
    - Copia la URI (algo como: `mongodb+srv://usuario:password@cluster.mongodb.net/`)
 
 6. **Configurar en Vercel**
-   - Ve a tu proyecto en Vercel
-   - Settings → Environment Variables
-   - Agrega: `MONGODB_URI` = `mongodb+srv://usuario:password@cluster.mongodb.net/abala_championships?retryWrites=true&w=majority`
-   - Reemplaza `usuario` y `password` con tus credenciales
+   - Ve a tu proyecto en Vercel: https://vercel.com/dashboard
+   - Selecciona tu proyecto ABALA
+   - Ve a **Settings** → **Environment Variables**
+   - Haz clic en **Add New**
+   - Nombre: `MONGODB_URI`
+   - Valor: `mongodb+srv://abala_db_user:hbHkdaDMx5dXYXYJ@cluster0.twy4nuq.mongodb.net/abala_championships?retryWrites=true&w=majority`
+   - Selecciona los entornos: **Production**, **Preview**, **Development**
+   - Haz clic en **Save**
+   - **IMPORTANTE**: Después de agregar la variable, necesitas hacer un nuevo deploy para que tome efecto
 
 ## Opción 2: MongoDB Local (Desarrollo)
 

@@ -25,6 +25,7 @@ api.js.map
 .env
 .env.local
 .env.*.local
+# NOTA: .env.example SÍ debe estar en el repositorio (es solo un template)
 
 # IDE
 .vscode/
