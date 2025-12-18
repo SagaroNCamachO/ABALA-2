@@ -1,6 +1,6 @@
 {
   "name": "abala-championship",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Sistema de gestión de campeonatos de básquetbol",
   "main": "api/index.js",
   "scripts": {
