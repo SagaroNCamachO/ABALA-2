@@ -888,7 +888,8 @@
             dashboardContent.innerHTML = html;
         }
         
-        function switchDataTab(tab) {
+        // Asegurar que switchDataTab esté disponible globalmente
+        window.switchDataTab = function(tab) {
             document.querySelectorAll('#championshipsTab, #categoriesTab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab').forEach((t, i) => {
                 if ((tab === 'championships' && i === 0) || (tab === 'categories' && i === 1)) {
@@ -903,7 +904,7 @@
             } else {
                 document.getElementById('categoriesTab').classList.add('active');
             }
-        }
+        };
         
         // Asegurar que loadData esté disponible globalmente
         window.loadData = async function() {
