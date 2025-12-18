@@ -7,15 +7,23 @@ import { Championship } from '../models/Championship';
  * Guarda los datos en un archivo JSON en el servidor.
  */
 export class ChampionshipStorage {
-  private static readonly STORAGE_FILE = path.join(process.cwd(), 'data', 'championships.json');
-  private static readonly STORAGE_DIR = path.join(process.cwd(), 'data');
+  // En Vercel, usar /tmp para escritura, en otros entornos usar data/
+  private static readonly STORAGE_DIR = process.env.VERCEL 
+    ? '/tmp/data' 
+    : path.join(process.cwd(), 'data');
+  private static readonly STORAGE_FILE = path.join(this.STORAGE_DIR, 'championships.json');
 
   /**
    * Asegura que el directorio de almacenamiento existe.
    */
   private static ensureStorageDir(): void {
-    if (!fs.existsSync(this.STORAGE_DIR)) {
-      fs.mkdirSync(this.STORAGE_DIR, { recursive: true });
+    try {
+      if (!fs.existsSync(this.STORAGE_DIR)) {
+        fs.mkdirSync(this.STORAGE_DIR, { recursive: true });
+      }
+    } catch (error) {
+      // En Vercel o entornos sin escritura, continuar sin error
+      console.warn('No se pudo crear directorio de almacenamiento (puede ser normal en serverless):', error);
     }
   }
 
@@ -46,8 +54,9 @@ export class ChampionshipStorage {
       }
 
       console.log(`✅ Cargados ${championships.size} campeonato(s) desde el almacenamiento`);
-    } catch (error) {
-      console.error('Error cargando campeonatos desde almacenamiento:', error);
+    } catch (error: any) {
+      // En Vercel o entornos sin acceso al sistema de archivos, continuar sin error
+      console.warn('No se pudo cargar desde almacenamiento (puede ser normal en serverless):', error.message);
     }
 
     return championships;
@@ -71,9 +80,10 @@ export class ChampionshipStorage {
       fs.renameSync(tempFile, this.STORAGE_FILE);
 
       console.log(`💾 Guardados ${championships.size} campeonato(s) en el almacenamiento`);
-    } catch (error) {
-      console.error('Error guardando campeonatos en almacenamiento:', error);
-      throw error;
+    } catch (error: any) {
+      // En Vercel o entornos sin escritura, solo loguear el error pero no fallar
+      console.warn('No se pudo guardar en almacenamiento (puede ser normal en serverless):', error.message);
+      // No lanzar el error para que la aplicación continúe funcionando
     }
   }
 
