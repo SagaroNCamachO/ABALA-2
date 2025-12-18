@@ -77,7 +77,12 @@ git reset --hard v1.1.0-estable
 
 El commit exacto de este punto de recuperación es:
 ```
-(Se actualizará después del push)
+aeed2516027e19688be5934c778645cc8e6de51d
+```
+
+O en formato corto:
+```
+aeed251
 ```
 
 ## Cambios desde v1.0.0-estable
