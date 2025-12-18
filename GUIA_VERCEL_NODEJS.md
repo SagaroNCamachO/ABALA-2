@@ -107,3 +107,4 @@ Si todo esto está correcto, Vercel debería funcionar con la opción **"Other"*
 
 Vercel usará tu `vercel.json` para saber cómo construir y desplegar el proyecto.
 
+

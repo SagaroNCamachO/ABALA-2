@@ -16,6 +16,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            font-size: 18px; /* Tamaño base más grande para mejor legibilidad */
         }
         
         .container {
@@ -30,9 +31,15 @@
         }
         
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 3em; /* Más grande */
+            margin-bottom: 15px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.3em; /* Subtítulo más grande */
+            opacity: 0.95;
         }
         
         .main-grid {
@@ -141,11 +148,31 @@
         
         .card h2 {
             color: #667eea;
-            margin-bottom: 20px;
-            font-size: 1.4em;
+            margin-bottom: 25px;
+            font-size: 2em; /* Más grande */
             display: flex;
             align-items: center;
             gap: 10px;
+            font-weight: 700;
+        }
+        
+        /* Instrucciones de ayuda */
+        .help-text {
+            background: #e7f3ff;
+            border-left: 5px solid #2196F3;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            font-size: 1.15em;
+            line-height: 1.7;
+            color: #1565C0;
+        }
+        
+        .help-text strong {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+            color: #0d47a1;
         }
         
         .form-group {
@@ -154,20 +181,30 @@
         
         .form-group label {
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 12px; /* Más espacio */
             color: #333;
-            font-weight: 600;
-            font-size: 0.9em;
+            font-weight: 700;
+            font-size: 1.2em; /* Más grande */
         }
         
         .form-group input,
         .form-group select {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
+            padding: 18px; /* Más padding para mejor toque */
+            border: 3px solid #e0e0e0; /* Borde más grueso */
+            border-radius: 10px;
+            font-size: 18px; /* Más grande */
             transition: all 0.3s;
+            background: #fff;
+        }
+        
+        /* Etiquetas de ayuda para campos */
+        .field-help {
+            font-size: 1em;
+            color: #666;
+            margin-top: 8px;
+            font-style: italic;
+            line-height: 1.5;
         }
         
         .form-group input:focus,
@@ -181,14 +218,25 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 14px 30px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
+            padding: 20px 40px; /* Botones más grandes */
+            border-radius: 10px;
+            font-size: 1.2em; /* Texto más grande */
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s;
             width: 100%;
-            margin-top: 10px;
+            margin-top: 15px;
+            min-height: 65px; /* Altura mínima para mejor toque */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn-large {
+            padding: 24px 50px;
+            font-size: 1.3em;
+            min-height: 75px;
         }
         
         .btn:hover {
@@ -248,15 +296,16 @@
         }
         
         .tab {
-            padding: 10px 20px;
+            padding: 15px 30px; /* Más grande */
             cursor: pointer;
             border: none;
             background: none;
-            font-size: 16px;
+            font-size: 1.3em; /* Más grande */
             color: #666;
-            font-weight: 600;
-            border-bottom: 3px solid transparent;
+            font-weight: 700;
+            border-bottom: 4px solid transparent; /* Más grueso */
             transition: all 0.3s;
+            min-height: 50px;
         }
         
         .tab.active {
@@ -339,22 +388,30 @@
         }
         
         .alert {
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 0.9em;
+            padding: 20px; /* Más padding */
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 1.2em; /* Más grande */
+            line-height: 1.6;
+            font-weight: 500;
         }
         
         .alert-success {
             background: #d4edda;
             color: #155724;
-            border-left: 4px solid #28a745;
+            border-left: 5px solid #28a745;
         }
         
         .alert-error {
             background: #f8d7da;
             color: #721c24;
-            border-left: 4px solid #dc3545;
+            border-left: 5px solid #dc3545;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 5px solid #ffc107;
         }
     </style>
 </head>
@@ -362,48 +419,60 @@
     <div class="container">
         <div class="header">
             <h1>🏀 ABALA</h1>
-            <p style="font-size: 1.1em; opacity: 0.95;">Sistema de Gestión de Campeonatos de Básquetbol</p>
+            <p style="font-size: 1.4em; opacity: 0.95; margin-top: 10px;">Sistema Simple para Administrar Campeonatos de Básquetbol</p>
         </div>
         
         <div class="main-grid">
             <!-- Panel Izquierdo: Crear/Gestionar -->
             <div class="card">
-                <h2>⚙️ Gestión</h2>
+                <h2>⚙️ Gestión del Campeonato</h2>
+                
+                <div class="help-text" id="helpContent">
+                    <strong>💡 Bienvenido</strong>
+                    <span id="helpText">Seleccione una opción en las pestañas de arriba para comenzar. Use "Crear" para crear nuevos campeonatos o categorías, y "Gestionar" para ver la información existente.</span>
+                </div>
                 
                 <div class="tabs">
-                    <button class="tab active" onclick="switchTab('create')">Crear</button>
-                    <button class="tab" onclick="switchTab('manage')">Gestionar</button>
+                    <button class="tab active" onclick="switchTab('create')">➕ Crear Nuevo</button>
+                    <button class="tab" onclick="switchTab('manage')">👁️ Ver y Gestionar</button>
                 </div>
                 
                 <!-- Tab: Crear -->
                 <div id="createTab" class="tab-content active">
                     <div class="form-group">
-                        <label>Acción:</label>
-                        <select id="actionSelect" onchange="updateForm()">
-                            <option value="createChamp" selected>Crear Campeonato</option>
-                            <option value="addCategory">Agregar Categoría</option>
+                        <label>📋 ¿Qué desea crear?</label>
+                        <select id="actionSelect" onchange="updateForm()" style="font-size: 1.1em; padding: 18px;">
+                            <option value="createChamp" selected>🏆 Crear un Nuevo Campeonato</option>
+                            <option value="addCategory">📁 Agregar una Categoría a un Campeonato</option>
                         </select>
+                        <div class="field-help">Seleccione qué desea crear en el menú de arriba</div>
                     </div>
                     
                     <div id="dynamicForm"></div>
                     
-                    <button class="btn" onclick="executeAction()">Ejecutar</button>
-                    <button class="btn btn-secondary" onclick="loadData()">🔄 Actualizar Datos</button>
+                    <button class="btn btn-large" onclick="executeAction()">✅ Crear Ahora</button>
+                    <button class="btn btn-secondary" onclick="loadData()">🔄 Actualizar Lista</button>
                 </div>
                 
                 <!-- Tab: Gestionar -->
                 <div id="manageTab" class="tab-content">
+                    <div class="help-text">
+                        <strong>👁️ Ver Información del Campeonato</strong>
+                        Seleccione qué desea ver y el campeonato correspondiente. Luego haga clic en "Ver Información" para mostrar los datos.
+                    </div>
+                    
                     <div class="form-group">
-                        <label>Ver:</label>
-                        <select id="viewSelect" onchange="loadView()">
-                            <option value="standings">Tabla de Posiciones</option>
-                            <option value="fixture">Fixture</option>
-                            <option value="championship">Campeonato Completo</option>
+                        <label>📊 ¿Qué desea ver?</label>
+                        <select id="viewSelect" onchange="loadView()" style="font-size: 1.1em; padding: 18px;">
+                            <option value="standings">📈 Ver Tabla de Posiciones</option>
+                            <option value="fixture">📅 Ver Calendario de Partidos (Fixture)</option>
+                            <option value="championship">📋 Ver Todo el Campeonato</option>
                         </select>
+                        <div class="field-help">Elija qué información desea ver del campeonato</div>
                     </div>
                     
                     <div id="viewForm"></div>
-                    <button class="btn" onclick="loadViewData()">Ver</button>
+                    <button class="btn btn-large" onclick="loadViewData()">👁️ Ver Información</button>
                     
                     <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
                         <h3 style="color: #667eea; font-size: 1.1em; margin-bottom: 15px;">💾 Guardar y Exportar</h3>
@@ -901,54 +970,75 @@
             switch(action) {
                 case 'createChamp':
                     html = `
-                        <div class="form-group">
-                            <label>ID del Campeonato:</label>
-                            <input type="text" id="champId" placeholder="champ1" value="champ${champIds.length + 1}">
+                        <div class="help-text" style="background: #fff3cd; border-left-color: #ffc107; color: #856404;">
+                            <strong>📝 Crear un Nuevo Campeonato</strong>
+                            Complete todos los campos a continuación. Todos los campos son obligatorios.
                         </div>
                         <div class="form-group">
-                            <label>Nombre:</label>
-                            <input type="text" id="name" placeholder="Campeonato 2024" value="Campeonato ${new Date().getFullYear()}">
+                            <label>🔑 Código del Campeonato (ID):</label>
+                            <input type="text" id="champId" placeholder="champ1" value="champ${champIds.length + 1}" style="font-size: 1.1em; padding: 18px;">
+                            <div class="field-help">Ingrese un código único para identificar este campeonato (por ejemplo: champ1, torneo2024)</div>
                         </div>
                         <div class="form-group">
-                            <label>Vueltas:</label>
-                            <input type="number" id="rounds" value="2" min="1">
+                            <label>📛 Nombre del Campeonato:</label>
+                            <input type="text" id="name" placeholder="Campeonato 2024" value="Campeonato ${new Date().getFullYear()}" style="font-size: 1.1em; padding: 18px;">
+                            <div class="field-help">Escriba el nombre completo del campeonato (por ejemplo: "Campeonato de Básquetbol 2024")</div>
                         </div>
                         <div class="form-group">
-                            <label>Puntos por Victoria:</label>
-                            <input type="number" id="pointsWin" value="2" min="0">
+                            <label>🔄 Número de Vueltas:</label>
+                            <input type="number" id="rounds" value="2" min="1" style="font-size: 1.1em; padding: 18px;">
+                            <div class="field-help">Ingrese cuántas vueltas tendrá el campeonato. Normalmente son 2 vueltas (ida y vuelta).</div>
                         </div>
                         <div class="form-group">
-                            <label>Puntos por Derrota:</label>
-                            <input type="number" id="pointsLoss" value="0" min="0">
+                            <label>⭐ Puntos por Victoria:</label>
+                            <input type="number" id="pointsWin" value="2" min="0" style="font-size: 1.1em; padding: 18px;">
+                            <div class="field-help">Cuantos puntos gana un equipo cuando gana un partido (normalmente 2 puntos)</div>
+                        </div>
+                        <div class="form-group">
+                            <label>📉 Puntos por Derrota:</label>
+                            <input type="number" id="pointsLoss" value="0" min="0" style="font-size: 1.1em; padding: 18px;">
+                            <div class="field-help">Cuantos puntos gana un equipo cuando pierde un partido (normalmente 0 puntos)</div>
                         </div>
                     `;
+                    // Actualizar texto de ayuda
+                    document.getElementById('helpText').textContent = 'Complete todos los campos del formulario y luego haga clic en "Crear Ahora" para crear el campeonato.';
                     break;
                 case 'addCategory':
                     html = `
-                        <div class="form-group">
-                            <label>Campeonato:</label>
-                            <select id="champIdSelect" onchange="loadCategoryTeams()">
-                                ${champOptions}
-                            </select>
+                        <div class="help-text" style="background: #fff3cd; border-left-color: #ffc107; color: #856404;">
+                            <strong>📁 Agregar una Categoría</strong>
+                            Primero seleccione el campeonato al que desea agregar la categoría, luego complete los datos de la categoría.
                         </div>
                         <div class="form-group">
-                            <label>Nombre de la Categoría:</label>
-                            <input type="text" id="categoryName" placeholder="TC" list="categorySuggestions">
+                            <label>🏆 Seleccione el Campeonato:</label>
+                            <select id="champIdSelect" onchange="loadCategoryTeams()" style="font-size: 1.1em; padding: 18px;">
+                                ${champOptions}
+                            </select>
+                            <div class="field-help">Elija el campeonato al que desea agregar esta categoría</div>
+                        </div>
+                        <div class="form-group">
+                            <label>📛 Nombre de la Categoría:</label>
+                            <input type="text" id="categoryName" placeholder="TC" list="categorySuggestions" style="font-size: 1.1em; padding: 18px;">
                             <datalist id="categorySuggestions">
                                 <option value="TC">
                                 <option value="Senior">
                                 <option value="Super Senior">
                             </datalist>
+                            <div class="field-help">Escriba el nombre de la categoría (por ejemplo: TC, Senior, Super Senior)</div>
                         </div>
                         <div class="form-group">
-                            <label>Equipos (separados por comas):</label>
-                            <input type="text" id="teams" placeholder="Equipo A, Equipo B, Equipo C">
+                            <label>👥 Nombres de los Equipos (separados por comas):</label>
+                            <input type="text" id="teams" placeholder="Equipo A, Equipo B, Equipo C" style="font-size: 1.1em; padding: 18px;">
+                            <div class="field-help">Escriba los nombres de los equipos separados por comas. Ejemplo: "Los Leones, Los Tigres, Los Osos"</div>
                         </div>
                         <div class="form-group">
-                            <label>O número de equipos (nombres automáticos):</label>
-                            <input type="number" id="numTeams" placeholder="4" min="2">
+                            <label>🔢 O ingrese el número de equipos (se crearán nombres automáticos):</label>
+                            <input type="number" id="numTeams" placeholder="4" min="2" style="font-size: 1.1em; padding: 18px;">
+                            <div class="field-help">Si prefiere, puede ingresar solo el número de equipos y se crearán nombres automáticos (Equipo 1, Equipo 2, etc.)</div>
                         </div>
                     `;
+                    // Actualizar texto de ayuda
+                    document.getElementById('helpText').textContent = 'Seleccione el campeonato y complete los datos de la categoría. Puede ingresar los nombres de los equipos o solo el número de equipos.';
                     break;
             }
             
@@ -1025,13 +1115,13 @@
                         const champId = document.getElementById('champIdSelect').value;
                         
                         if (!champId) {
-                            showAlert('Por favor selecciona un campeonato', 'error');
+                            showAlert('Debe seleccionar un campeonato antes de continuar', 'error');
                             return;
                         }
                         
                         const categoryName = document.getElementById('categoryName').value;
                         if (!categoryName) {
-                            showAlert('Por favor ingresa el nombre de la categoría', 'error');
+                            showAlert('Debe escribir el nombre de la categoría (por ejemplo: TC, Senior)', 'error');
                             return;
                         }
                         
@@ -1048,13 +1138,13 @@
                             if (teams.length > 0) {
                                 body.teams = teams;
                             } else {
-                                showAlert('Por favor ingresa al menos un equipo', 'error');
+                                showAlert('Debe ingresar al menos un equipo. Escriba los nombres separados por comas (ejemplo: Equipo A, Equipo B)', 'error');
                                 return;
                             }
                         } else if (numTeams && parseInt(numTeams) >= 2) {
                             body.num_teams = parseInt(numTeams);
                         } else {
-                            showAlert('Debes proporcionar equipos (separados por comas) o un número de equipos (mínimo 2)', 'error');
+                            showAlert('Debe ingresar los nombres de los equipos (separados por comas) o el número de equipos (mínimo 2 equipos)', 'error');
                             return;
                         }
                         
@@ -1072,7 +1162,13 @@
                 responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
                 
                 if (data.success) {
-                    showAlert('Operación exitosa', 'success');
+                    if (action === 'createChamp') {
+                        showAlert('¡Campeonato creado exitosamente! Ahora puede agregar categorías.', 'success');
+                    } else if (action === 'addCategory') {
+                        showAlert('¡Categoría agregada exitosamente! El calendario de partidos se ha generado automáticamente.', 'success');
+                    } else {
+                        showAlert('Operación completada exitosamente', 'success');
+                    }
                     // Guardar en localStorage si se creó un campeonato
                     if (action === 'createChamp' && data.id) {
                         const champId = data.id;
@@ -1106,7 +1202,7 @@
                         }, 1000);
                     }
                 } else {
-                    showAlert(data.error || 'Error en la operación', 'error');
+                    showAlert(data.error || 'Ocurrió un error. Por favor, verifique que todos los campos estén completos e intente nuevamente.', 'error');
                 }
             } catch (error) {
                 responseDiv.innerHTML = `<pre style="color: red;">Error: ${error.message}</pre>`;
@@ -1568,19 +1664,34 @@
         function showAlert(message, type) {
             const alert = document.createElement('div');
             alert.className = `alert alert-${type}`;
-            alert.textContent = message;
+            
+            // Agregar iconos según el tipo
+            let icon = '';
+            if (type === 'success') icon = '✅ ';
+            else if (type === 'error') icon = '❌ ';
+            else if (type === 'warning') icon = '⚠️ ';
+            else icon = 'ℹ️ ';
+            
+            alert.innerHTML = `<strong>${icon}</strong>${message}`;
             alert.style.position = 'fixed';
-            alert.style.top = '20px';
-            alert.style.right = '20px';
-            alert.style.zIndex = '1000';
-            alert.style.minWidth = '300px';
+            alert.style.top = '30px';
+            alert.style.right = '30px';
+            alert.style.zIndex = '10000';
+            alert.style.minWidth = '400px';
+            alert.style.maxWidth = '600px';
+            alert.style.boxShadow = '0 8px 25px rgba(0,0,0,0.3)';
+            alert.style.fontSize = '1.2em';
+            alert.style.padding = '25px';
             document.body.appendChild(alert);
+            
+            // Scroll suave hacia la alerta
+            alert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             
             setTimeout(() => {
                 alert.style.opacity = '0';
-                alert.style.transition = 'opacity 0.3s';
-                setTimeout(() => alert.remove(), 300);
-            }, 3000);
+                alert.style.transition = 'opacity 0.5s';
+                setTimeout(() => alert.remove(), 500);
+            }, 5000); // Mostrar por más tiempo (5 segundos)
         }
         
         function updateExportSelect() {

@@ -210,3 +210,4 @@ Ahora que tienes el campeonato creado, el siguiente paso es **agregar una catego
 POST /api/championships/CampeonatoLaboralAncud2026/categories
 ```
 
+
