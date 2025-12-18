@@ -1567,10 +1567,12 @@
                     showAlert(data.error || 'Ocurrió un error. Por favor, verifique que todos los campos estén completos e intente nuevamente.', 'error');
                 }
             } catch (error) {
-                responseDiv.innerHTML = `<pre style="color: red;">Error: ${error.message}</pre>`;
+                if (responseDiv) {
+                    responseDiv.innerHTML = `<pre style="color: red;">Error: ${error.message}</pre>`;
+                }
                 showAlert('Error de conexión', 'error');
             }
-        }
+        };
         
         // Asegurar que loadView esté disponible globalmente
         window.loadView = function() {
