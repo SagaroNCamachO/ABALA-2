@@ -66,6 +66,156 @@ app.get('/health', (_req: Request, res: Response) => {
 });
 
 /**
+ * Dashboard - Resumen ejecutivo de todos los campeonatos.
+ */
+app.get('/api/dashboard', (_req: Request, res: Response) => {
+  try {
+    const now = new Date();
+    const today = now.toISOString().split('T')[0]; // YYYY-MM-DD
+    
+    // Resumen de campeonatos
+    const championshipsSummary = [];
+    const upcomingMatches: any[] = [];
+    const recentResults: any[] = [];
+    let totalMatches = 0;
+    let totalPlayed = 0;
+    let totalPending = 0;
+    let totalTeams = 0;
+    let totalCategories = 0;
+
+    for (const [champId, championship] of championships.entries()) {
+      const categories = Array.from(championship.categories.values());
+      totalCategories += categories.length;
+      
+      let champMatches = 0;
+      let champPlayed = 0;
+      let champPending = 0;
+      let champTeams = 0;
+
+      for (const category of categories) {
+        champTeams += category.teams.size;
+        totalTeams += category.teams.size;
+        
+        // Incluir todos los partidos (regulares)
+        const allMatches = category.matches;
+        champMatches += allMatches.length;
+        totalMatches += allMatches.length;
+        
+        const played = allMatches.filter(m => m.played).length;
+        const pending = allMatches.filter(m => !m.played).length;
+        champPlayed += played;
+        champPending += pending;
+        totalPlayed += played;
+        totalPending += pending;
+
+        // Próximos partidos (no jugados, con fecha >= hoy)
+        for (const match of allMatches) {
+          if (!match.played && match.date) {
+            const matchDate = match.date;
+            if (matchDate >= today) {
+              upcomingMatches.push({
+                championship_id: champId,
+                championship_name: championship.name,
+                category: category.name,
+                team_a: match.teamA,
+                team_b: match.teamB,
+                date: match.date,
+                time: match.time || '20:00',
+                round_number: match.roundNumber,
+                match_type: match.matchType,
+                matchday: match.matchday
+              });
+            }
+          }
+        }
+
+        // Resultados recientes (últimos 10 partidos jugados)
+        const recentCategoryMatches = allMatches
+          .filter(m => m.played && m.date)
+          .sort((a, b) => {
+            const dateA = a.date || '';
+            const dateB = b.date || '';
+            return dateB.localeCompare(dateA); // Más recientes primero
+          })
+          .slice(0, 10);
+
+        for (const match of recentCategoryMatches) {
+          recentResults.push({
+            championship_id: champId,
+            championship_name: championship.name,
+            category: category.name,
+            team_a: match.teamA,
+            team_b: match.teamB,
+            score_a: match.scoreA,
+            score_b: match.scoreB,
+            winner: match.winner,
+            date: match.date,
+            round_number: match.roundNumber,
+            match_type: match.matchType
+          });
+        }
+      }
+
+      championshipsSummary.push({
+        id: champId,
+        name: championship.name,
+        rounds: championship.rounds,
+        categories_count: categories.length,
+        teams_count: champTeams,
+        matches_total: champMatches,
+        matches_played: champPlayed,
+        matches_pending: champPending,
+        progress_percentage: champMatches > 0 ? Math.round((champPlayed / champMatches) * 100) : 0
+      });
+    }
+
+    // Ordenar próximos partidos por fecha
+    upcomingMatches.sort((a, b) => {
+      const dateA = a.date || '';
+      const dateB = b.date || '';
+      if (dateA !== dateB) {
+        return dateA.localeCompare(dateB);
+      }
+      return (a.time || '').localeCompare(b.time || '');
+    });
+
+    // Ordenar resultados recientes por fecha (más recientes primero)
+    recentResults.sort((a, b) => {
+      const dateA = a.date || '';
+      const dateB = b.date || '';
+      return dateB.localeCompare(dateA);
+    });
+
+    // Limitar a los próximos 10 partidos y últimos 10 resultados
+    const nextMatches = upcomingMatches.slice(0, 10);
+    const lastResults = recentResults.slice(0, 10);
+
+    return res.json({
+      success: true,
+      dashboard: {
+        summary: {
+          total_championships: championships.size,
+          total_categories: totalCategories,
+          total_teams: totalTeams,
+          total_matches: totalMatches,
+          matches_played: totalPlayed,
+          matches_pending: totalPending,
+          overall_progress: totalMatches > 0 ? Math.round((totalPlayed / totalMatches) * 100) : 0
+        },
+        championships: championshipsSummary,
+        upcoming_matches: nextMatches,
+        recent_results: lastResults
+      }
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
  * Crear un nuevo campeonato.
  */
 app.post('/api/championships', (req: Request, res: Response) => {

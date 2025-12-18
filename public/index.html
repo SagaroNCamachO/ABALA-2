@@ -433,12 +433,25 @@
                 </div>
                 
                 <div class="tabs">
-                    <button class="tab active" onclick="switchTab('create')">➕ Crear Nuevo</button>
+                    <button class="tab active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+                    <button class="tab" onclick="switchTab('create')">➕ Crear Nuevo</button>
                     <button class="tab" onclick="switchTab('manage')">👁️ Ver y Gestionar</button>
                 </div>
                 
+                <!-- Tab: Dashboard -->
+                <div id="dashboardTab" class="tab-content active">
+                    <div class="help-text">
+                        <strong>📊 Resumen General</strong>
+                        Vista general de todos los campeonatos, próximos partidos y resultados recientes.
+                    </div>
+                    <button class="btn btn-large" onclick="loadDashboard()" style="width: 100%; margin-top: 20px;">
+                        🔄 Actualizar Dashboard
+                    </button>
+                    <div id="dashboardContent" style="margin-top: 30px;"></div>
+                </div>
+                
                 <!-- Tab: Crear -->
-                <div id="createTab" class="tab-content active">
+                <div id="createTab" class="tab-content">
                     <div class="form-group">
                         <label>📋 ¿Qué desea crear?</label>
                         <select id="actionSelect" onchange="updateForm()" style="font-size: 1.1em; padding: 18px;">
@@ -539,19 +552,271 @@
         // Cargar datos al iniciar
         window.onload = () => {
             loadData();
+            // Cargar dashboard después de un pequeño delay para asegurar que la página esté lista
+            setTimeout(() => {
+                const dashboardTab = document.getElementById('dashboardTab');
+                if (dashboardTab && dashboardTab.classList.contains('active')) {
+                    loadDashboard();
+                }
+            }, 500);
         };
         
         function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
-            if (tab === 'create') {
+            if (tab === 'dashboard') {
                 document.querySelectorAll('.tab')[0].classList.add('active');
+                document.getElementById('dashboardTab').classList.add('active');
+                loadDashboard(); // Cargar automáticamente al cambiar a dashboard
+            } else if (tab === 'create') {
+                document.querySelectorAll('.tab')[1].classList.add('active');
                 document.getElementById('createTab').classList.add('active');
             } else {
-                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.querySelectorAll('.tab')[2].classList.add('active');
                 document.getElementById('manageTab').classList.add('active');
             }
+        }
+        
+        async function loadDashboard() {
+            const dashboardContent = document.getElementById('dashboardContent');
+            if (!dashboardContent) {
+                console.error('dashboardContent no encontrado');
+                return;
+            }
+            
+            dashboardContent.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 2em; margin-bottom: 20px;">⏳</div><div style="font-size: 1.2em;">Cargando dashboard...</div></div>';
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/dashboard`);
+                
+                if (!res.ok) {
+                    throw new Error(`Error HTTP: ${res.status}`);
+                }
+                
+                const data = await res.json();
+                
+                if (!data.success) {
+                    dashboardContent.innerHTML = `<div class="alert alert-error">Error al cargar el dashboard: ${data.error || 'Error desconocido'}</div>`;
+                    return;
+                }
+                
+                if (!data.dashboard) {
+                    dashboardContent.innerHTML = `<div class="alert alert-error">Error: Datos del dashboard no disponibles</div>`;
+                    return;
+                }
+                
+                const dashboard = data.dashboard;
+                renderDashboard(dashboard);
+            } catch (error: any) {
+                console.error('Error cargando dashboard:', error);
+                dashboardContent.innerHTML = `<div class="alert alert-error">Error de conexión: ${error.message || 'Error desconocido'}. Por favor, intente nuevamente.</div>`;
+            }
+        }
+        
+        function renderDashboard(dashboard) {
+            const dashboardContent = document.getElementById('dashboardContent');
+            if (!dashboardContent) {
+                console.error('dashboardContent no encontrado en renderDashboard');
+                return;
+            }
+            
+            if (!dashboard) {
+                dashboardContent.innerHTML = '<div class="alert alert-error">Error: Datos del dashboard no disponibles</div>';
+                return;
+            }
+            
+            const { summary, championships, upcoming_matches, recent_results } = dashboard;
+            
+            // Validar que los datos existan
+            if (!summary) {
+                dashboardContent.innerHTML = '<div class="alert alert-error">Error: Resumen no disponible</div>';
+                return;
+            }
+            
+            let html = `
+                <!-- Resumen General -->
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 8px 25px rgba(0,0,0,0.2);">
+                    <h3 style="margin-bottom: 25px; font-size: 2em; text-align: center;">📊 Resumen General</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                        <div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 10px; text-align: center; backdrop-filter: blur(10px);">
+                            <div style="font-size: 3em; font-weight: bold; margin-bottom: 10px;">${summary.total_championships || 0}</div>
+                            <div style="font-size: 1.2em;">Campeonatos</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 10px; text-align: center; backdrop-filter: blur(10px);">
+                            <div style="font-size: 3em; font-weight: bold; margin-bottom: 10px;">${summary.total_teams || 0}</div>
+                            <div style="font-size: 1.2em;">Equipos</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 10px; text-align: center; backdrop-filter: blur(10px);">
+                            <div style="font-size: 3em; font-weight: bold; margin-bottom: 10px;">${summary.total_matches || 0}</div>
+                            <div style="font-size: 1.2em;">Partidos Totales</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 10px; text-align: center; backdrop-filter: blur(10px);">
+                            <div style="font-size: 3em; font-weight: bold; margin-bottom: 10px;">${summary.overall_progress || 0}%</div>
+                            <div style="font-size: 1.2em;">Progreso General</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 25px; padding-top: 25px; border-top: 2px solid rgba(255,255,255,0.3); display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; text-align: center;">
+                        <div>
+                            <div style="font-size: 2em; font-weight: bold; color: #28a745;">${summary.matches_played || 0}</div>
+                            <div style="font-size: 1em; opacity: 0.9;">Jugados</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 2em; font-weight: bold; color: #ffc107;">${summary.matches_pending || 0}</div>
+                            <div style="font-size: 1em; opacity: 0.9;">Pendientes</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 2em; font-weight: bold;">${summary.total_categories || 0}</div>
+                            <div style="font-size: 1em; opacity: 0.9;">Categorías</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Campeonatos -->
+                <div style="margin-bottom: 30px;">
+                    <h3 style="color: #667eea; margin-bottom: 20px; font-size: 1.8em; font-weight: 700;">🏆 Campeonatos Activos</h3>
+                    <div style="display: grid; gap: 20px;">
+            `;
+            
+            if (!championships || championships.length === 0) {
+                html += '<div class="empty-state">No hay campeonatos creados</div>';
+            } else {
+                championships.forEach((champ: any) => {
+                    html += `
+                        <div style="background: white; padding: 25px; border-radius: 12px; border-left: 5px solid #667eea; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                                <div style="flex: 1;">
+                                    <h4 style="color: #667eea; font-size: 1.5em; margin-bottom: 10px; font-weight: 700;">${champ.name || 'Sin nombre'}</h4>
+                                    <div style="color: #666; font-size: 1.1em; line-height: 1.8;">
+                                        <div>📁 <strong>Categorías:</strong> ${champ.categories_count || 0}</div>
+                                        <div>👥 <strong>Equipos:</strong> ${champ.teams_count || 0}</div>
+                                        <div>🔄 <strong>Vueltas:</strong> ${champ.rounds || 0}</div>
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 2.5em; font-weight: bold; color: #667eea; margin-bottom: 5px;">${champ.progress_percentage || 0}%</div>
+                                    <div style="color: #666; font-size: 0.9em;">Progreso</div>
+                                </div>
+                            </div>
+                            <div style="background: #f0f0f0; border-radius: 10px; padding: 15px; margin-top: 15px;">
+                                <div style="display: flex; justify-content: space-around; text-align: center;">
+                                    <div>
+                                        <div style="font-size: 1.8em; font-weight: bold; color: #28a745;">${champ.matches_played || 0}</div>
+                                        <div style="font-size: 0.9em; color: #666;">Jugados</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 1.8em; font-weight: bold; color: #dc3545;">${champ.matches_pending || 0}</div>
+                                        <div style="font-size: 0.9em; color: #666;">Pendientes</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 1.8em; font-weight: bold; color: #667eea;">${champ.matches_total || 0}</div>
+                                        <div style="font-size: 0.9em; color: #666;">Total</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            html += `</div></div>`;
+            
+            // Próximos Partidos
+            html += `
+                <div style="margin-bottom: 30px;">
+                    <h3 style="color: #667eea; margin-bottom: 20px; font-size: 1.8em; font-weight: 700;">📅 Próximos Partidos</h3>
+            `;
+            
+            if (!upcoming_matches || upcoming_matches.length === 0) {
+                html += '<div class="empty-state">No hay partidos programados próximamente</div>';
+            } else {
+                html += '<div style="display: grid; gap: 15px;">';
+                upcoming_matches.forEach((match: any) => {
+                    let dateStr = 'Fecha por definir';
+                    if (match.date) {
+                        try {
+                            const dateObj = new Date(match.date);
+                            dateStr = dateObj.toLocaleDateString('es-ES', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+                        } catch (e) {
+                            dateStr = match.date;
+                        }
+                    }
+                    html += `
+                        <div style="background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%); padding: 20px; border-radius: 12px; border-left: 5px solid #ffc107; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: bold; color: #856404; margin-bottom: 8px; font-size: 1.1em;">${match.championship_name || 'Sin nombre'} - ${match.category || 'Sin categoría'}</div>
+                                    <div style="font-size: 1.3em; font-weight: bold; color: #333; margin-bottom: 5px;">
+                                        ${match.team_a || 'Equipo A'} <span style="color: #666;">vs</span> ${match.team_b || 'Equipo B'}
+                                    </div>
+                                    <div style="color: #666; font-size: 1em;">
+                                        📅 ${dateStr} 🕐 ${match.time || 'Por definir'}
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="background: #ffc107; color: #000; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 1.1em;">
+                                        ${match.match_type === 'ida' ? 'Vuelta 1' : match.match_type === 'vuelta' ? 'Vuelta 2' : 'Vuelta'} - Jornada ${match.matchday || 'N/A'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+            
+            html += `</div>`;
+            
+            // Resultados Recientes
+            html += `
+                <div style="margin-bottom: 30px;">
+                    <h3 style="color: #667eea; margin-bottom: 20px; font-size: 1.8em; font-weight: 700;">⚽ Resultados Recientes</h3>
+            `;
+            
+            if (!recent_results || recent_results.length === 0) {
+                html += '<div class="empty-state">No hay resultados recientes</div>';
+            } else {
+                html += '<div style="display: grid; gap: 15px;">';
+                recent_results.forEach((result: any) => {
+                    let dateStr = 'Fecha no disponible';
+                    if (result.date) {
+                        try {
+                            const dateObj = new Date(result.date);
+                            dateStr = dateObj.toLocaleDateString('es-ES', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+                        } catch (e) {
+                            dateStr = result.date;
+                        }
+                    }
+                    html += `
+                        <div style="background: white; padding: 20px; border-radius: 12px; border-left: 5px solid #28a745; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                            <div style="font-weight: bold; color: #667eea; margin-bottom: 10px; font-size: 1.1em;">${result.championship_name || 'Sin nombre'} - ${result.category || 'Sin categoría'}</div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <div style="flex: 1; text-align: center;">
+                                    <div style="font-size: 1.2em; font-weight: bold; color: #333; margin-bottom: 5px;">${result.team_a || 'Equipo A'}</div>
+                                    <div style="font-size: 2em; font-weight: bold; color: ${result.winner === result.team_a ? '#28a745' : '#666'};">
+                                        ${result.score_a !== null && result.score_a !== undefined ? result.score_a : '-'}
+                                    </div>
+                                </div>
+                                <div style="font-size: 1.5em; font-weight: bold; color: #666; margin: 0 20px;">-</div>
+                                <div style="flex: 1; text-align: center;">
+                                    <div style="font-size: 1.2em; font-weight: bold; color: #333; margin-bottom: 5px;">${result.team_b || 'Equipo B'}</div>
+                                    <div style="font-size: 2em; font-weight: bold; color: ${result.winner === result.team_b ? '#28a745' : '#666'};">
+                                        ${result.score_b !== null && result.score_b !== undefined ? result.score_b : '-'}
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="text-align: center; color: #666; font-size: 0.95em; margin-top: 10px;">
+                                📅 ${dateStr} | Ganador: <strong style="color: #28a745;">${result.winner || 'Empate'}</strong>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+            
+            html += `</div>`;
+            
+            dashboardContent.innerHTML = html;
         }
         
         function switchDataTab(tab) {
