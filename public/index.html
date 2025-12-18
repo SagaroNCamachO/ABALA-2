@@ -686,44 +686,67 @@
         
         // Sistema de temas (modo oscuro/claro)
         function initTheme() {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            if (savedTheme === 'dark') {
-                document.body.classList.add('dark-mode');
-                updateThemeButton('dark');
-            } else {
-                document.body.classList.remove('dark-mode');
-                updateThemeButton('light');
+            try {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                if (savedTheme === 'dark') {
+                    document.body.classList.add('dark-mode');
+                    updateThemeButton('dark');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    updateThemeButton('light');
+                }
+            } catch (error) {
+                console.error('Error inicializando tema:', error);
             }
         }
         
         function toggleTheme() {
-            const isDark = document.body.classList.contains('dark-mode');
-            if (isDark) {
-                document.body.classList.remove('dark-mode');
-                localStorage.setItem('theme', 'light');
-                updateThemeButton('light');
-            } else {
-                document.body.classList.add('dark-mode');
-                localStorage.setItem('theme', 'dark');
-                updateThemeButton('dark');
+            try {
+                const isDark = document.body.classList.contains('dark-mode');
+                if (isDark) {
+                    document.body.classList.remove('dark-mode');
+                    localStorage.setItem('theme', 'light');
+                    updateThemeButton('light');
+                } else {
+                    document.body.classList.add('dark-mode');
+                    localStorage.setItem('theme', 'dark');
+                    updateThemeButton('dark');
+                }
+            } catch (error) {
+                console.error('Error cambiando tema:', error);
+                showAlert('Error al cambiar el tema', 'error');
             }
         }
         
         function updateThemeButton(theme) {
-            const button = document.getElementById('themeToggle');
-            if (button) {
-                if (theme === 'dark') {
-                    button.textContent = '☀️ Modo Claro';
+            try {
+                const button = document.getElementById('themeToggle');
+                if (button) {
+                    if (theme === 'dark') {
+                        button.textContent = '☀️ Modo Claro';
+                        button.style.background = 'rgba(255,255,255,0.3)';
+                    } else {
+                        button.textContent = '🌙 Modo Oscuro';
+                        button.style.background = 'rgba(255,255,255,0.2)';
+                    }
                 } else {
-                    button.textContent = '🌙 Modo Oscuro';
+                    console.warn('Botón themeToggle no encontrado');
                 }
+            } catch (error) {
+                console.error('Error actualizando botón de tema:', error);
             }
         }
         
         window.toggleTheme = toggleTheme;
+        window.initTheme = initTheme;
         
         // Inicializar tema al cargar
-        initTheme();
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initTheme);
+        } else {
+            // DOM ya está cargado
+            setTimeout(initTheme, 100);
+        }
         
         // Asegurar que switchTab esté disponible globalmente ANTES de cualquier otra cosa
         window.switchTab = function(tab) {
