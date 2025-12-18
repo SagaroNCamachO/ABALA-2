@@ -566,10 +566,9 @@
         
         // Asegurar que switchTab esté disponible globalmente ANTES de cualquier otra cosa
         window.switchTab = function(tab) {
-            console.log('🔵 switchTab llamado con:', tab);
-            console.log('🔵 window.switchTab existe?', typeof window.switchTab);
             try {
-                console.log('switchTab llamado con:', tab);
+                console.log('🔵 switchTab llamado con:', tab);
+                console.log('🔵 window.switchTab existe?', typeof window.switchTab);
                 
                 // Obtener el panel de Gestión específicamente (primer .card dentro de .main-grid)
                 const mainGrid = document.querySelector('.main-grid');
