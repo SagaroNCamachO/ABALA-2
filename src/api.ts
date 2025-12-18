@@ -3,6 +3,8 @@ import cors from 'cors';
 import path from 'path';
 import { Championship } from './models/Championship';
 import { ChampionshipStorage } from './storage/ChampionshipStorage';
+import { TeamStatisticsCalculator } from './utils/TeamStatistics';
+import { validateChampionship, validateCategory, validateMatchResult, validatePenalty } from './utils/Validation';
 
 const app = express();
 app.use(cors());
@@ -221,11 +223,30 @@ app.get('/api/dashboard', (_req: Request, res: Response) => {
 app.post('/api/championships', (req: Request, res: Response) => {
   try {
     const data = req.body || {};
+    
+    // Validar datos
+    const validation = validateChampionship(data);
+    if (!validation.valid) {
+      return res.status(400).json({
+        success: false,
+        error: validation.errors.join(', ')
+      });
+    }
+
     const champId = data.id || `champ_${championships.size + 1}`;
-    const name = data.name || 'Campeonato';
-    const rounds = data.rounds || 1;
-    const pointsPerWin = data.points_per_win || 2;
-    const pointsPerLoss = data.points_per_loss || 0;
+    
+    // Validar que el ID no exista
+    if (championships.has(champId)) {
+      return res.status(400).json({
+        success: false,
+        error: `Ya existe un campeonato con el ID '${champId}'. Por favor, use un ID diferente.`
+      });
+    }
+
+    const name = (data.name || 'Campeonato').trim();
+    const rounds = parseInt(data.rounds) || 1;
+    const pointsPerWin = parseInt(data.points_per_win) || 2;
+    const pointsPerLoss = parseInt(data.points_per_loss) || 0;
 
     const championship = new Championship(name, rounds, pointsPerWin, pointsPerLoss);
     championships.set(champId, championship);
@@ -233,13 +254,13 @@ app.post('/api/championships', (req: Request, res: Response) => {
     // Guardar automáticamente en el almacenamiento
     autoSave();
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       id: champId,
       championship: championship.toDict()
     });
   } catch (error: any) {
-    res.status(400).json({
+    return res.status(400).json({
       success: false,
       error: error.message
     });
@@ -325,14 +346,31 @@ app.post('/api/championships/:id/categories', (req: Request, res: Response) => {
   }
 
   try {
-    const data = req.body || {};
-    const categoryName = data.name;
-    const teamNames = data.teams || [];
-    const numTeams = data.num_teams;
-    const pointsPerWin = data.points_per_win;
-    const pointsPerLoss = data.points_per_loss;
+  const data = req.body || {};
+  
+  // Validar datos
+  const validation = validateCategory(data);
+  if (!validation.valid) {
+    return res.status(400).json({
+      success: false,
+      error: validation.errors.join(', ')
+    });
+  }
 
-    if (teamNames.length > 0) {
+  const categoryName = (data.name || '').trim();
+  const teamNames = data.teams || [];
+  const numTeams = data.num_teams;
+  const pointsPerWin = data.points_per_win;
+  const pointsPerLoss = data.points_per_loss;
+
+  if (championship.getCategory(categoryName)) {
+    return res.status(400).json({
+      success: false,
+      error: `La categoría '${categoryName}' ya existe en este campeonato.`
+    });
+  }
+
+  if (teamNames.length > 0) {
       championship.addCategoryWithTeams(
         categoryName,
         teamNames,
@@ -388,6 +426,16 @@ app.post('/api/championships/:id/results', (req: Request, res: Response) => {
   }
 
   const data = req.body || {};
+  
+  // Validar datos
+  const validation = validateMatchResult(data);
+  if (!validation.valid) {
+    return res.status(400).json({
+      success: false,
+      error: validation.errors.join(', ')
+    });
+  }
+
   const categoryName = data.category;
   const teamA = data.team_a;
   const teamB = data.team_b;
@@ -449,6 +497,57 @@ app.get('/api/championships/:id/standings/:category', (req: Request, res: Respon
     success: true,
     standings: standings.map(team => team.toDict())
   });
+});
+
+/**
+ * Obtener estadísticas avanzadas de un equipo.
+ */
+app.get('/api/championships/:id/team-stats/:category/:team', (req: Request, res: Response) => {
+  const champId = req.params.id;
+  const categoryName = req.params.category;
+  const teamName = req.params.team;
+  const championship = championships.get(champId);
+
+  if (!championship) {
+    return res.status(404).json({
+      success: false,
+      error: "Campeonato no encontrado"
+    });
+  }
+
+  const category = championship.getCategory(categoryName);
+  if (!category) {
+    return res.status(404).json({
+      success: false,
+      error: "Categoría no encontrada"
+    });
+  }
+
+  const team = category.teams.get(teamName);
+  if (!team) {
+    return res.status(404).json({
+      success: false,
+      error: "Equipo no encontrado"
+    });
+  }
+
+  try {
+    const advancedStats = TeamStatisticsCalculator.calculateAdvancedStats(
+      team,
+      category.matches,
+      categoryName
+    );
+
+    return res.json({
+      success: true,
+      stats: advancedStats
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
 });
 
 /**
@@ -606,9 +705,19 @@ app.post('/api/championships/:id/penalty', (req: Request, res: Response) => {
   }
 
   const data = req.body || {};
+  
+  // Validar datos
+  const validation = validatePenalty(data);
+  if (!validation.valid) {
+    return res.status(400).json({
+      success: false,
+      error: validation.errors.join(', ')
+    });
+  }
+
   const categoryName = data.category;
   const teamName = data.team;
-  const points = data.points;
+  const points = parseInt(data.points);
 
   championship.applyPenalty(categoryName, teamName, points);
   

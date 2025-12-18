@@ -413,12 +413,39 @@
             color: #856404;
             border-left: 5px solid #ffc107;
         }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏀 ABALA</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h1 style="margin: 0;">🏀 ABALA</h1>
+                <button id="themeToggle" onclick="toggleTheme()" style="background: rgba(255,255,255,0.2); border: 2px solid white; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 1.1em; font-weight: 700;">
+                    🌙 Modo Oscuro
+                </button>
+            </div>
             <p style="font-size: 1.4em; opacity: 0.95; margin-top: 10px;">Sistema Simple para Administrar Campeonatos de Básquetbol</p>
         </div>
         
@@ -506,13 +533,23 @@
                         </button>
                         
                         <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0e0e0;">
-                            <button class="btn btn-secondary" onclick="exportFixture()" style="background: #ffc107; color: #000; margin-bottom: 10px;">
-                                📄 Exportar Fixture (PDF)
-                            </button>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <button class="btn btn-secondary" onclick="exportFixture('pdf')" style="background: #ffc107; color: #000; flex: 1; min-width: 150px;">
+                                    📄 PDF
+                                </button>
+                                <button class="btn btn-secondary" onclick="exportFixture('csv')" style="background: #28a745; color: white; flex: 1; min-width: 150px;">
+                                    📊 CSV
+                                </button>
+                            </div>
                             
-                            <button class="btn btn-secondary" onclick="exportStandings()" style="background: #ffc107; color: #000;">
-                                📊 Exportar Tabla de Posiciones (PDF)
-                            </button>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                                <button class="btn btn-secondary" onclick="exportStandings('pdf')" style="background: #ffc107; color: #000; flex: 1; min-width: 150px;">
+                                    📊 PDF
+                                </button>
+                                <button class="btn btn-secondary" onclick="exportStandings('csv')" style="background: #28a745; color: white; flex: 1; min-width: 150px;">
+                                    📊 CSV
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -563,6 +600,47 @@
         
         // Asegurar que showAlert esté disponible globalmente
         window.showAlert = showAlert;
+        
+        // Sistema de temas (modo oscuro/claro)
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                updateThemeButton('dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                updateThemeButton('light');
+            }
+        }
+        
+        function toggleTheme() {
+            const isDark = document.body.classList.contains('dark-mode');
+            if (isDark) {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+                updateThemeButton('light');
+            } else {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+                updateThemeButton('dark');
+            }
+        }
+        
+        function updateThemeButton(theme) {
+            const button = document.getElementById('themeToggle');
+            if (button) {
+                if (theme === 'dark') {
+                    button.textContent = '☀️ Modo Claro';
+                } else {
+                    button.textContent = '🌙 Modo Oscuro';
+                }
+            }
+        }
+        
+        window.toggleTheme = toggleTheme;
+        
+        // Inicializar tema al cargar
+        initTheme();
         
         // Asegurar que switchTab esté disponible globalmente ANTES de cualquier otra cosa
         window.switchTab = function(tab) {
@@ -675,6 +753,7 @@
                 
                 const dashboard = data.dashboard;
                 renderDashboard(dashboard);
+                checkNotifications(dashboard); // Verificar notificaciones
             } catch (error) {
                 console.error('Error cargando dashboard:', error);
                 if (dashboardContent) {
@@ -1743,6 +1822,7 @@
                     const category = document.getElementById('categoryView').value;
                     responseDiv.innerHTML = renderFixture(data.matches, category || 'Categoría');
                 } else if (view === 'standings' && data.standings) {
+                    window.currentStandings = data.standings; // Guardar para usar en estadísticas
                     responseDiv.innerHTML = renderStandings(data.standings);
                 } else {
                     responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
@@ -2158,7 +2238,7 @@
             input.click();
         }
         
-        async function exportFixture() {
+        async function exportFixture(format = 'pdf') {
             const champId = document.getElementById('champIdView')?.value;
             const category = document.getElementById('categoryView')?.value;
             
@@ -2172,16 +2252,19 @@
                 const data = await res.json();
                 
                 if (data.success) {
-                    // Crear HTML para imprimir
-                    const html = generateFixtureHTML(data.matches, category, champId);
-                    printHTML(html, `Fixture_${category}_${champId}`);
+                    if (format === 'csv') {
+                        exportFixtureToCSV(data.matches, category, champId);
+                    } else {
+                        const html = generateFixtureHTML(data.matches, category, champId);
+                        printHTML(html, `Fixture_${category}_${champId}`);
+                    }
                 }
             } catch (error) {
                 showAlert('Error: ' + error.message, 'error');
             }
         }
         
-        async function exportStandings() {
+        async function exportStandings(format = 'pdf') {
             const champId = document.getElementById('champIdView')?.value;
             const category = document.getElementById('categoryView')?.value;
             
@@ -2195,13 +2278,95 @@
                 const data = await res.json();
                 
                 if (data.success) {
-                    // Crear HTML para imprimir
-                    const html = generateStandingsHTML(data.standings, category, champId);
-                    printHTML(html, `Tabla_Posiciones_${category}_${champId}`);
+                    if (format === 'csv') {
+                        exportStandingsToCSV(data.standings, category, champId);
+                    } else {
+                        const html = generateStandingsHTML(data.standings, category, champId);
+                        printHTML(html, `Tabla_Posiciones_${category}_${champId}`);
+                    }
                 }
             } catch (error) {
                 showAlert('Error: ' + error.message, 'error');
             }
+        }
+        
+        function exportFixtureToCSV(matches, categoryName, champId) {
+            const champ = championshipsData[champId];
+            const champName = champ?.name || champId;
+            
+            // Encabezados CSV
+            let csv = `Fixture - ${categoryName} - ${champName}\n`;
+            csv += `Fecha de exportación: ${new Date().toLocaleDateString('es-ES')}\n\n`;
+            csv += `Vuelta,Tipo,Jornada,Fecha,Hora,Local,Visitante,Marcador Local,Marcador Visitante,Ganador,Estado\n`;
+            
+            // Agrupar por vuelta y jornada
+            const matchesByVuelta = { 'ida': {}, 'vuelta': {} };
+            matches.forEach(match => {
+                const matchType = match.match_type || 'ida';
+                const matchday = match.matchday || 1;
+                if (!matchesByVuelta[matchType][matchday]) {
+                    matchesByVuelta[matchType][matchday] = [];
+                }
+                matchesByVuelta[matchType][matchday].push(match);
+            });
+            
+            // Agregar partidos
+            ['ida', 'vuelta'].forEach(matchType => {
+                const vueltaNum = matchType === 'ida' ? 1 : 2;
+                const vueltaMatches = matchesByVuelta[matchType];
+                const matchdays = Object.keys(vueltaMatches).sort((a, b) => parseInt(a) - parseInt(b));
+                
+                matchdays.forEach(matchday => {
+                    vueltaMatches[matchday].forEach(match => {
+                        const fecha = match.date || 'Por definir';
+                        const hora = match.time || 'Por definir';
+                        const estado = match.played ? 'Jugado' : 'Pendiente';
+                        const marcadorLocal = match.played ? (match.score_a || '') : '';
+                        const marcadorVisitante = match.played ? (match.score_b || '') : '';
+                        const ganador = match.played ? (match.winner || 'Empate') : '';
+                        
+                        csv += `${vueltaNum},${matchType},${matchday},${fecha},${hora},${match.team_a},${match.team_b},${marcadorLocal},${marcadorVisitante},${ganador},${estado}\n`;
+                    });
+                });
+            });
+            
+            // Descargar CSV
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Fixture_${categoryName}_${champId}_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            showAlert('Fixture exportado a CSV exitosamente', 'success');
+        }
+        
+        function exportStandingsToCSV(standings, categoryName, champId) {
+            const champ = championshipsData[champId];
+            const champName = champ?.name || champId;
+            
+            // Encabezados CSV
+            let csv = `Tabla de Posiciones - ${categoryName} - ${champName}\n`;
+            csv += `Fecha de exportación: ${new Date().toLocaleDateString('es-ES')}\n\n`;
+            csv += `Posición,Equipo,PJ,PG,PP,PF,PC,Diferencia,Puntos\n`;
+            
+            // Agregar equipos
+            standings.forEach((team, index) => {
+                const pos = index + 1;
+                csv += `${pos},${team.name},${team.pj || 0},${team.pg || 0},${team.pp || 0},${team.pf || 0},${team.pc || 0},${team.difference || 0},${team.points || 0}\n`;
+            });
+            
+            // Descargar CSV
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Tabla_Posiciones_${categoryName}_${champId}_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            showAlert('Tabla de posiciones exportada a CSV exitosamente', 'success');
         }
         
         function generateFixtureHTML(matches, categoryName, champId) {
