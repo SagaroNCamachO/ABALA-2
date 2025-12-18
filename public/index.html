@@ -2405,38 +2405,74 @@
             }
         }
         
-        // Agregar event listeners como respaldo para los botones de pestañas
-        // Esto asegura que funcionen incluso si onclick no funciona
-        document.addEventListener('DOMContentLoaded', () => {
+        // Usar event delegation para los botones de pestañas
+        // Esto es más confiable que onclick inline
+        function setupTabListeners() {
             try {
-                console.log('🔴 Agregando event listeners de respaldo para pestañas...');
-                const tabButtons = document.querySelectorAll('.tabs .tab');
-                tabButtons.forEach((button, index) => {
-                    // Remover onclick existente y agregar event listener
-                    const onclickAttr = button.getAttribute('onclick');
-                    if (onclickAttr) {
-                        button.removeAttribute('onclick');
-                        const match = onclickAttr.match(/switchTab\('([^']+)'\)/);
-                        if (match) {
-                            const tabName = match[1];
-                            button.addEventListener('click', (e) => {
-                                e.preventDefault();
-                                console.log('🔴 Click en pestaña detectado:', tabName);
-                                if (typeof window.switchTab === 'function') {
-                                    window.switchTab(tabName);
-                                } else {
-                                    console.error('❌ window.switchTab no está disponible');
-                                    alert('Error: La función switchTab no está disponible. Por favor, recargue la página.');
-                                }
-                            });
-                            console.log('✅ Event listener agregado para pestaña:', tabName);
-                        }
+                console.log('🔴 Configurando event listeners para pestañas...');
+                
+                // Usar event delegation en el contenedor de pestañas
+                const mainGrid = document.querySelector('.main-grid');
+                if (!mainGrid) {
+                    console.error('❌ No se encontró .main-grid');
+                    setTimeout(setupTabListeners, 500);
+                    return;
+                }
+                
+                const gestionCard = mainGrid.querySelector('.card:first-child');
+                if (!gestionCard) {
+                    console.error('❌ No se encontró el panel de Gestión');
+                    setTimeout(setupTabListeners, 500);
+                    return;
+                }
+                
+                const tabsContainer = gestionCard.querySelector('.tabs');
+                if (!tabsContainer) {
+                    console.error('❌ No se encontró el contenedor de pestañas');
+                    setTimeout(setupTabListeners, 500);
+                    return;
+                }
+                
+                // Agregar event listener usando delegation
+                tabsContainer.addEventListener('click', function(e) {
+                    const button = e.target.closest('.tab');
+                    if (!button) return;
+                    
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const tabName = button.getAttribute('data-tab');
+                    if (!tabName) {
+                        console.error('❌ No se encontró data-tab en el botón');
+                        return;
+                    }
+                    
+                    console.log('🔴 Click detectado en pestaña:', tabName);
+                    
+                    if (typeof window.switchTab === 'function') {
+                        window.switchTab(tabName);
+                    } else {
+                        console.error('❌ window.switchTab no está disponible');
+                        alert('Error: La función switchTab no está disponible. Por favor, recargue la página.');
                     }
                 });
+                
+                console.log('✅ Event listeners configurados correctamente');
             } catch (error) {
-                console.error('❌ Error agregando event listeners:', error);
+                console.error('❌ Error configurando event listeners:', error);
+                setTimeout(setupTabListeners, 1000);
             }
-        });
+        }
+        
+        // Configurar listeners cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupTabListeners);
+        } else {
+            setupTabListeners();
+        }
+        
+        // También intentar después de un pequeño delay por si acaso
+        setTimeout(setupTabListeners, 100);
     </script>
 </body>
 </html>
