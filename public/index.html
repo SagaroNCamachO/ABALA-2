@@ -545,23 +545,43 @@
     </div>
     
     <script>
-        const API_BASE = window.location.origin;
+        // Asegurar que las funciones estén en el scope global
+        window.API_BASE = window.location.origin;
+        const API_BASE = window.API_BASE;
         let championshipsData = {};
         let categoriesData = {};
         
+        // Función de utilidad para mostrar alertas
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 10000; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); max-width: 400px; font-size: 1.1em;';
+            alertDiv.textContent = message;
+            document.body.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+        
+        // Asegurar que showAlert esté disponible globalmente
+        window.showAlert = showAlert;
+        
         // Cargar datos al iniciar
         window.onload = () => {
-            loadData();
-            // Cargar dashboard después de un pequeño delay para asegurar que la página esté lista
-            setTimeout(() => {
-                const dashboardTab = document.getElementById('dashboardTab');
-                if (dashboardTab && dashboardTab.classList.contains('active')) {
-                    loadDashboard();
-                }
-            }, 500);
+            try {
+                loadData();
+                // Cargar dashboard después de un pequeño delay para asegurar que la página esté lista
+                setTimeout(() => {
+                    const dashboardTab = document.getElementById('dashboardTab');
+                    if (dashboardTab && dashboardTab.classList.contains('active')) {
+                        loadDashboard();
+                    }
+                }, 500);
+            } catch (error) {
+                console.error('Error en window.onload:', error);
+            }
         };
         
-        function switchTab(tab) {
+        // Asegurar que switchTab esté disponible globalmente
+        window.switchTab = function(tab) {
             try {
                 console.log('switchTab llamado con:', tab);
                 
@@ -637,9 +657,10 @@
                 console.error('Error en switchTab:', error);
                 showAlert('Error al cambiar de pestaña: ' + error.message, 'error');
             }
-        }
+        };
         
-        async function loadDashboard() {
+        // Asegurar que loadDashboard esté disponible globalmente
+        window.loadDashboard = async function() {
             const dashboardContent = document.getElementById('dashboardContent');
             if (!dashboardContent) {
                 console.error('dashboardContent no encontrado');
@@ -669,11 +690,13 @@
                 
                 const dashboard = data.dashboard;
                 renderDashboard(dashboard);
-            } catch (error: any) {
+            } catch (error) {
                 console.error('Error cargando dashboard:', error);
-                dashboardContent.innerHTML = `<div class="alert alert-error">Error de conexión: ${error.message || 'Error desconocido'}. Por favor, intente nuevamente.</div>`;
+                if (dashboardContent) {
+                    dashboardContent.innerHTML = `<div class="alert alert-error">Error de conexión: ${error.message || 'Error desconocido'}. Por favor, intente nuevamente.</div>`;
+                }
             }
-        }
+        };
         
         function renderDashboard(dashboard) {
             const dashboardContent = document.getElementById('dashboardContent');
@@ -897,7 +920,8 @@
             }
         }
         
-        async function loadData() {
+        // Asegurar que loadData esté disponible globalmente
+        window.loadData = async function() {
             try {
                 // Obtener la lista de campeonatos del servidor PRIMERO
                 const res = await fetch(`${API_BASE}/api/championships`);
@@ -1282,7 +1306,8 @@
             showAlert(`Categoría "${catName}" seleccionada`, 'success');
         }
         
-        function updateForm() {
+        // Asegurar que updateForm esté disponible globalmente
+        window.updateForm = function() {
             const action = document.getElementById('actionSelect').value;
             const formDiv = document.getElementById('dynamicForm');
             let html = '';
@@ -1411,7 +1436,8 @@
             });
         }
         
-        async function executeAction() {
+        // Asegurar que executeAction esté disponible globalmente
+        window.executeAction = async function() {
             try {
                 const actionSelect = document.getElementById('actionSelect');
                 if (!actionSelect) {
@@ -1546,7 +1572,8 @@
             }
         }
         
-        function loadView() {
+        // Asegurar que loadView esté disponible globalmente
+        window.loadView = function() {
             const view = document.getElementById('viewSelect').value;
             const formDiv = document.getElementById('viewForm');
             const champIds = Object.keys(championshipsData);
@@ -1663,7 +1690,8 @@
             }
         }
         
-        async function loadViewData() {
+        // Asegurar que loadViewData esté disponible globalmente
+        window.loadViewData = async function() {
             try {
                 const viewSelect = document.getElementById('viewSelect');
                 if (!viewSelect) {
@@ -1742,7 +1770,7 @@
                 console.error('Error crítico en loadViewData:', error);
                 showAlert('Error crítico: ' + error.message, 'error');
             }
-        }
+        };
         
         function renderFixture(matches, categoryName) {
             if (!matches || matches.length === 0) {
