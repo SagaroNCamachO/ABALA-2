@@ -3,6 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import { Championship } from './models/Championship';
 import { ChampionshipStorage } from './storage/ChampionshipStorage';
+import { MongoDBStorage } from './storage/MongoDBStorage';
 import { TeamStatisticsCalculator } from './utils/TeamStatistics';
 import { validateChampionship, validateCategory, validateMatchResult, validatePenalty } from './utils/Validation';
 
@@ -21,29 +22,40 @@ fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471',{metho
 app.use(express.static(publicPath));
 
 // Cargar campeonatos desde almacenamiento persistente al iniciar
-// #region agent log
-fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'src/api.ts:17',message:'Starting championships load',data:{vercel:!!process.env.VERCEL},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-// #endregion
-let championships: Map<string, Championship>;
-try {
-  championships = ChampionshipStorage.load();
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'src/api.ts:22',message:'Championships loaded successfully',data:{count:championships.size},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-  // #endregion
-  console.log(`✅ Cargados ${championships.size} campeonato(s) al iniciar`);
-} catch (error: any) {
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'src/api.ts:26',message:'Error loading championships',data:{error:error?.message||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-  // #endregion
-  console.error('❌ Error cargando campeonatos al iniciar:', error);
-  championships = new Map<string, Championship>();
-}
+// Intenta MongoDB primero, luego fallback a archivos JSON
+let championships: Map<string, Championship> = new Map<string, Championship>();
+
+(async () => {
+  try {
+    // Intentar cargar desde MongoDB si está configurado
+    if (process.env.MONGODB_URI) {
+      championships = await MongoDBStorage.load();
+      if (championships.size > 0) {
+        console.log(`✅ Cargados ${championships.size} campeonato(s) desde MongoDB`);
+        return;
+      }
+    }
+    
+    // Fallback a almacenamiento local (archivos JSON)
+    championships = ChampionshipStorage.load();
+    console.log(`✅ Cargados ${championships.size} campeonato(s) desde almacenamiento local`);
+  } catch (error: any) {
+    console.error('❌ Error cargando campeonatos al iniciar:', error);
+    championships = new Map<string, Championship>();
+  }
+})();
 
 /**
  * Función auxiliar para guardar automáticamente después de cambios.
  */
-function autoSave(): void {
+async function autoSave(): Promise<void> {
   try {
+    // Intentar guardar en MongoDB si está configurado
+    if (process.env.MONGODB_URI) {
+      await MongoDBStorage.save(championships);
+    }
+    
+    // Siempre guardar también en almacenamiento local como backup
     ChampionshipStorage.save(championships);
   } catch (error) {
     console.error('Error en auto-guardado:', error);
@@ -261,7 +273,7 @@ app.get('/api/dashboard', (_req: Request, res: Response) => {
 /**
  * Crear un nuevo campeonato.
  */
-app.post('/api/championships', (req: Request, res: Response) => {
+app.post('/api/championships', async (req: Request, res: Response) => {
   try {
     const data = req.body || {};
     
@@ -293,7 +305,7 @@ app.post('/api/championships', (req: Request, res: Response) => {
     championships.set(champId, championship);
     
     // Guardar automáticamente en el almacenamiento
-    autoSave();
+    await autoSave();
 
     return res.status(201).json({
       success: true,
@@ -331,7 +343,7 @@ app.get('/api/championships', (_req: Request, res: Response) => {
 /**
  * Eliminar un campeonato.
  */
-app.delete('/api/championships/:id', (req: Request, res: Response) => {
+app.delete('/api/championships/:id', async (req: Request, res: Response) => {
   const champId = req.params.id;
   
   if (!championships.has(champId)) {
@@ -344,7 +356,7 @@ app.delete('/api/championships/:id', (req: Request, res: Response) => {
   championships.delete(champId);
   
   // Guardar automáticamente después de eliminar
-  autoSave();
+  await autoSave();
 
   return res.json({
     success: true,
@@ -375,7 +387,7 @@ app.get('/api/championships/:id', (req: Request, res: Response) => {
 /**
  * Agregar una categoría a un campeonato.
  */
-app.post('/api/championships/:id/categories', (req: Request, res: Response) => {
+app.post('/api/championships/:id/categories', async (req: Request, res: Response) => {
   const champId = req.params.id;
   const championship = championships.get(champId);
 
@@ -438,7 +450,7 @@ app.post('/api/championships/:id/categories', (req: Request, res: Response) => {
     }
     
     // Guardar automáticamente después de agregar categoría
-    autoSave();
+    await autoSave();
 
     return res.status(201).json({
       success: true,
@@ -455,7 +467,7 @@ app.post('/api/championships/:id/categories', (req: Request, res: Response) => {
 /**
  * Registrar el resultado de un partido.
  */
-app.post('/api/championships/:id/results', (req: Request, res: Response) => {
+app.post('/api/championships/:id/results', async (req: Request, res: Response) => {
   const champId = req.params.id;
   const championship = championships.get(champId);
 
@@ -497,7 +509,7 @@ app.post('/api/championships/:id/results', (req: Request, res: Response) => {
 
   if (success) {
     // Guardar automáticamente después de registrar resultado
-    autoSave();
+    await autoSave();
     return res.json({
       success: true,
       message: "Resultado registrado"
@@ -629,7 +641,7 @@ app.get('/api/championships/:id/fixture/:category', (req: Request, res: Response
 /**
  * Actualizar fecha/horario de un partido.
  */
-app.put('/api/championships/:id/fixture/:category/schedule', (req: Request, res: Response) => {
+app.put('/api/championships/:id/fixture/:category/schedule', async (req: Request, res: Response) => {
   const champId = req.params.id;
   const championship = championships.get(champId);
 
@@ -676,7 +688,7 @@ app.put('/api/championships/:id/fixture/:category/schedule', (req: Request, res:
   match.setSchedule(date, time);
   
   // Guardar automáticamente después de actualizar fecha/horario
-  autoSave();
+  await autoSave();
 
   return res.json({
     success: true,
@@ -688,7 +700,7 @@ app.put('/api/championships/:id/fixture/:category/schedule', (req: Request, res:
 /**
  * Actualizar resultado de un partido desde el fixture.
  */
-app.put('/api/championships/:id/fixture/:category/result', (req: Request, res: Response) => {
+app.put('/api/championships/:id/fixture/:category/result', async (req: Request, res: Response) => {
   const champId = req.params.id;
   const championship = championships.get(champId);
 
@@ -718,7 +730,7 @@ app.put('/api/championships/:id/fixture/:category/result', (req: Request, res: R
 
   if (success) {
     // Guardar automáticamente después de actualizar resultado
-    autoSave();
+    await autoSave();
     return res.json({
       success: true,
       message: "Resultado actualizado"
@@ -734,7 +746,7 @@ app.put('/api/championships/:id/fixture/:category/result', (req: Request, res: R
 /**
  * Aplicar una multa o bonificación de puntos.
  */
-app.post('/api/championships/:id/penalty', (req: Request, res: Response) => {
+app.post('/api/championships/:id/penalty', async (req: Request, res: Response) => {
   const champId = req.params.id;
   const championship = championships.get(champId);
 
@@ -763,7 +775,7 @@ app.post('/api/championships/:id/penalty', (req: Request, res: Response) => {
   championship.applyPenalty(categoryName, teamName, points);
   
   // Guardar automáticamente después de aplicar multa
-  autoSave();
+  await autoSave();
 
   return res.json({
     success: true,
@@ -797,7 +809,7 @@ app.get('/api/championships/:id/can-generate-quadrangular/:category', (req: Requ
 /**
  * Generar el cuadrangular para una categoría.
  */
-app.post('/api/championships/:id/generate-quadrangular/:category', (req: Request, res: Response) => {
+app.post('/api/championships/:id/generate-quadrangular/:category', async (req: Request, res: Response) => {
   const champId = req.params.id;
   const championship = championships.get(champId);
 
@@ -827,7 +839,7 @@ app.post('/api/championships/:id/generate-quadrangular/:category', (req: Request
 /**
  * Generar la final del cuadrangular.
  */
-app.post('/api/championships/:id/generate-final/:category', (req: Request, res: Response) => {
+app.post('/api/championships/:id/generate-final/:category', async (req: Request, res: Response) => {
   const champId = req.params.id;
   const championship = championships.get(champId);
 
@@ -843,7 +855,7 @@ app.post('/api/championships/:id/generate-final/:category', (req: Request, res: 
 
   if (success) {
     // Guardar automáticamente después de generar final
-    autoSave();
+    await autoSave();
     return res.json({
       success: true,
       message: "Final generada exitosamente"

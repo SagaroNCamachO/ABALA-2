@@ -626,11 +626,14 @@
                             </div>
                             
                             <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
-                                <button class="btn btn-secondary" onclick="exportStandings('pdf')" style="background: #ffc107; color: #000; flex: 1; min-width: 150px;">
-                                    📊 PDF
+                                <button class="btn btn-secondary" onclick="exportStandings('pdf')" style="background: #ffc107; color: #000; flex: 1; min-width: 120px;">
+                                    📄 PDF
                                 </button>
-                                <button class="btn btn-secondary" onclick="exportStandings('csv')" style="background: #28a745; color: white; flex: 1; min-width: 150px;">
+                                <button class="btn btn-secondary" onclick="exportStandings('csv')" style="background: #28a745; color: white; flex: 1; min-width: 120px;">
                                     📊 CSV
+                                </button>
+                                <button class="btn btn-secondary" onclick="exportStandings('excel')" style="background: #007bff; color: white; flex: 1; min-width: 120px;">
+                                    📗 Excel
                                 </button>
                             </div>
                         </div>
@@ -641,6 +644,13 @@
             <!-- Panel Derecho: Datos Creados -->
             <div class="card">
                 <h2>📊 Datos Creados</h2>
+                
+                <!-- Barra de búsqueda -->
+                <div style="margin-bottom: 20px;">
+                    <input type="text" id="searchInput" placeholder="🔍 Buscar campeonatos..." 
+                           style="width: 100%; padding: 12px; font-size: 1.1em; border-radius: 8px; border: 2px solid #667eea;"
+                           onkeyup="filterChampionships()">
+                </div>
                 
                 <div class="tabs">
                     <button class="tab active" onclick="window.switchDataTab('championships')">Campeonatos</button>
@@ -1291,14 +1301,28 @@
             }
             
             // Filtrar solo campeonatos que realmente existen y tienen datos válidos
-            const validChampionships = Object.entries(championshipsData).filter(([id, champ]) => {
+            let validChampionships = Object.entries(championshipsData).filter(([id, champ]) => {
                 return champ && champ.name && id;
             });
+            
+            // Aplicar búsqueda si hay término de búsqueda
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput && searchInput.value.trim()) {
+                const searchTerm = searchInput.value.toLowerCase();
+                validChampionships = validChampionships.filter(([id, champ]) => {
+                    const name = (champ.name || '').toLowerCase();
+                    const idLower = id.toLowerCase();
+                    const categories = champ.categories ? Object.keys(champ.categories).join(' ').toLowerCase() : '';
+                    return name.includes(searchTerm) || idLower.includes(searchTerm) || categories.includes(searchTerm);
+                });
+            }
             
             console.log(`Renderizando ${validChampionships.length} campeonatos:`, validChampionships.map(([id]) => id));
             
             if (validChampionships.length === 0) {
-                list.innerHTML = '<div class="empty-state">No hay campeonatos creados</div>';
+                const searchInput = document.getElementById('searchInput');
+                const hasSearch = searchInput && searchInput.value.trim();
+                list.innerHTML = `<div class="empty-state">${hasSearch ? 'No se encontraron campeonatos que coincidan con la búsqueda' : 'No hay campeonatos creados'}</div>`;
                 return;
             }
             
@@ -1389,6 +1413,13 @@
         }
         
         async function deleteChampionship(champId) {
+            // Confirmación antes de eliminar
+            const champ = championshipsData[champId];
+            const champName = champ?.name || champId;
+            
+            if (!confirm(`¿Estás seguro de que deseas eliminar el campeonato "${champName}"?\n\nEsta acción no se puede deshacer.`)) {
+                return;
+            }
             if (!confirm(`¿Estás seguro de eliminar el campeonato "${championshipsData[champId]?.name || champId}"? Esta acción no se puede deshacer.`)) {
                 return;
             }
@@ -2058,7 +2089,22 @@
             const partidosPendientes = totalPartidos - partidosJugados;
             
             let html = `<div class="fixture-container" style="padding: 25px; font-size: 16px;">
-                <h3 class="fixture-title" style="color: #667eea; margin-bottom: 20px; font-size: 2em; font-weight: 700;">📅 Fixture - ${categoryName}</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                    <h3 class="fixture-title" style="color: #667eea; margin: 0; font-size: 2em; font-weight: 700;">📅 Fixture - ${categoryName}</h3>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <input type="text" id="fixtureSearchTeam" placeholder="🔍 Buscar equipo..." 
+                               style="padding: 10px; border-radius: 8px; border: 2px solid #667eea; font-size: 1em; min-width: 200px;"
+                               onkeyup="filterFixtureMatches()">
+                        <select id="fixtureFilterStatus" onchange="filterFixtureMatches()"
+                                style="padding: 10px; border-radius: 8px; border: 2px solid #667eea; font-size: 1em;">
+                            <option value="">Todos los estados</option>
+                            <option value="played">Solo jugados</option>
+                            <option value="pending">Solo pendientes</option>
+                        </select>
+                        <input type="date" id="fixtureFilterDate" onchange="filterFixtureMatches()"
+                               style="padding: 10px; border-radius: 8px; border: 2px solid #667eea; font-size: 1em;">
+                    </div>
+                </div>
                 <div class="fixture-stats" style="background: linear-gradient(135deg, #f0f8ff 0%, #e0e8f0 100%); padding: 25px; border-radius: 15px; margin-bottom: 30px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                     <div style="text-align: center;">
                         <div class="fixture-stat-number" style="font-size: 3.5em; font-weight: bold; color: #667eea; margin-bottom: 8px;">${totalPartidos}</div>
