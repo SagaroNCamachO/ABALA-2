@@ -523,8 +523,8 @@
                 <h2>📊 Datos Creados</h2>
                 
                 <div class="tabs">
-                    <button class="tab active" onclick="switchDataTab('championships')">Campeonatos</button>
-                    <button class="tab" onclick="switchDataTab('categories')">Categorías</button>
+                    <button class="tab active" onclick="window.switchDataTab('championships')">Campeonatos</button>
+                    <button class="tab" onclick="window.switchDataTab('categories')">Categorías</button>
                 </div>
                 
                 <div id="championshipsTab" class="tab-content active data-section">
@@ -750,7 +750,7 @@
             if (!championships || championships.length === 0) {
                 html += '<div class="empty-state">No hay campeonatos creados</div>';
             } else {
-                championships.forEach((champ: any) => {
+                championships.forEach((champ) => {
                     html += `
                         <div style="background: white; padding: 25px; border-radius: 12px; border-left: 5px solid #667eea; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
