@@ -753,7 +753,8 @@
                 
                 const dashboard = data.dashboard;
                 renderDashboard(dashboard);
-                checkNotifications(dashboard); // Verificar notificaciones
+                // Verificar notificaciones después de renderizar
+                setTimeout(() => checkNotifications(dashboard), 500);
             } catch (error) {
                 console.error('Error cargando dashboard:', error);
                 if (dashboardContent) {
