@@ -1732,8 +1732,15 @@
                     responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
                 }
             } catch (error) {
-                responseDiv.innerHTML = `<pre style="color: red;">Error: ${error.message}</pre>`;
-                showAlert('Error de conexión', 'error');
+                console.error('Error en loadViewData (interno):', error);
+                if (responseDiv) {
+                    responseDiv.innerHTML = `<pre style="color: red;">Error: ${error.message}</pre>`;
+                }
+                showAlert('Error de conexión: ' + error.message, 'error');
+            }
+            } catch (error) {
+                console.error('Error crítico en loadViewData:', error);
+                showAlert('Error crítico: ' + error.message, 'error');
             }
         }
         
