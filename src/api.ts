@@ -399,38 +399,53 @@ app.post('/api/championships/:id/categories', async (req: Request, res: Response
   }
 
   try {
-  const data = req.body || {};
-  
-  // Validar datos
-  const validation = validateCategory(data);
-  if (!validation.valid) {
-    return res.status(400).json({
-      success: false,
-      error: validation.errors.join(', ')
+    const data = req.body || {};
+    
+    console.log('📥 Datos recibidos para crear categoría:', JSON.stringify(data, null, 2));
+    
+    // Validar datos
+    const validation = validateCategory(data);
+    if (!validation.valid) {
+      console.log('❌ Validación fallida:', validation.errors);
+      return res.status(400).json({
+        success: false,
+        error: validation.errors.join(', '),
+        errors: validation.errors
+      });
+    }
+
+    const categoryName = (data.name || '').trim();
+    const teamNames = Array.isArray(data.teams) ? data.teams : [];
+    const numTeams = data.num_teams ? parseInt(data.num_teams) : undefined;
+    const pointsPerWin = data.points_per_win;
+    const pointsPerLoss = data.points_per_loss;
+
+    console.log('📋 Procesando categoría:', {
+      categoryName,
+      teamNamesCount: teamNames.length,
+      numTeams,
+      hasTeams: teamNames.length > 0,
+      hasNumTeams: numTeams !== undefined
     });
-  }
 
-  const categoryName = (data.name || '').trim();
-  const teamNames = data.teams || [];
-  const numTeams = data.num_teams;
-  const pointsPerWin = data.points_per_win;
-  const pointsPerLoss = data.points_per_loss;
+    if (championship.getCategory(categoryName)) {
+      console.log('❌ Categoría ya existe:', categoryName);
+      return res.status(400).json({
+        success: false,
+        error: `La categoría '${categoryName}' ya existe en este campeonato.`
+      });
+    }
 
-  if (championship.getCategory(categoryName)) {
-    return res.status(400).json({
-      success: false,
-      error: `La categoría '${categoryName}' ya existe en este campeonato.`
-    });
-  }
-
-  if (teamNames.length > 0) {
+    if (teamNames.length > 0) {
+      console.log('✅ Creando categoría con equipos específicos:', teamNames);
       championship.addCategoryWithTeams(
         categoryName,
         teamNames,
         pointsPerWin,
         pointsPerLoss
       );
-    } else if (numTeams) {
+    } else if (numTeams && numTeams >= 2) {
+      console.log('✅ Creando categoría con número de equipos:', numTeams);
       championship.addCategory(
         categoryName,
         numTeams,
@@ -438,9 +453,15 @@ app.post('/api/championships/:id/categories', async (req: Request, res: Response
         pointsPerLoss
       );
     } else {
+      console.log('❌ No se proporcionaron equipos ni num_teams válido');
       return res.status(400).json({
         success: false,
-        error: "Debe proporcionar 'teams' o 'num_teams'"
+        error: "Debe proporcionar 'teams' (array con al menos 2 equipos) o 'num_teams' (número entre 2 y 20)",
+        details: {
+          teamsProvided: teamNames.length,
+          numTeamsProvided: numTeams,
+          dataReceived: data
+        }
       });
     }
 

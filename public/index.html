@@ -1755,41 +1755,60 @@
                         };
                         break;
                     case 'addCategory':
-                        const champId = document.getElementById('champIdSelect').value;
+                        const champId = document.getElementById('champIdSelect')?.value;
                         
                         if (!champId) {
-                            showAlert('Debe seleccionar un campeonato antes de continuar', 'error');
+                            showAlert('❌ Debe seleccionar un campeonato antes de continuar', 'error');
+                            responseDiv.innerHTML = '<div style="color: red; padding: 20px;"><strong>Error:</strong> No se seleccionó ningún campeonato. Por favor, selecciona un campeonato de la lista.</div>';
                             return;
                         }
                         
-                        const categoryName = document.getElementById('categoryName').value;
-                        if (!categoryName) {
-                            showAlert('Debe escribir el nombre de la categoría (por ejemplo: TC, Senior)', 'error');
+                        const categoryName = document.getElementById('categoryName')?.value?.trim();
+                        if (!categoryName || categoryName.length < 2) {
+                            showAlert('❌ Debe escribir el nombre de la categoría (mínimo 2 caracteres). Ejemplo: TC, Senior, Super Senior', 'error');
+                            responseDiv.innerHTML = '<div style="color: red; padding: 20px;"><strong>Error:</strong> El nombre de la categoría es obligatorio y debe tener al menos 2 caracteres.</div>';
                             return;
                         }
                         
                         url = `${API_BASE}/api/championships/${champId}/categories`;
-                        const teamsInput = document.getElementById('teams').value;
-                        const numTeams = document.getElementById('numTeams').value;
+                        const teamsInput = document.getElementById('teams')?.value?.trim() || '';
+                        const numTeamsInput = document.getElementById('numTeams')?.value?.trim() || '';
+                        const numTeams = numTeamsInput ? parseInt(numTeamsInput) : 0;
                         
-                        const body = {
+                        const body: any = {
                             name: categoryName
                         };
                         
-                        if (teamsInput && teamsInput.trim()) {
+                        // Validar y procesar equipos
+                        if (teamsInput && teamsInput.length > 0) {
                             const teams = teamsInput.split(',').map(t => t.trim()).filter(t => t.length > 0);
-                            if (teams.length > 0) {
+                            if (teams.length >= 2) {
                                 body.teams = teams;
                             } else {
-                                showAlert('Debe ingresar al menos un equipo. Escriba los nombres separados por comas (ejemplo: Equipo A, Equipo B)', 'error');
+                                showAlert('❌ Debe ingresar al menos 2 equipos. Escriba los nombres separados por comas. Ejemplo: "Equipo A, Equipo B, Equipo C"', 'error');
+                                responseDiv.innerHTML = `<div style="color: red; padding: 20px;">
+                                    <strong>Error:</strong> Se necesitan al menos 2 equipos para crear una categoría.<br>
+                                    <strong>Ingresaste:</strong> ${teams.length} equipo(s)<br>
+                                    <strong>Ejemplo correcto:</strong> "Equipo A, Equipo B, Equipo C"
+                                </div>`;
                                 return;
                             }
-                        } else if (numTeams && parseInt(numTeams) >= 2) {
-                            body.num_teams = parseInt(numTeams);
+                        } else if (numTeams >= 2 && numTeams <= 20) {
+                            body.num_teams = numTeams;
                         } else {
-                            showAlert('Debe ingresar los nombres de los equipos (separados por comas) o el número de equipos (mínimo 2 equipos)', 'error');
+                            showAlert('❌ Debe ingresar los nombres de los equipos (separados por comas) O el número de equipos (entre 2 y 20)', 'error');
+                            responseDiv.innerHTML = `<div style="color: red; padding: 20px;">
+                                <strong>Error:</strong> Debes proporcionar una de estas opciones:<br><br>
+                                <strong>Opción 1:</strong> Escribe los nombres de los equipos separados por comas<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;Ejemplo: "Los Leones, Los Tigres, Los Osos"<br><br>
+                                <strong>Opción 2:</strong> Escribe el número de equipos (entre 2 y 20)<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;Ejemplo: 4 (se crearán nombres automáticos)
+                            </div>`;
                             return;
                         }
+                        
+                        // Mostrar indicador de carga
+                        responseDiv.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 2em; margin-bottom: 20px;">⏳</div><div style="font-size: 1.2em;">Creando categoría...</div></div>';
                         
                         options = {
                             method: 'POST',
@@ -1802,12 +1821,30 @@
                 const res = await fetch(url, options);
                 const data = await res.json();
                 
-                responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                // Mostrar respuesta detallada para debugging
+                console.log('Respuesta del servidor:', data);
+                responseDiv.innerHTML = `<pre style="background: #f8f9fa; padding: 15px; border-radius: 8px; overflow-x: auto;">${JSON.stringify(data, null, 2)}</pre>`;
                 
                 if (data.success) {
                     if (action === 'createChamp') {
-                        showAlert('¡Campeonato creado exitosamente! Ahora puede agregar categorías.', 'success');
+                        responseDiv.innerHTML = `
+                            <div style="text-align: center; padding: 40px;">
+                                <div style="font-size: 4em; margin-bottom: 20px;">✅</div>
+                                <div style="font-size: 1.5em; color: #28a745; font-weight: bold; margin-bottom: 10px;">¡Campeonato Creado!</div>
+                                <div style="font-size: 1.2em; color: #666; margin-bottom: 20px;">${data.championship.name}</div>
+                                <div style="font-size: 1em; color: #999;">Ahora puedes agregar categorías</div>
+                            </div>
+                        `;
+                        showAlert('¡Campeonato creado exitosamente!', 'success');
                     } else if (action === 'addCategory') {
+                        responseDiv.innerHTML = `
+                            <div style="text-align: center; padding: 40px;">
+                                <div style="font-size: 4em; margin-bottom: 20px;">✅</div>
+                                <div style="font-size: 1.5em; color: #28a745; font-weight: bold; margin-bottom: 10px;">¡Categoría Agregada!</div>
+                                <div style="font-size: 1.2em; color: #666; margin-bottom: 20px;">${data.category.name || 'Categoría'}</div>
+                                <div style="font-size: 1em; color: #999;">El calendario se ha generado automáticamente</div>
+                            </div>
+                        `;
                         showAlert('¡Categoría agregada exitosamente! El calendario de partidos se ha generado automáticamente.', 'success');
                     } else {
                         showAlert('Operación completada exitosamente', 'success');
@@ -1845,7 +1882,27 @@
                         }, 1000);
                     }
                 } else {
-                    showAlert(data.error || 'Ocurrió un error. Por favor, verifique que todos los campos estén completos e intente nuevamente.', 'error');
+                    // Mostrar error detallado
+                    const errorMessage = data.error || 'Ocurrió un error desconocido';
+                    const errorDetails = data.errors ? data.errors.join(', ') : '';
+                    
+                    responseDiv.innerHTML = `
+                        <div style="background: #fee; border: 2px solid #fcc; border-radius: 10px; padding: 20px; color: #c33;">
+                            <h3 style="color: #c33; margin-bottom: 15px;">❌ Error al ${action === 'addCategory' ? 'agregar categoría' : 'crear campeonato'}</h3>
+                            <p style="font-size: 1.1em; margin-bottom: 10px;"><strong>${errorMessage}</strong></p>
+                            ${errorDetails ? `<p style="margin-top: 10px; color: #a00;">Detalles: ${errorDetails}</p>` : ''}
+                            <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #fcc;">
+                                <strong>¿Qué hacer?</strong>
+                                <ul style="margin-top: 10px; padding-left: 20px;">
+                                    <li>Verifica que todos los campos estén completos</li>
+                                    <li>Verifica que el nombre de la categoría no esté duplicado</li>
+                                    <li>Verifica que hayas ingresado al menos 2 equipos</li>
+                                    <li>Intenta nuevamente</li>
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                    showAlert(errorMessage + (errorDetails ? ': ' + errorDetails : ''), 'error');
                 }
             } catch (error) {
                 if (responseDiv) {
