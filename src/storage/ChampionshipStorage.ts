@@ -41,8 +41,26 @@ export class ChampionshipStorage {
         return championships;
       }
 
-      const fileContent = fs.readFileSync(this.STORAGE_FILE, 'utf-8');
-      const data = JSON.parse(fileContent);
+      let fileContent: string;
+      try {
+        fileContent = fs.readFileSync(this.STORAGE_FILE, 'utf-8');
+      } catch (readError: any) {
+        console.warn('⚠️ No se pudo leer archivo de almacenamiento (puede ser normal en serverless):', readError.message);
+        return championships;
+      }
+
+      if (!fileContent || fileContent.trim().length === 0) {
+        console.log('📁 Archivo de almacenamiento vacío, iniciando con datos vacíos');
+        return championships;
+      }
+
+      let data: any;
+      try {
+        data = JSON.parse(fileContent);
+      } catch (parseError: any) {
+        console.error('❌ Error parseando JSON de almacenamiento:', parseError);
+        return championships;
+      }
 
       for (const [id, champData] of Object.entries(data)) {
         try {

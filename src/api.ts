@@ -14,7 +14,14 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Cargar campeonatos desde almacenamiento persistente al iniciar
-const championships: Map<string, Championship> = ChampionshipStorage.load();
+let championships: Map<string, Championship>;
+try {
+  championships = ChampionshipStorage.load();
+  console.log(`✅ Cargados ${championships.size} campeonato(s) al iniciar`);
+} catch (error) {
+  console.error('❌ Error cargando campeonatos al iniciar:', error);
+  championships = new Map<string, Championship>();
+}
 
 /**
  * Función auxiliar para guardar automáticamente después de cambios.
@@ -54,7 +61,14 @@ app.get('/', (_req: Request, res: Response) => {
       "POST /api/championships/:id/penalty": "Aplicar multa"
     },
     web_interface: "Visita esta URL en un navegador para ver la interfaz web"
-  });
+          });
+  } catch (error: any) {
+    console.error('❌ Error en endpoint raíz:', error);
+    return res.status(500).json({
+      error: 'Error interno del servidor',
+      message: error.message
+    });
+  }
 });
 
 /**
@@ -813,6 +827,16 @@ app.post('/api/championships/:id/generate-final/:category', (req: Request, res: 
       error: "No se pudo generar la final. Verifica que las semifinales estén completas."
     });
   }
+});
+
+// Manejo global de errores no capturados
+app.use((err: any, _req: Request, res: Response, _next: any) => {
+  console.error('❌ Error no capturado en Express:', err);
+  res.status(500).json({
+    success: false,
+    error: 'Error interno del servidor',
+    message: err.message || 'Error desconocido'
+  });
 });
 
 // Para desarrollo local
