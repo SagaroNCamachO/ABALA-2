@@ -800,7 +800,7 @@
                 html += '<div class="empty-state">No hay partidos programados próximamente</div>';
             } else {
                 html += '<div style="display: grid; gap: 15px;">';
-                upcoming_matches.forEach((match: any) => {
+                upcoming_matches.forEach((match) => {
                     let dateStr = 'Fecha por definir';
                     if (match.date) {
                         try {
@@ -846,7 +846,7 @@
                 html += '<div class="empty-state">No hay resultados recientes</div>';
             } else {
                 html += '<div style="display: grid; gap: 15px;">';
-                recent_results.forEach((result: any) => {
+                recent_results.forEach((result) => {
                     let dateStr = 'Fecha no disponible';
                     if (result.date) {
                         try {
