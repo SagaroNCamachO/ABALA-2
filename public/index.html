@@ -2083,6 +2083,9 @@
                         <tbody>
             `;
             
+            const champId = document.getElementById('champIdView')?.value || '';
+            const category = document.getElementById('categoryView')?.value || '';
+            
             standings.forEach((team, index) => {
                 const position = index + 1;
                 const medal = position === 1 ? '🥇' : position === 2 ? '🥈' : position === 3 ? '🥉' : '';
@@ -2099,6 +2102,12 @@
                         <td style="padding: 12px; text-align: center;">${team.pc || 0}</td>
                         <td style="padding: 12px; text-align: center; color: ${team.difference >= 0 ? '#28a745' : '#dc3545'};">${team.difference || 0}</td>
                         <td style="padding: 12px; text-align: center; font-weight: bold; color: #667eea; font-size: 1.1em;">${team.points || 0}</td>
+                        <td style="padding: 12px; text-align: center;">
+                            <button onclick="showTeamStats('${champId}', '${category}', '${team.name.replace(/'/g, "\\'")}')" 
+                                    style="background: #17a2b8; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
+                                📈 Stats
+                            </button>
+                        </td>
                     </tr>
                 `;
             });
