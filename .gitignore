@@ -10,8 +10,9 @@ yarn.lock
 *.d.ts.map
 !api/index.js
 !public/**/*.js
+!src/**/*.js
+!src/**/*.d.ts
 models/
-utils/
 api.d.ts
 api.d.ts.map
 api.js
