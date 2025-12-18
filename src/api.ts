@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import path from 'path';
 import { Championship } from './models/Championship';
+import { ChampionshipStorage } from './storage/ChampionshipStorage';
 
 const app = express();
 app.use(cors());
@@ -10,8 +11,19 @@ app.use(express.json());
 // Servir archivos estáticos (HTML, CSS, JS)
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Almacenar campeonatos en memoria (en producción usar base de datos)
-const championships: Map<string, Championship> = new Map();
+// Cargar campeonatos desde almacenamiento persistente al iniciar
+const championships: Map<string, Championship> = ChampionshipStorage.load();
+
+/**
+ * Función auxiliar para guardar automáticamente después de cambios.
+ */
+function autoSave(): void {
+  try {
+    ChampionshipStorage.save(championships);
+  } catch (error) {
+    console.error('Error en auto-guardado:', error);
+  }
+}
 
 /**
  * Endpoint raíz - Servir interfaz HTML o JSON según Accept header.
@@ -67,6 +79,9 @@ app.post('/api/championships', (req: Request, res: Response) => {
 
     const championship = new Championship(name, rounds, pointsPerWin, pointsPerLoss);
     championships.set(champId, championship);
+    
+    // Guardar automáticamente en el almacenamiento
+    autoSave();
 
     res.status(201).json({
       success: true,
@@ -115,6 +130,9 @@ app.delete('/api/championships/:id', (req: Request, res: Response) => {
   }
 
   championships.delete(champId);
+  
+  // Guardar automáticamente después de eliminar
+  autoSave();
 
   return res.json({
     success: true,
@@ -189,6 +207,9 @@ app.post('/api/championships/:id/categories', (req: Request, res: Response) => {
     if (!category) {
       throw new Error("Error al crear la categoría");
     }
+    
+    // Guardar automáticamente después de agregar categoría
+    autoSave();
 
     return res.status(201).json({
       success: true,
@@ -236,6 +257,8 @@ app.post('/api/championships/:id/results', (req: Request, res: Response) => {
   );
 
   if (success) {
+    // Guardar automáticamente después de registrar resultado
+    autoSave();
     return res.json({
       success: true,
       message: "Resultado registrado"
@@ -361,6 +384,9 @@ app.put('/api/championships/:id/fixture/:category/schedule', (req: Request, res:
   }
 
   match.setSchedule(date, time);
+  
+  // Guardar automáticamente después de actualizar fecha/horario
+  autoSave();
 
   return res.json({
     success: true,
@@ -401,6 +427,8 @@ app.put('/api/championships/:id/fixture/:category/result', (req: Request, res: R
   );
 
   if (success) {
+    // Guardar automáticamente después de actualizar resultado
+    autoSave();
     return res.json({
       success: true,
       message: "Resultado actualizado"
@@ -433,6 +461,9 @@ app.post('/api/championships/:id/penalty', (req: Request, res: Response) => {
   const points = data.points;
 
   championship.applyPenalty(categoryName, teamName, points);
+  
+  // Guardar automáticamente después de aplicar multa
+  autoSave();
 
   return res.json({
     success: true,
@@ -511,6 +542,8 @@ app.post('/api/championships/:id/generate-final/:category', (req: Request, res: 
   const success = championship.generateFinal(categoryName);
 
   if (success) {
+    // Guardar automáticamente después de generar final
+    autoSave();
     return res.json({
       success: true,
       message: "Final generada exitosamente"

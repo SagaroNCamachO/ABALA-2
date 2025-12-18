@@ -54,3 +54,7 @@ yarn-error.log*
 
 # Vercel
 .vercel
+
+# Datos almacenados (no versionar datos de producción)
+data/
+!data/.gitkeep
