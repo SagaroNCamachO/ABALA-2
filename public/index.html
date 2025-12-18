@@ -763,6 +763,84 @@
             }
         };
         
+        function checkNotifications(dashboard) {
+            const notifications = [];
+            const now = new Date();
+            
+            // Verificar partidos próximos (próximas 24 horas)
+            if (dashboard.upcoming_matches && dashboard.upcoming_matches.length > 0) {
+                dashboard.upcoming_matches.forEach(match => {
+                    if (match.date) {
+                        try {
+                            const matchDate = new Date(match.date + 'T' + (match.time || '20:00'));
+                            const hoursUntil = (matchDate - now) / (1000 * 60 * 60);
+                            if (hoursUntil > 0 && hoursUntil <= 24) {
+                                notifications.push({
+                                    type: 'upcoming',
+                                    message: `⏰ Partido próximo: ${match.team_a} vs ${match.team_b} en ${Math.round(hoursUntil)} horas`,
+                                    match: match
+                                });
+                            }
+                        } catch (e) {
+                            console.error('Error procesando fecha de partido:', e);
+                        }
+                    }
+                });
+            }
+            
+            // Verificar partidos sin fecha programada
+            if (dashboard.summary && dashboard.summary.matches_pending > 0) {
+                const totalPending = dashboard.summary.matches_pending;
+                if (totalPending > 5) {
+                    notifications.push({
+                        type: 'warning',
+                        message: `⚠️ Hay ${totalPending} partidos pendientes sin fecha programada`
+                    });
+                }
+            }
+            
+            // Mostrar notificaciones
+            if (notifications.length > 0) {
+                showNotifications(notifications);
+            }
+        }
+        
+        function showNotifications(notifications) {
+            // Remover notificaciones anteriores
+            const existing = document.getElementById('notifications');
+            if (existing) existing.remove();
+            
+            const notificationDiv = document.createElement('div');
+            notificationDiv.id = 'notifications';
+            notificationDiv.style.cssText = 'position: fixed; top: 80px; right: 20px; z-index: 9999; max-width: 400px;';
+            
+            let html = '';
+            notifications.forEach((notif) => {
+                const bgColor = notif.type === 'upcoming' ? '#ffc107' : '#ff9800';
+                html += `
+                    <div style="background: ${bgColor}; color: #000; padding: 15px; margin-bottom: 10px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); animation: slideIn 0.3s ease;">
+                        <div style="font-weight: bold; margin-bottom: 5px; font-size: 1.1em;">${notif.message}</div>
+                        ${notif.match && notif.match.date ? `<div style="font-size: 0.9em; opacity: 0.8;">${notif.match.date} a las ${notif.match.time || 'TBD'}</div>` : ''}
+                    </div>
+                `;
+            });
+            
+            notificationDiv.innerHTML = html;
+            document.body.appendChild(notificationDiv);
+            
+            // Auto-ocultar después de 10 segundos
+            setTimeout(() => {
+                if (notificationDiv.parentNode) {
+                    notificationDiv.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => {
+                        if (notificationDiv.parentNode) {
+                            notificationDiv.remove();
+                        }
+                    }, 300);
+                }
+            }, 10000);
+        }
+        
         function renderDashboard(dashboard) {
             const dashboardContent = document.getElementById('dashboardContent');
             if (!dashboardContent) {
