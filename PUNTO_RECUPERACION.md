@@ -77,7 +77,7 @@ git reset --hard v1.1.0-estable
 
 El commit exacto de este punto de recuperación es:
 ```
-(Se actualizará al crear el tag)
+(Se actualizará después del push)
 ```
 
 ## Cambios desde v1.0.0-estable
