@@ -61,6 +61,11 @@ git reset --hard v1.0.0-estable
 
 El commit exacto de este punto de recuperación es:
 ```
+739c92132aec2dbf5ff9888f2799fd0f93c012c9
+```
+
+O en formato corto:
+```
 757e0c4
 ```
 
