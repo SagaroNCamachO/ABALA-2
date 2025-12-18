@@ -17,6 +17,89 @@
             min-height: 100vh;
             padding: 20px;
             font-size: 18px; /* Tamaño base más grande para mejor legibilidad */
+            transition: background 0.3s ease;
+        }
+        
+        body.dark-mode {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+        
+        body.dark-mode .card {
+            background: #2d3748;
+            color: #e2e8f0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+        
+        body.dark-mode .card h2 {
+            color: #90cdf4;
+        }
+        
+        body.dark-mode .btn {
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+            color: #e2e8f0;
+        }
+        
+        body.dark-mode .btn:hover {
+            background: linear-gradient(135deg, #5a6578 0%, #3d4758 100%);
+        }
+        
+        body.dark-mode input, 
+        body.dark-mode select, 
+        body.dark-mode textarea {
+            background: #4a5568;
+            color: #e2e8f0;
+            border-color: #718096;
+        }
+        
+        body.dark-mode .tab {
+            color: #cbd5e0;
+        }
+        
+        body.dark-mode .tab.active {
+            color: #90cdf4;
+            border-bottom-color: #90cdf4;
+        }
+        
+        body.dark-mode table {
+            background: #2d3748;
+            color: #e2e8f0;
+        }
+        
+        body.dark-mode table thead {
+            background: #4a5568;
+        }
+        
+        body.dark-mode table tbody tr:hover {
+            background: #374151;
+        }
+        
+        body.dark-mode table tbody tr {
+            border-bottom: 1px solid #4a5568;
+        }
+        
+        body.dark-mode .empty-state {
+            color: #cbd5e0;
+        }
+        
+        body.dark-mode .alert {
+            background: #2d3748;
+            color: #e2e8f0;
+            border-left-color: #90cdf4;
+        }
+        
+        body.dark-mode .alert-success {
+            background: #22543d;
+            color: #9ae6b4;
+        }
+        
+        body.dark-mode .alert-error {
+            background: #742a2a;
+            color: #feb2b2;
+        }
+        
+        body.dark-mode .alert-warning {
+            background: #744210;
+            color: #fbd38d;
         }
         
         .container {
