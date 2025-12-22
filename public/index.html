@@ -1865,12 +1865,28 @@
             for (const [champId, categories] of Object.entries(categoriesData)) {
                 for (const [catName, cat] of Object.entries(categories)) {
                     html += `
-                        <div class="data-item" onclick="selectCategory('${champId}', '${catName}')">
-                            <strong>${catName}</strong>
-                            <div class="info">
-                                Campeonato: ${championshipsData[champId]?.name || champId}<br>
-                                Equipos: ${cat.teams ? cat.teams.length : 0}<br>
-                                Partidos: ${cat.matches ? cat.matches.length : 0}
+                        <div class="data-item" style="border: 2px solid #667eea; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #f8f9fa; transition: all 0.3s;" 
+                             onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.3)';" 
+                             onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+                                <div style="flex: 1; min-width: 200px;">
+                                    <strong style="font-size: 1.2em; color: #667eea;">${catName}</strong>
+                                    <div class="info" style="margin-top: 8px; color: #666; font-size: 0.9em;">
+                                        <div>Campeonato: <strong>${championshipsData[champId]?.name || champId}</strong></div>
+                                        <div>Equipos: ${cat.teams ? cat.teams.length : 0}</div>
+                                        <div>Partidos: ${cat.matches ? cat.matches.length : 0}</div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 5px; flex-direction: column; width: 100%; max-width: 150px;">
+                                    <button onclick="event.stopPropagation(); selectCategory('${champId}', '${catName}')" 
+                                        style="padding: 8px 12px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.9em; width: 100%; min-height: 40px;">
+                                        👁️ Ver
+                                    </button>
+                                    <button onclick="event.stopPropagation(); deleteCategory('${champId}', '${catName}')" 
+                                        style="padding: 8px 12px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.9em; width: 100%; min-height: 40px;">
+                                        🗑️ Eliminar
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -1901,6 +1917,61 @@
             
             showAlert(`Categoría "${catName}" seleccionada`, 'success');
         }
+        
+        async function deleteCategory(champId, catName) {
+            // Confirmación antes de eliminar
+            const champ = championshipsData[champId];
+            const champName = champ?.name || champId;
+            
+            if (!confirm(`¿Estás seguro de que deseas eliminar la categoría "${catName}" del campeonato "${champName}"?\n\nEsta acción eliminará:\n- La categoría completa\n- Todos los equipos\n- Todos los partidos y resultados\n- Todas las estadísticas\n\n⚠️ Esta acción NO se puede deshacer.`)) {
+                return;
+            }
+            
+            try {
+                // Eliminar del servidor (MongoDB)
+                const res = await fetch(`${API_BASE}/api/championships/${champId}/categories/${encodeURIComponent(catName)}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await res.json();
+                
+                if (data.success || res.status === 200 || res.ok) {
+                    // Eliminar de los datos en memoria
+                    if (categoriesData[champId] && categoriesData[champId][catName]) {
+                        delete categoriesData[champId][catName];
+                        // Si no quedan categorías, eliminar el campeonato del objeto
+                        if (Object.keys(categoriesData[champId]).length === 0) {
+                            delete categoriesData[champId];
+                        }
+                    }
+                    
+                    // Actualizar también championshipsData
+                    if (championshipsData[champId] && championshipsData[champId].categories) {
+                        delete championshipsData[champId].categories[catName];
+                    }
+                    
+                    // Actualizar localStorage
+                    saveToLocalStorage(champId, championshipsData[champId]);
+                    
+                    console.log(`✅ Categoría ${catName} eliminada de memoria y MongoDB`);
+                    
+                    // Recargar datos y actualizar vista
+                    loadData();
+                    renderCategories();
+                    updateForm();
+                    
+                    showAlert(`✅ Categoría "${catName}" eliminada exitosamente de MongoDB y la aplicación`, 'success');
+                } else {
+                    showAlert(`❌ Error al eliminar: ${data.error || 'Error desconocido'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error eliminando categoría:', error);
+                showAlert(`❌ Error de conexión: ${error.message}`, 'error');
+            }
+        }
+        
+        // Hacer la función globalmente accesible
+        window.deleteCategory = deleteCategory;
         
         // Asegurar que updateForm esté disponible globalmente
         window.updateForm = function() {

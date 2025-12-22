@@ -84,6 +84,17 @@ export class Championship {
   }
 
   /**
+   * Elimina una categoría del campeonato.
+   */
+  removeCategory(categoryName: string): boolean {
+    if (!this.categories.has(categoryName)) {
+      return false;
+    }
+    this.categories.delete(categoryName);
+    return true;
+  }
+
+  /**
    * Registra el resultado de un partido.
    */
   registerMatchResult(

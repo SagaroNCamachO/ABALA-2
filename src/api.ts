@@ -125,7 +125,9 @@ app.get('/', (_req: Request, res: Response) => {
         "POST /api/championships": "Crear un nuevo campeonato",
         "GET /api/championships": "Listar todos los campeonatos",
         "GET /api/championships/:id": "Obtener un campeonato",
+        "DELETE /api/championships/:id": "Eliminar un campeonato",
         "POST /api/championships/:id/categories": "Agregar categoría",
+        "DELETE /api/championships/:id/categories/:category": "Eliminar categoría",
         "POST /api/championships/:id/results": "Registrar resultado",
         "GET /api/championships/:id/standings/:category": "Obtener tabla de posiciones",
         "GET /api/championships/:id/fixture/:category": "Obtener fixture",
@@ -446,6 +448,58 @@ app.get('/api/championships/:id', async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error('Error en GET /api/championships/:id:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * Eliminar una categoría de un campeonato.
+ */
+app.delete('/api/championships/:id/categories/:category', async (req: Request, res: Response) => {
+  try {
+    // Asegurar que los campeonatos estén cargados
+    await ensureChampionshipsLoaded();
+    
+    const champId = req.params.id;
+    const categoryName = req.params.category;
+    const championship = championships.get(champId);
+
+    if (!championship) {
+      return res.status(404).json({
+        success: false,
+        error: "Campeonato no encontrado"
+      });
+    }
+
+    const category = championship.getCategory(categoryName);
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        error: "Categoría no encontrada"
+      });
+    }
+
+    // Eliminar la categoría
+    const removed = championship.removeCategory(categoryName);
+    if (!removed) {
+      return res.status(400).json({
+        success: false,
+        error: "No se pudo eliminar la categoría"
+      });
+    }
+
+    // Guardar automáticamente después de eliminar
+    await autoSave();
+
+    return res.json({
+      success: true,
+      message: `Categoría '${categoryName}' eliminada exitosamente`
+    });
+  } catch (error: any) {
+    console.error('Error en DELETE /api/championships/:id/categories/:category:', error);
     return res.status(500).json({
       success: false,
       error: error.message
