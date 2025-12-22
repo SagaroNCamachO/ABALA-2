@@ -6,6 +6,7 @@ import { ChampionshipStorage } from './storage/ChampionshipStorage';
 import { MongoDBStorage } from './storage/MongoDBStorage';
 import { TeamStatisticsCalculator } from './utils/TeamStatistics';
 import { validateChampionship, validateCategory, validateMatchResult, validatePenalty } from './utils/Validation';
+import { AuditLog } from './models/AuditLog';
 
 const app = express();
 app.use(cors());
@@ -365,6 +366,12 @@ app.post('/api/championships', async (req: Request, res: Response) => {
     const championship = new Championship(name, rounds, pointsPerWin, pointsPerLoss);
     championships.set(champId, championship);
     
+    // Registrar en historial
+    AuditLog.log('create', 'championship', champId, {
+      entityName: name,
+      metadata: { rounds, pointsPerWin, pointsPerLoss }
+    });
+    
     // Guardar automáticamente en el almacenamiento
     await autoSave();
 
@@ -421,15 +428,22 @@ app.delete('/api/championships/:id', async (req: Request, res: Response) => {
     await ensureChampionshipsLoaded();
     
     const champId = req.params.id;
+    const championship = championships.get(champId);
     
-    if (!championships.has(champId)) {
+    if (!championship) {
       return res.status(404).json({
         success: false,
         error: "Campeonato no encontrado"
       });
     }
 
+    const champName = championship.name;
     championships.delete(champId);
+    
+    // Registrar en historial
+    AuditLog.log('delete', 'championship', champId, {
+      entityName: champName
+    });
     
     // Guardar automáticamente después de eliminar
     await autoSave();
@@ -514,6 +528,16 @@ app.delete('/api/championships/:id/categories/:category', async (req: Request, r
         error: "No se pudo eliminar la categoría"
       });
     }
+
+    // Registrar en historial
+    AuditLog.log('delete', 'category', `${champId}_${categoryName}`, {
+      entityName: categoryName,
+      metadata: {
+        championship_id: champId,
+        championship_name: championship.name,
+        teams_count: category ? category.teams.size : 0
+      }
+    });
 
     // Guardar automáticamente después de eliminar
     await autoSave();
@@ -620,6 +644,16 @@ app.post('/api/championships/:id/categories', async (req: Request, res: Response
       throw new Error("Error al crear la categoría");
     }
     
+    // Registrar en historial
+    AuditLog.log('create', 'category', `${champId}_${categoryName}`, {
+      entityName: categoryName,
+      metadata: {
+        championship_id: champId,
+        championship_name: championship.name,
+        teams_count: category.teams.size
+      }
+    });
+    
     // Guardar automáticamente después de agregar categoría
     await autoSave();
 
@@ -684,6 +718,22 @@ app.post('/api/championships/:id/results', async (req: Request, res: Response) =
     );
 
     if (success) {
+      // Registrar en historial
+      const matchId = `${champId}_${categoryName}_${teamA}_${teamB}_${roundNumber}_${matchType}`;
+      AuditLog.log('register_result', 'match', matchId, {
+        entityName: `${teamA} vs ${teamB}`,
+        metadata: {
+          championship_id: champId,
+          category: categoryName,
+          team_a: teamA,
+          team_b: teamB,
+          round_number: roundNumber,
+          match_type: matchType,
+          score_a: scoreA,
+          score_b: scoreB
+        }
+      });
+      
       // Guardar automáticamente en MongoDB después de registrar resultado
       await autoSave();
       return res.json({
@@ -1129,6 +1179,82 @@ if (require.main === module) {
     console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
   });
 }
+
+/**
+ * Obtener historial de cambios (Audit Log)
+ */
+app.get('/api/audit-log', async (req: Request, res: Response) => {
+  try {
+    const { entity_type, entity_id, action, limit } = req.query;
+    
+    let logs;
+    
+    if (entity_type && entity_id) {
+      // Logs de una entidad específica
+      logs = AuditLog.getLogsByEntity(entity_type as string, entity_id as string);
+    } else if (action) {
+      // Logs de una acción específica
+      logs = AuditLog.getLogsByAction(action as string, limit ? parseInt(limit as string) : 100);
+    } else {
+      // Todos los logs recientes
+      logs = AuditLog.getRecentLogs(limit ? parseInt(limit as string) : 100);
+    }
+    
+    return res.json({
+      success: true,
+      logs: logs.map(log => ({
+        id: log.id,
+        timestamp: log.timestamp.toISOString(),
+        action: log.action,
+        entity_type: log.entity_type,
+        entity_id: log.entity_id,
+        entity_name: log.entity_name,
+        user: log.user,
+        changes: log.changes,
+        metadata: log.metadata
+      })),
+      count: logs.length
+    });
+  } catch (error: any) {
+    console.error('Error en GET /api/audit-log:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * Obtener historial de una entidad específica
+ */
+app.get('/api/audit-log/:entity_type/:entity_id', async (req: Request, res: Response) => {
+  try {
+    const { entity_type, entity_id } = req.params;
+    const logs = AuditLog.getLogsByEntity(entity_type, entity_id);
+    
+    return res.json({
+      success: true,
+      logs: logs.map(log => ({
+        id: log.id,
+        timestamp: log.timestamp.toISOString(),
+        action: log.action,
+        entity_type: log.entity_type,
+        entity_id: log.entity_id,
+        entity_name: log.entity_name,
+        user: log.user,
+        changes: log.changes,
+        metadata: log.metadata
+      })),
+      count: logs.length
+    });
+  } catch (error: any) {
+    console.error('Error en GET /api/audit-log/:entity_type/:entity_id:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
 
 export default app;
 

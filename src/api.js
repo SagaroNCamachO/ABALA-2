@@ -11,6 +11,7 @@ const ChampionshipStorage_1 = require("./storage/ChampionshipStorage");
 const MongoDBStorage_1 = require("./storage/MongoDBStorage");
 const TeamStatistics_1 = require("./utils/TeamStatistics");
 const Validation_1 = require("./utils/Validation");
+const AuditLog_1 = require("./models/AuditLog");
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
@@ -333,6 +334,11 @@ app.post('/api/championships', async (req, res) => {
         const pointsPerLoss = parseInt(data.points_per_loss) || 0;
         const championship = new Championship_1.Championship(name, rounds, pointsPerWin, pointsPerLoss);
         championships.set(champId, championship);
+        // Registrar en historial
+        AuditLog_1.AuditLog.log('create', 'championship', champId, {
+            entityName: name,
+            metadata: { rounds, pointsPerWin, pointsPerLoss }
+        });
         // Guardar automáticamente en el almacenamiento
         await autoSave();
         return res.status(201).json({
@@ -385,13 +391,19 @@ app.delete('/api/championships/:id', async (req, res) => {
         // Asegurar que los campeonatos estén cargados
         await ensureChampionshipsLoaded();
         const champId = req.params.id;
-        if (!championships.has(champId)) {
+        const championship = championships.get(champId);
+        if (!championship) {
             return res.status(404).json({
                 success: false,
                 error: "Campeonato no encontrado"
             });
         }
+        const champName = championship.name;
         championships.delete(champId);
+        // Registrar en historial
+        AuditLog_1.AuditLog.log('delete', 'championship', champId, {
+            entityName: champName
+        });
         // Guardar automáticamente después de eliminar
         await autoSave();
         return res.json({
@@ -467,6 +479,15 @@ app.delete('/api/championships/:id/categories/:category', async (req, res) => {
                 error: "No se pudo eliminar la categoría"
             });
         }
+        // Registrar en historial
+        AuditLog_1.AuditLog.log('delete', 'category', `${champId}_${categoryName}`, {
+            entityName: categoryName,
+            metadata: {
+                championship_id: champId,
+                championship_name: championship.name,
+                teams_count: category ? category.teams.size : 0
+            }
+        });
         // Guardar automáticamente después de eliminar
         await autoSave();
         return res.json({
@@ -552,6 +573,15 @@ app.post('/api/championships/:id/categories', async (req, res) => {
         if (!category) {
             throw new Error("Error al crear la categoría");
         }
+        // Registrar en historial
+        AuditLog_1.AuditLog.log('create', 'category', `${champId}_${categoryName}`, {
+            entityName: categoryName,
+            metadata: {
+                championship_id: champId,
+                championship_name: championship.name,
+                teams_count: category.teams.size
+            }
+        });
         // Guardar automáticamente después de agregar categoría
         await autoSave();
         return res.status(201).json({
@@ -600,6 +630,21 @@ app.post('/api/championships/:id/results', async (req, res) => {
         const matchType = data.match_type;
         const success = championship.registerMatchResult(categoryName, teamA, teamB, roundNumber, scoreA, scoreB, matchType);
         if (success) {
+            // Registrar en historial
+            const matchId = `${champId}_${categoryName}_${teamA}_${teamB}_${roundNumber}_${matchType}`;
+            AuditLog_1.AuditLog.log('register_result', 'match', matchId, {
+                entityName: `${teamA} vs ${teamB}`,
+                metadata: {
+                    championship_id: champId,
+                    category: categoryName,
+                    team_a: teamA,
+                    team_b: teamB,
+                    round_number: roundNumber,
+                    match_type: matchType,
+                    score_a: scoreA,
+                    score_b: scoreB
+                }
+            });
             // Guardar automáticamente en MongoDB después de registrar resultado
             await autoSave();
             return res.json({
@@ -982,5 +1027,79 @@ if (require.main === module) {
         console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
     });
 }
+/**
+ * Obtener historial de cambios (Audit Log)
+ */
+app.get('/api/audit-log', async (req, res) => {
+    try {
+        const { entity_type, entity_id, action, limit } = req.query;
+        let logs;
+        if (entity_type && entity_id) {
+            // Logs de una entidad específica
+            logs = AuditLog_1.AuditLog.getLogsByEntity(entity_type, entity_id);
+        }
+        else if (action) {
+            // Logs de una acción específica
+            logs = AuditLog_1.AuditLog.getLogsByAction(action, limit ? parseInt(limit) : 100);
+        }
+        else {
+            // Todos los logs recientes
+            logs = AuditLog_1.AuditLog.getRecentLogs(limit ? parseInt(limit) : 100);
+        }
+        return res.json({
+            success: true,
+            logs: logs.map(log => ({
+                id: log.id,
+                timestamp: log.timestamp.toISOString(),
+                action: log.action,
+                entity_type: log.entity_type,
+                entity_id: log.entity_id,
+                entity_name: log.entity_name,
+                user: log.user,
+                changes: log.changes,
+                metadata: log.metadata
+            })),
+            count: logs.length
+        });
+    }
+    catch (error) {
+        console.error('Error en GET /api/audit-log:', error);
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+/**
+ * Obtener historial de una entidad específica
+ */
+app.get('/api/audit-log/:entity_type/:entity_id', async (req, res) => {
+    try {
+        const { entity_type, entity_id } = req.params;
+        const logs = AuditLog_1.AuditLog.getLogsByEntity(entity_type, entity_id);
+        return res.json({
+            success: true,
+            logs: logs.map(log => ({
+                id: log.id,
+                timestamp: log.timestamp.toISOString(),
+                action: log.action,
+                entity_type: log.entity_type,
+                entity_id: log.entity_id,
+                entity_name: log.entity_name,
+                user: log.user,
+                changes: log.changes,
+                metadata: log.metadata
+            })),
+            count: logs.length
+        });
+    }
+    catch (error) {
+        console.error('Error en GET /api/audit-log/:entity_type/:entity_id:', error);
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
 exports.default = app;
 //# sourceMappingURL=api.js.map
