@@ -9,7 +9,8 @@
     "start": "node api/index.js",
     "type-check": "tsc --noEmit",
     "verify-mongodb": "ts-node scripts/verificar-mongodb.ts",
-    "delete-champ": "ts-node scripts/eliminar-campeonato.ts"
+    "delete-champ": "ts-node scripts/eliminar-campeonato.ts",
+    "list-categories": "ts-node scripts/listar-categorias.ts"
   },
   "keywords": [
     "basketball",
