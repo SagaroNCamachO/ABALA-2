@@ -23,17 +23,20 @@ app.use(express.json());
       // Usar setImmediate para ejecutar después de que el módulo se haya cargado completamente
       setImmediate(() => {
         try {
-          // Verificar que no exista ningún admin antes de crear uno
-          if (UserManager && UserManager.hasAdmin && !UserManager.hasAdmin()) {
-            if (UserManager.getUserByUsername && UserManager.getUserByUsername('admin') === null) {
-              UserManager.createUser('admin', 'admin123', 'admin@abala.com', UserRole.ADMIN);
-              console.log('✅ Usuario admin creado (username: admin, password: admin123)');
-            }
-          } else if (UserManager && UserManager.hasAdmin && UserManager.hasAdmin()) {
-            console.log('ℹ️ Ya existe un administrador en el sistema');
+          const existingAdmin = UserManager.getUserByUsername('admin');
+          
+          if (!existingAdmin) {
+            // No existe admin, crear uno nuevo
+            UserManager.createUser('admin', 'abala123', 'admin@abala.com', UserRole.ADMIN);
+            console.log('✅ Usuario admin creado (username: admin, password: abala123)');
+          } else {
+            // Ya existe admin, asegurar que la contraseña sea "abala123"
+            // Actualizar siempre para garantizar que la contraseña sea la correcta
+            UserManager.updatePassword('admin', 'abala123');
+            console.log('✅ Contraseña del admin configurada a: abala123');
           }
         } catch (error: any) {
-          console.warn('⚠️ No se pudo crear usuario admin:', error?.message || error);
+          console.warn('⚠️ No se pudo crear/actualizar usuario admin:', error?.message || error);
         }
       });
     }
@@ -1375,6 +1378,51 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
         role: user.role
       },
       token: Buffer.from(`${user.id}:${user.username}`).toString('base64') // Token simple - en producción usar JWT
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * Resetear contraseña del administrador (solo en desarrollo)
+ * Útil para recuperar acceso si se perdió la contraseña
+ */
+app.post('/api/auth/reset-admin-password', async (req: Request, res: Response) => {
+  try {
+    // Solo permitir en desarrollo
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(403).json({
+        success: false,
+        error: 'Esta operación solo está disponible en desarrollo'
+      });
+    }
+
+    const { newPassword } = req.body;
+    const password = newPassword || 'abala123'; // Por defecto usar "abala123"
+
+    const admin = UserManager.getUserByUsername('admin');
+    if (!admin) {
+      // Si no existe admin, crearlo
+      UserManager.createUser('admin', password, 'admin@abala.com', UserRole.ADMIN);
+      return res.json({
+        success: true,
+        message: `Usuario admin creado con contraseña: ${password}`,
+        username: 'admin',
+        password: password
+      });
+    }
+
+    // Actualizar contraseña del admin existente
+    UserManager.updatePassword('admin', password);
+    return res.json({
+      success: true,
+      message: `Contraseña del admin actualizada a: ${password}`,
+      username: 'admin',
+      password: password
     });
   } catch (error: any) {
     return res.status(500).json({

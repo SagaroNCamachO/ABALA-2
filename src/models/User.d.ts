@@ -46,6 +46,14 @@ export declare class UserManager {
      */
     static getUserByUsername(username: string): User | null;
     /**
+     * Actualizar contraseña de un usuario
+     */
+    static updatePassword(username: string, newPassword: string): boolean;
+    /**
+     * Obtener todos los usuarios (solo para administradores)
+     */
+    static getAllUsers(): User[];
+    /**
      * Verificar si un usuario tiene permiso en un campeonato
      */
     static hasPermission(userId: string, championshipId: string, requiredRole: UserRole): boolean;

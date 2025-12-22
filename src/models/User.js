@@ -73,6 +73,23 @@ class UserManager {
         return null;
     }
     /**
+     * Actualizar contraseña de un usuario
+     */
+    static updatePassword(username, newPassword) {
+        const user = this.getUserByUsername(username);
+        if (!user) {
+            return false;
+        }
+        user.passwordHash = this.hashPassword(newPassword);
+        return true;
+    }
+    /**
+     * Obtener todos los usuarios (solo para administradores)
+     */
+    static getAllUsers() {
+        return Array.from(this.users.values());
+    }
+    /**
      * Verificar si un usuario tiene permiso en un campeonato
      */
     static hasPermission(userId, championshipId, requiredRole) {
