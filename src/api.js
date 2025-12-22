@@ -217,6 +217,8 @@ app.get('/api/dashboard', (_req, res) => {
                     });
                 }
             }
+            // Calcular progreso del campeonato
+            const champProgress = champMatches > 0 ? Math.round((champPlayed / champMatches) * 100) : 0;
             championshipsSummary.push({
                 id: champId,
                 name: championship.name,
@@ -226,7 +228,7 @@ app.get('/api/dashboard', (_req, res) => {
                 matches_total: champMatches,
                 matches_played: champPlayed,
                 matches_pending: champPending,
-                progress_percentage: champMatches > 0 ? Math.round((champPlayed / champMatches) * 100) : 0
+                progress_percentage: champProgress
             });
         }
         // Ordenar próximos partidos por fecha
@@ -247,6 +249,26 @@ app.get('/api/dashboard', (_req, res) => {
         // Limitar a los próximos 10 partidos y últimos 10 resultados
         const nextMatches = upcomingMatches.slice(0, 10);
         const lastResults = recentResults.slice(0, 10);
+        // Calcular Top 5 equipos por puntos (de todas las categorías)
+        const allTeamsMap = new Map();
+        for (const [champId, championship] of championships.entries()) {
+            for (const category of Array.from(championship.categories.values())) {
+                const standings = category.getStandings();
+                for (const team of standings) {
+                    const key = `${champId}_${category.name}_${team.name}`;
+                    allTeamsMap.set(key, {
+                        name: team.name,
+                        points: team.points,
+                        category: category.name,
+                        championship: championship.name
+                    });
+                }
+            }
+        }
+        // Ordenar por puntos y tomar top 5
+        const topTeams = Array.from(allTeamsMap.values())
+            .sort((a, b) => b.points - a.points)
+            .slice(0, 5);
         return res.json({
             success: true,
             dashboard: {
@@ -261,7 +283,8 @@ app.get('/api/dashboard', (_req, res) => {
                 },
                 championships: championshipsSummary,
                 upcoming_matches: nextMatches,
-                recent_results: lastResults
+                recent_results: lastResults,
+                top_teams: topTeams
             }
         });
     }

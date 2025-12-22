@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ABALA - Gestión de Campeonatos</title>
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -1276,7 +1278,7 @@
                 return;
             }
             
-            const { summary, championships, upcoming_matches, recent_results } = dashboard;
+            const { summary, championships, upcoming_matches, recent_results, top_teams } = dashboard;
             
             // Validar que los datos existan
             if (!summary) {
@@ -1319,6 +1321,34 @@
                             <div style="font-size: 2em; font-weight: bold;">${summary.total_categories || 0}</div>
                             <div style="font-size: 1em; opacity: 0.9;">Categorías</div>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- Gráfico de Progreso y Top 5 Equipos -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; margin-bottom: 30px;">
+                    <!-- Gráfico de Progreso -->
+                    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <h4 style="color: #667eea; margin-bottom: 20px; font-size: 1.5em; font-weight: 700;">📊 Progreso del Campeonato</h4>
+                        <canvas id="progressChart" style="max-height: 300px;"></canvas>
+                    </div>
+                    
+                    <!-- Top 5 Equipos -->
+                    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <h4 style="color: #667eea; margin-bottom: 20px; font-size: 1.5em; font-weight: 700;">🏆 Top 5 Equipos</h4>
+                        ${top_teams && top_teams.length > 0 ? `
+                            <div style="display: grid; gap: 15px;">
+                                ${top_teams.map((team, index) => `
+                                    <div style="display: flex; align-items: center; gap: 15px; padding: 15px; background: linear-gradient(135deg, ${index === 0 ? '#ffd700' : index === 1 ? '#c0c0c0' : index === 2 ? '#cd7f32' : '#f0f0f0'} 0%, ${index < 3 ? '#fff' : '#f8f8f8'} 100%); border-radius: 10px; border-left: 5px solid ${index === 0 ? '#ffd700' : index === 1 ? '#c0c0c0' : index === 2 ? '#cd7f32' : '#667eea'};">
+                                        <div style="font-size: 2em; font-weight: bold; color: ${index < 3 ? '#333' : '#667eea'}; min-width: 40px; text-align: center;">${index + 1}</div>
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 1.3em; font-weight: bold; color: #333; margin-bottom: 5px;">${team.name}</div>
+                                            <div style="font-size: 0.9em; color: #666;">${team.championship} - ${team.category}</div>
+                                        </div>
+                                        <div style="font-size: 2em; font-weight: bold; color: #28a745;">${team.points}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : '<div class="empty-state">No hay equipos con puntos aún</div>'}
                     </div>
                 </div>
                 
@@ -1467,6 +1497,52 @@
             html += `</div>`;
             
             dashboardContent.innerHTML = html;
+            
+            // Crear gráfico de progreso
+            setTimeout(() => {
+                const ctx = document.getElementById('progressChart');
+                if (ctx && typeof Chart !== 'undefined') {
+                    new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Jugados', 'Pendientes'],
+                            datasets: [{
+                                data: [${summary.matches_played || 0}, ${summary.matches_pending || 0}],
+                                backgroundColor: ['#28a745', '#ffc107'],
+                                borderWidth: 3,
+                                borderColor: '#fff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        font: {
+                                            size: 14,
+                                            weight: 'bold'
+                                        },
+                                        padding: 15
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const label = context.label || '';
+                                            const value = context.parsed || 0;
+                                            const total = ${summary.total_matches || 0};
+                                            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                            return label + ': ' + value + ' (' + percentage + '%)';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }, 100);
         }
         
         // Asegurar que switchDataTab esté disponible globalmente
