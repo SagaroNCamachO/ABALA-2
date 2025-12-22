@@ -1182,12 +1182,14 @@
         // Asegurar que loadData esté disponible globalmente
         window.loadData = async function() {
             try {
+                console.log('🔄 Cargando campeonatos desde el servidor (MongoDB)...');
                 // Obtener la lista de campeonatos del servidor PRIMERO
                 const res = await fetch(`${API_BASE}/api/championships`);
                 const data = await res.json();
                 
                 if (data.success) {
                     const champList = data.championships || {};
+                    console.log(`✅ Encontrados ${Object.keys(champList).length} campeonato(s) en el servidor (MongoDB)`);
                     
                     // Limpiar datos de campeonatos que ya no existen en el servidor
                     const serverIds = new Set(Object.keys(champList));
@@ -1220,8 +1222,9 @@
                                     categoriesData[id] = champData.championship.categories;
                                 }
                                 
-                                // Guardar en localStorage
+                                // Guardar en localStorage como backup
                                 saveToLocalStorage(id, championshipsData[id]);
+                                console.log(`✅ Cargado campeonato: ${champData.championship.name} (${id})`);
                             } else {
                                 // Si falla, usar datos del resumen
                                 championshipsData[id] = champList[id];
@@ -1242,7 +1245,9 @@
                     renderChampionships();
                     renderCategories();
                     updateForm(); // Actualizar formularios con datos disponibles
+                    console.log(`✅ Renderizados ${Object.keys(championshipsData).length} campeonato(s) en "📊 Datos Creados"`);
                 } else {
+                    console.warn('⚠️ El servidor no respondió con success');
                     // Si el servidor no responde con success, cargar desde localStorage
                     loadFromLocalStorage();
                     renderChampionships();
@@ -1250,13 +1255,13 @@
                     updateForm();
                 }
             } catch (error) {
-                console.error('Error cargando datos:', error);
+                console.error('❌ Error cargando datos:', error);
                 // Si falla el servidor, cargar desde localStorage
                 loadFromLocalStorage();
                 renderChampionships();
                 renderCategories();
                 updateForm(); // Actualizar formularios con datos cargados
-                showAlert('Cargando desde almacenamiento local (servidor no disponible)', 'warning');
+                showAlert('⚠️ Cargando desde almacenamiento local (servidor no disponible). Los campeonatos se guardan en MongoDB cuando el servidor está disponible.', 'warning');
             }
         }
         
@@ -1326,7 +1331,10 @@
             }
             
             list.innerHTML = validChampionships.map(([id, champ]) => `
-                <div class="data-item" style="border: 2px solid #667eea; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #f8f9fa; cursor: pointer;" onclick="loadChampionshipDetails('${id}')">
+                <div class="data-item" style="border: 2px solid #667eea; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #f8f9fa; cursor: pointer; transition: all 0.3s;" 
+                     onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.3)';" 
+                     onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';"
+                     onclick="loadChampionshipDetails('${id}')">
                     <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
                         <div style="flex: 1;">
                             <strong style="font-size: 1.2em; color: #667eea;">${champ.name || id}</strong>
@@ -1873,13 +1881,15 @@
                     // Recargar datos después de crear/modificar
                     if (action === 'createChamp' || action === 'addCategory') {
                         // Recargar datos inmediatamente y luego de nuevo después de un segundo
+                        showAlert('🔄 Actualizando lista de campeonatos...', 'info');
                         loadData();
                         setTimeout(() => {
                             loadData();
                             renderChampionships();
                             renderCategories();
                             updateForm(); // Actualizar formularios con nuevos datos
-                        }, 1000);
+                            showAlert('✅ Lista actualizada. Los campeonatos se guardan en MongoDB y aparecen en "📊 Datos Creados"', 'success');
+                        }, 1500);
                     }
                 } else {
                     // Mostrar error detallado
