@@ -11,207 +11,36 @@ const ChampionshipStorage_1 = require("./storage/ChampionshipStorage");
 const MongoDBStorage_1 = require("./storage/MongoDBStorage");
 const TeamStatistics_1 = require("./utils/TeamStatistics");
 const Validation_1 = require("./utils/Validation");
-// #region agent log
-console.log('[DEBUG] api.ts:9 - Before AuditLog import');
-try {
-    const fs = require('fs');
-    const logPath = '.cursor/debug.log';
-    const logEntry = JSON.stringify({ location: 'api.ts:9', message: 'Before AuditLog import', data: { timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'B' }) + '\n';
-    fs.appendFileSync(logPath, logEntry);
-}
-catch (e) {
-    console.error('[DEBUG] Failed to write log:', e);
-}
-// #endregion
 const AuditLog_1 = require("./models/AuditLog");
-// #region agent log
-console.log('[DEBUG] api.ts:10 - AuditLog imported');
-try {
-    const fs = require('fs');
-    const logPath = '.cursor/debug.log';
-    const logEntry = JSON.stringify({ location: 'api.ts:10', message: 'AuditLog imported', data: { hasAuditLog: !!AuditLog_1.AuditLog, timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'B' }) + '\n';
-    fs.appendFileSync(logPath, logEntry);
-}
-catch (e) {
-    console.error('[DEBUG] Failed to write log:', e);
-}
-// #endregion
-// #region agent log
-console.log('[DEBUG] api.ts:11 - Before UserManager import');
-try {
-    const fs = require('fs');
-    const logPath = '.cursor/debug.log';
-    const logEntry = JSON.stringify({ location: 'api.ts:11', message: 'Before UserManager import', data: { timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'B' }) + '\n';
-    fs.appendFileSync(logPath, logEntry);
-}
-catch (e) {
-    console.error('[DEBUG] Failed to write log:', e);
-}
-// #endregion
 const User_1 = require("./models/User");
-// #region agent log
-console.log('[DEBUG] api.ts:12 - UserManager imported');
-try {
-    const fs = require('fs');
-    const logPath = '.cursor/debug.log';
-    const logEntry = JSON.stringify({ location: 'api.ts:12', message: 'UserManager imported', data: { hasUserManager: !!User_1.UserManager, hasUserRole: !!User_1.UserRole, timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'B' }) + '\n';
-    fs.appendFileSync(logPath, logEntry);
-}
-catch (e) {
-    console.error('[DEBUG] Failed to write log:', e);
-}
-// #endregion
-// #region agent log
-console.log('[DEBUG] api.ts:13 - Before NotificationManager import');
-try {
-    const fs = require('fs');
-    const logPath = '.cursor/debug.log';
-    const logEntry = JSON.stringify({ location: 'api.ts:13', message: 'Before NotificationManager import', data: { timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'B' }) + '\n';
-    fs.appendFileSync(logPath, logEntry);
-}
-catch (e) {
-    console.error('[DEBUG] Failed to write log:', e);
-}
-// #endregion
 const NotificationSettings_1 = require("./models/NotificationSettings");
-// #region agent log
-console.log('[DEBUG] api.ts:14 - All imports completed', { hasUserManager: !!User_1.UserManager, hasNotificationManager: !!NotificationSettings_1.NotificationManager, hasAuditLog: !!AuditLog_1.AuditLog });
-try {
-    const fs = require('fs');
-    const logPath = '.cursor/debug.log';
-    const logEntry = JSON.stringify({ location: 'api.ts:14', message: 'All imports completed', data: { hasUserManager: !!User_1.UserManager, hasNotificationManager: !!NotificationSettings_1.NotificationManager, hasAuditLog: !!AuditLog_1.AuditLog, timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'B' }) + '\n';
-    fs.appendFileSync(logPath, logEntry);
-}
-catch (e) {
-    console.error('[DEBUG] Failed to write log:', e);
-}
-// #endregion
 const app = (0, express_1.default)();
-// #region agent log
-try {
-    const fs = require('fs');
-    const logPath = '.cursor/debug.log';
-    const logEntry = JSON.stringify({ location: 'api.ts:15', message: 'Express app created', data: { timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'C' }) + '\n';
-    fs.appendFileSync(logPath, logEntry);
-}
-catch (e) { }
-// #endregion
 app.use((0, cors_1.default)());
-// #region agent log
-try {
-    const fs = require('fs');
-    const logPath = '.cursor/debug.log';
-    const logEntry = JSON.stringify({ location: 'api.ts:17', message: 'CORS middleware added', data: { timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'C' }) + '\n';
-    fs.appendFileSync(logPath, logEntry);
-}
-catch (e) { }
-// #endregion
 app.use(express_1.default.json());
-// #region agent log
-try {
-    const fs = require('fs');
-    const logPath = '.cursor/debug.log';
-    const logEntry = JSON.stringify({ location: 'api.ts:19', message: 'JSON middleware added', data: { timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'C' }) + '\n';
-    fs.appendFileSync(logPath, logEntry);
-}
-catch (e) { }
-// #endregion
 // Crear usuario admin por defecto si no existe (solo en desarrollo)
 // Hacerlo de forma segura y asíncrona para evitar errores en el arranque
-// #region agent log
-try {
-    const fs = require('fs');
-    const logPath = '.cursor/debug.log';
-    const logEntry = JSON.stringify({ location: 'api.ts:21', message: 'Before initAdminUser', data: { nodeEnv: process.env.NODE_ENV, hasUserManager: !!User_1.UserManager, hasUserRole: !!User_1.UserRole, timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'D' }) + '\n';
-    fs.appendFileSync(logPath, logEntry);
-}
-catch (e) { }
-// #endregion
 (function initAdminUser() {
     try {
-        // #region agent log
-        try {
-            const fs = require('fs');
-            const logPath = '.cursor/debug.log';
-            const logEntry = JSON.stringify({ location: 'api.ts:24', message: 'Inside initAdminUser', data: { nodeEnv: process.env.NODE_ENV, isProduction: process.env.NODE_ENV === 'production', timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'D' }) + '\n';
-            fs.appendFileSync(logPath, logEntry);
-        }
-        catch (e) { }
-        // #endregion
         if (process.env.NODE_ENV !== 'production') {
             // Usar setImmediate para ejecutar después de que el módulo se haya cargado completamente
             setImmediate(() => {
                 try {
-                    // #region agent log
-                    try {
-                        const fs = require('fs');
-                        const logPath = '.cursor/debug.log';
-                        const logEntry = JSON.stringify({ location: 'api.ts:28', message: 'Inside setImmediate', data: { hasUserManager: !!User_1.UserManager, hasGetUserByUsername: !!(User_1.UserManager && User_1.UserManager.getUserByUsername), timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'D' }) + '\n';
-                        fs.appendFileSync(logPath, logEntry);
-                    }
-                    catch (e) { }
-                    // #endregion
                     if (User_1.UserManager && User_1.UserManager.getUserByUsername && User_1.UserManager.getUserByUsername('admin') === null) {
-                        // #region agent log
-                        try {
-                            const fs = require('fs');
-                            const logPath = '.cursor/debug.log';
-                            const logEntry = JSON.stringify({ location: 'api.ts:30', message: 'Before createUser', data: { hasUserRole: !!User_1.UserRole, timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'D' }) + '\n';
-                            fs.appendFileSync(logPath, logEntry);
-                        }
-                        catch (e) { }
-                        // #endregion
                         User_1.UserManager.createUser('admin', 'admin123', 'admin@abala.com', User_1.UserRole.ADMIN);
-                        // #region agent log
-                        try {
-                            const fs = require('fs');
-                            const logPath = '.cursor/debug.log';
-                            const logEntry = JSON.stringify({ location: 'api.ts:32', message: 'createUser completed', data: { timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'D' }) + '\n';
-                            fs.appendFileSync(logPath, logEntry);
-                        }
-                        catch (e) { }
-                        // #endregion
                         console.log('✅ Usuario admin creado (username: admin, password: admin123)');
                     }
                 }
                 catch (error) {
-                    // #region agent log
-                    try {
-                        const fs = require('fs');
-                        const logPath = '.cursor/debug.log';
-                        const logEntry = JSON.stringify({ location: 'api.ts:36', message: 'Error in setImmediate', data: { error: error?.message || String(error), stack: error?.stack, timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'D' }) + '\n';
-                        fs.appendFileSync(logPath, logEntry);
-                    }
-                    catch (e) { }
-                    // #endregion
                     console.warn('⚠️ No se pudo crear usuario admin:', error?.message || error);
                 }
             });
         }
     }
     catch (error) {
-        // #region agent log
-        try {
-            const fs = require('fs');
-            const logPath = '.cursor/debug.log';
-            const logEntry = JSON.stringify({ location: 'api.ts:40', message: 'Error in initAdminUser', data: { error: error?.message || String(error), stack: error?.stack, timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'D' }) + '\n';
-            fs.appendFileSync(logPath, logEntry);
-        }
-        catch (e) { }
-        // #endregion
         console.warn('⚠️ Error inicializando usuario admin:', error?.message || error);
     }
 })();
 // Servir archivos estáticos (HTML, CSS, JS)
-// #region agent log
-try {
-    const fs = require('fs');
-    const logPath = '.cursor/debug.log';
-    const logEntry = JSON.stringify({ location: 'api.ts:45', message: 'Before static files setup', data: { __dirname: typeof __dirname !== 'undefined' ? __dirname : 'undefined', hasPath: !!path_1.default, timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'E' }) + '\n';
-    fs.appendFileSync(logPath, logEntry);
-}
-catch (e) { }
-// #endregion
 let publicPath;
 try {
     publicPath = path_1.default.join(__dirname, '../public');
@@ -220,25 +49,7 @@ catch (error) {
     // En Vercel, __dirname puede no estar disponible, usar process.cwd()
     publicPath = path_1.default.join(process.cwd(), 'public');
 }
-// #region agent log
-try {
-    const fs = require('fs');
-    const logPath = '.cursor/debug.log';
-    const logEntry = JSON.stringify({ location: 'api.ts:47', message: 'publicPath created', data: { publicPath: publicPath, timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'E' }) + '\n';
-    fs.appendFileSync(logPath, logEntry);
-}
-catch (e) { }
-// #endregion
 app.use(express_1.default.static(publicPath));
-// #region agent log
-try {
-    const fs = require('fs');
-    const logPath = '.cursor/debug.log';
-    const logEntry = JSON.stringify({ location: 'api.ts:49', message: 'Static middleware added', data: { timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'E' }) + '\n';
-    fs.appendFileSync(logPath, logEntry);
-}
-catch (e) { }
-// #endregion
 // Cargar campeonatos desde almacenamiento persistente al iniciar
 // Intenta MongoDB primero, luego fallback a archivos JSON
 let championships = new Map();
@@ -1506,26 +1317,8 @@ app.post('/api/notifications/subscribe', async (req, res) => {
         return res.status(500).json({ success: false, error: error.message });
     }
 });
-// #region agent log
-try {
-    const fs = require('fs');
-    const logPath = '.cursor/debug.log';
-    const logEntry = JSON.stringify({ location: 'api.ts:END', message: 'Before export default app', data: { hasApp: !!app, timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'F' }) + '\n';
-    fs.appendFileSync(logPath, logEntry);
-}
-catch (e) { }
-// #endregion
 // Middleware de manejo de errores global
-app.use((err, req, res, _next) => {
-    // #region agent log
-    try {
-        const fs = require('fs');
-        const logPath = '.cursor/debug.log';
-        const logEntry = JSON.stringify({ location: 'api.ts:error-handler', message: 'Global error caught', data: { error: err?.message || String(err), stack: err?.stack, url: req.url, method: req.method, timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'G' }) + '\n';
-        fs.appendFileSync(logPath, logEntry);
-    }
-    catch (e) { }
-    // #endregion
+app.use((err, _req, res, _next) => {
     console.error('❌ Error no manejado:', err);
     res.status(500).json({
         success: false,
