@@ -133,7 +133,6 @@ export class FixtureGenerator {
     const availableMatchups = [...matchups];
     let currentRound = startRound;
     let matchday = 1;
-    const totalMatchups = matchups.length;
 
     // Inicializar última jornada y conteo de partidos de cada equipo
     const allTeams = new Set<string>();
