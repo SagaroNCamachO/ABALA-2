@@ -6,6 +6,8 @@
     <title>ABALA - Gestión de Campeonatos</title>
     <!-- Chart.js para gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- SheetJS para exportación a Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -162,7 +164,73 @@
         }
         
         /* Móviles grandes y tablets pequeñas */
+        /* Menú hamburguesa para móviles */
+        .mobile-menu-toggle {
+            display: none;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+        
+        .mobile-menu-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+        }
+        
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 280px;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 80px 20px 20px;
+            z-index: 1001;
+            transition: left 0.3s ease;
+            overflow-y: auto;
+        }
+        
+        .mobile-menu.active {
+            left: 0;
+        }
+        
+        .mobile-menu-overlay.active {
+            display: block;
+        }
+        
+        .mobile-menu-item {
+            display: block;
+            padding: 15px;
+            color: white;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+        
+        .mobile-menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
         @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
             body {
                 padding: 10px;
                 font-size: 16px;
@@ -831,6 +899,19 @@
     </style>
 </head>
 <body>
+    <!-- Menú hamburguesa para móviles -->
+    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Menú">
+        ☰
+    </button>
+    <div class="mobile-menu-overlay" onclick="toggleMobileMenu()"></div>
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="#" class="mobile-menu-item" onclick="switchTab('create'); toggleMobileMenu();">➕ Crear Nuevo</a>
+        <a href="#" class="mobile-menu-item" onclick="switchTab('view'); toggleMobileMenu();">👁️ Ver y Gestionar</a>
+        <a href="#" class="mobile-menu-item" onclick="switchTab('data'); toggleMobileMenu();">📊 Datos Creados</a>
+        <a href="#" class="mobile-menu-item" onclick="switchTab('dashboard'); toggleMobileMenu();">📈 Dashboard</a>
+        <a href="#" class="mobile-menu-item" onclick="switchTab('export'); toggleMobileMenu();">📤 Exportar Datos</a>
+    </div>
+    
     <div class="container">
         <div class="header">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -3193,28 +3274,63 @@
                 return '<div class="empty-state">No hay datos en la tabla de posiciones</div>';
             }
             
+            const champId = document.getElementById('champIdView')?.value || '';
+            const category = document.getElementById('categoryView')?.value || '';
+            
+            // Preparar datos para gráficos
+            const top10Teams = standings.slice(0, 10);
+            const top10Names = top10Teams.map(t => t.name);
+            const top10Points = top10Teams.map(t => t.points || 0);
+            const top10Wins = top10Teams.map(t => t.pg || 0);
+            const top10Losses = top10Teams.map(t => t.pp || 0);
+            
             let html = `
                 <div style="padding: 10px; overflow-x: auto;">
-                    <h3 style="color: #667eea; margin-bottom: 20px;">📊 Tabla de Posiciones</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                        <h3 style="color: #667eea; margin: 0;">📊 Tabla de Posiciones</h3>
+                        <button onclick="toggleStandingsCharts()" class="btn" style="background: #667eea; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">
+                            📈 Ver Gráficos
+                        </button>
+                    </div>
+                    
+                    <!-- Gráficos (ocultos inicialmente) -->
+                    <div id="standingsCharts" style="display: none; margin-bottom: 30px;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; margin-bottom: 30px;">
+                            <!-- Gráfico de Puntos (Top 10) -->
+                            <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                <h4 style="color: #667eea; margin-bottom: 20px; font-size: 1.3em; font-weight: 700;">🏆 Top 10 Equipos por Puntos</h4>
+                                <canvas id="pointsChart" style="max-height: 300px;"></canvas>
+                            </div>
+                            
+                            <!-- Gráfico de Victorias vs Derrotas -->
+                            <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                <h4 style="color: #667eea; margin-bottom: 20px; font-size: 1.3em; font-weight: 700;">📊 Victorias vs Derrotas (Top 10)</h4>
+                                <canvas id="winsLossesChart" style="max-height: 300px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden;">
                         <thead>
                             <tr style="background: #667eea; color: white;">
-                                <th style="padding: 12px; text-align: left;">Pos</th>
-                                <th style="padding: 12px; text-align: left;">Equipo</th>
-                                <th style="padding: 12px; text-align: center;">PJ</th>
-                                <th style="padding: 12px; text-align: center;">PG</th>
-                                <th style="padding: 12px; text-align: center;">PP</th>
-                                <th style="padding: 12px; text-align: center;">PF</th>
-                                <th style="padding: 12px; text-align: center;">PC</th>
-                                <th style="padding: 12px; text-align: center;">Dif</th>
-                                <th style="padding: 12px; text-align: center; font-weight: bold;">Pts</th>
+                                <th style="padding: 12px; text-align: left; cursor: pointer;" onclick="sortStandings('position')" title="Ordenar por posición">Pos ↕️</th>
+                                <th style="padding: 12px; text-align: left; cursor: pointer;" onclick="sortStandings('name')" title="Ordenar por nombre">Equipo ↕️</th>
+                                <th style="padding: 12px; text-align: center; cursor: pointer;" onclick="sortStandings('pj')" title="Ordenar por partidos jugados">PJ ↕️</th>
+                                <th style="padding: 12px; text-align: center; cursor: pointer;" onclick="sortStandings('pg')" title="Ordenar por partidos ganados">PG ↕️</th>
+                                <th style="padding: 12px; text-align: center; cursor: pointer;" onclick="sortStandings('pp')" title="Ordenar por partidos perdidos">PP ↕️</th>
+                                <th style="padding: 12px; text-align: center; cursor: pointer;" onclick="sortStandings('pf')" title="Ordenar por puntos a favor">PF ↕️</th>
+                                <th style="padding: 12px; text-align: center; cursor: pointer;" onclick="sortStandings('pc')" title="Ordenar por puntos en contra">PC ↕️</th>
+                                <th style="padding: 12px; text-align: center; cursor: pointer;" onclick="sortStandings('difference')" title="Ordenar por diferencia">Dif ↕️</th>
+                                <th style="padding: 12px; text-align: center; font-weight: bold; cursor: pointer;" onclick="sortStandings('points')" title="Ordenar por puntos">Pts ↕️</th>
+                                <th style="padding: 12px; text-align: center;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
             `;
             
-            const champId = document.getElementById('champIdView')?.value || '';
-            const category = document.getElementById('categoryView')?.value || '';
+            // Guardar standings originales para ordenamiento
+            window.currentStandings = standings;
+            window.currentStandingsSort = { field: null, ascending: true };
             
             standings.forEach((team, index) => {
                 const position = index + 1;
@@ -3248,7 +3364,210 @@
                 </div>
             `;
             
+            // Guardar datos para gráficos
+            window.standingsChartData = {
+                top10Names: top10Names,
+                top10Points: top10Points,
+                top10Wins: top10Wins,
+                top10Losses: top10Losses
+            };
+            
             return html;
+        }
+        
+        // Función para mostrar/ocultar gráficos
+        function toggleStandingsCharts() {
+            const chartsDiv = document.getElementById('standingsCharts');
+            if (!chartsDiv) return;
+            
+            if (chartsDiv.style.display === 'none') {
+                chartsDiv.style.display = 'block';
+                // Crear gráficos si no existen
+                setTimeout(() => {
+                    createStandingsCharts();
+                }, 100);
+            } else {
+                chartsDiv.style.display = 'none';
+            }
+        }
+        
+        // Crear gráficos de tabla de posiciones
+        function createStandingsCharts() {
+            if (!window.standingsChartData || typeof Chart === 'undefined') return;
+            
+            const data = window.standingsChartData;
+            
+            // Gráfico de Puntos (Barras)
+            const pointsCtx = document.getElementById('pointsChart');
+            if (pointsCtx) {
+                // Destruir gráfico anterior si existe
+                if (window.pointsChartInstance) {
+                    window.pointsChartInstance.destroy();
+                }
+                
+                window.pointsChartInstance = new Chart(pointsCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.top10Names,
+                        datasets: [{
+                            label: 'Puntos',
+                            data: data.top10Points,
+                            backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                            borderColor: 'rgba(102, 126, 234, 1)',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return 'Puntos: ' + context.parsed.y;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Gráfico de Victorias vs Derrotas
+            const winsLossesCtx = document.getElementById('winsLossesChart');
+            if (winsLossesCtx) {
+                // Destruir gráfico anterior si existe
+                if (window.winsLossesChartInstance) {
+                    window.winsLossesChartInstance.destroy();
+                }
+                
+                window.winsLossesChartInstance = new Chart(winsLossesCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.top10Names,
+                        datasets: [
+                            {
+                                label: 'Victorias',
+                                data: data.top10Wins,
+                                backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                                borderColor: 'rgba(40, 167, 69, 1)',
+                                borderWidth: 2
+                            },
+                            {
+                                label: 'Derrotas',
+                                data: data.top10Losses,
+                                backgroundColor: 'rgba(220, 53, 69, 0.8)',
+                                borderColor: 'rgba(220, 53, 69, 1)',
+                                borderWidth: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        // Función para ordenar tabla de posiciones
+        function sortStandings(field) {
+            if (!window.currentStandings) return;
+            
+            const standings = [...window.currentStandings];
+            const sortState = window.currentStandingsSort;
+            
+            // Si se hace clic en el mismo campo, invertir orden
+            if (sortState.field === field) {
+                sortState.ascending = !sortState.ascending;
+            } else {
+                sortState.field = field;
+                sortState.ascending = true;
+            }
+            
+            standings.sort((a, b) => {
+                let aVal, bVal;
+                
+                switch(field) {
+                    case 'position':
+                        // Mantener orden original (ya está ordenado por puntos)
+                        return sortState.ascending ? 0 : 0;
+                    case 'name':
+                        aVal = a.name || '';
+                        bVal = b.name || '';
+                        return sortState.ascending ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                    case 'pj':
+                        aVal = a.pj || 0;
+                        bVal = b.pj || 0;
+                        break;
+                    case 'pg':
+                        aVal = a.pg || 0;
+                        bVal = b.pg || 0;
+                        break;
+                    case 'pp':
+                        aVal = a.pp || 0;
+                        bVal = b.pp || 0;
+                        break;
+                    case 'pf':
+                        aVal = a.pf || 0;
+                        bVal = b.pf || 0;
+                        break;
+                    case 'pc':
+                        aVal = a.pc || 0;
+                        bVal = b.pc || 0;
+                        break;
+                    case 'difference':
+                        aVal = a.difference || 0;
+                        bVal = b.difference || 0;
+                        break;
+                    case 'points':
+                        aVal = a.points || 0;
+                        bVal = b.points || 0;
+                        break;
+                    default:
+                        return 0;
+                }
+                
+                if (sortState.ascending) {
+                    return bVal - aVal; // Mayor a menor
+                } else {
+                    return aVal - bVal; // Menor a mayor
+                }
+            });
+            
+            // Re-renderizar tabla
+            const responseDiv = document.getElementById('responseDiv');
+            if (responseDiv) {
+                const champId = document.getElementById('champIdView')?.value || '';
+                const category = document.getElementById('categoryView')?.value || '';
+                responseDiv.innerHTML = renderStandings(standings);
+                // Actualizar datos de gráficos
+                window.currentStandings = standings;
+            }
         }
         
         function showAlert(message, type) {
@@ -3393,6 +3712,8 @@
                 if (data.success) {
                     if (format === 'csv') {
                         exportFixtureToCSV(data.matches, category, champId);
+                    } else if (format === 'excel') {
+                        exportFixtureToExcel(data.matches, category, champId);
                     } else {
                         const html = generateFixtureHTML(data.matches, category, champId);
                         printHTML(html, `Fixture_${category}_${champId}`);
@@ -3419,6 +3740,8 @@
                 if (data.success) {
                     if (format === 'csv') {
                         exportStandingsToCSV(data.standings, category, champId);
+                    } else if (format === 'excel') {
+                        exportStandingsToExcel(data.standings, category, champId);
                     } else {
                         const html = generateStandingsHTML(data.standings, category, champId);
                         printHTML(html, `Tabla_Posiciones_${category}_${champId}`);
@@ -3507,6 +3830,299 @@
             
             showAlert('Tabla de posiciones exportada a CSV exitosamente', 'success');
         }
+        
+        // Exportar a Excel con formato profesional
+        function exportStandingsToExcel(standings, categoryName, champId) {
+            if (typeof XLSX === 'undefined') {
+                showAlert('❌ La librería de Excel no está cargada. Por favor, recarga la página.', 'error');
+                return;
+            }
+            
+            const champ = championshipsData[champId];
+            const champName = champ?.name || champId;
+            const exportDate = new Date().toLocaleDateString('es-ES', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            // Crear workbook
+            const wb = XLSX.utils.book_new();
+            
+            // Hoja 1: Tabla de Posiciones
+            const wsData = [
+                ['TABLA DE POSICIONES'],
+                [`Categoría: ${categoryName}`],
+                [`Campeonato: ${champName}`],
+                [`Fecha de exportación: ${exportDate}`],
+                [], // Línea vacía
+                ['Posición', 'Equipo', 'PJ', 'PG', 'PP', 'PF', 'PC', 'Diferencia', 'Puntos']
+            ];
+            
+            // Agregar datos de equipos
+            standings.forEach((team, index) => {
+                const pos = index + 1;
+                wsData.push([
+                    pos,
+                    team.name,
+                    team.pj || 0,
+                    team.pg || 0,
+                    team.pp || 0,
+                    team.pf || 0,
+                    team.pc || 0,
+                    team.difference || 0,
+                    team.points || 0
+                ]);
+            });
+            
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            
+            // Aplicar formato profesional
+            // Ancho de columnas
+            ws['!cols'] = [
+                { wch: 10 }, // Posición
+                { wch: 25 }, // Equipo
+                { wch: 8 },  // PJ
+                { wch: 8 },  // PG
+                { wch: 8 },  // PP
+                { wch: 8 },  // PF
+                { wch: 8 },  // PC
+                { wch: 12 }, // Diferencia
+                { wch: 10 }  // Puntos
+            ];
+            
+            // Estilos (si se usa xlsx-style, pero por ahora solo estructura)
+            // Encabezado principal
+            if (!ws['A1']) ws['A1'] = { t: 's', v: 'TABLA DE POSICIONES' };
+            ws['A1'].s = {
+                font: { bold: true, sz: 16, color: { rgb: '667eea' } },
+                alignment: { horizontal: 'left', vertical: 'center' }
+            };
+            
+            // Agregar hoja al workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Tabla de Posiciones');
+            
+            // Hoja 2: Estadísticas Resumen
+            const summaryData = [
+                ['ESTADÍSTICAS RESUMEN'],
+                [`Categoría: ${categoryName}`],
+                [`Campeonato: ${champName}`],
+                [],
+                ['Métrica', 'Valor'],
+                ['Total de Equipos', standings.length],
+                ['Total de Partidos Jugados', standings.reduce((sum, t) => sum + (t.pj || 0), 0)],
+                ['Total de Partidos Ganados', standings.reduce((sum, t) => sum + (t.pg || 0), 0)],
+                ['Total de Partidos Perdidos', standings.reduce((sum, t) => sum + (t.pp || 0), 0)],
+                ['Puntos Totales', standings.reduce((sum, t) => sum + (t.points || 0), 0)],
+                ['Promedio de Puntos por Equipo', (standings.reduce((sum, t) => sum + (t.points || 0), 0) / standings.length).toFixed(2)],
+                [],
+                ['TOP 5 EQUIPOS'],
+                ['Posición', 'Equipo', 'Puntos'],
+                ...standings.slice(0, 5).map((team, index) => [index + 1, team.name, team.points || 0])
+            ];
+            
+            const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+            wsSummary['!cols'] = [
+                { wch: 30 },
+                { wch: 15 }
+            ];
+            XLSX.utils.book_append_sheet(wb, wsSummary, 'Estadísticas');
+            
+            // Generar archivo Excel
+            const fileName = `Tabla_Posiciones_${categoryName}_${champId}_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            
+            showAlert('✅ Tabla de posiciones exportada a Excel exitosamente', 'success');
+        }
+        
+        // Exportar fixture a Excel con formato profesional
+        function exportFixtureToExcel(matches, categoryName, champId) {
+            if (typeof XLSX === 'undefined') {
+                showAlert('❌ La librería de Excel no está cargada. Por favor, recarga la página.', 'error');
+                return;
+            }
+            
+            const champ = championshipsData[champId];
+            const champName = champ?.name || champId;
+            const exportDate = new Date().toLocaleDateString('es-ES', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            // Crear workbook
+            const wb = XLSX.utils.book_new();
+            
+            // Agrupar partidos por vuelta y jornada
+            const matchesByVuelta = { 'ida': {}, 'vuelta': {} };
+            matches.forEach(match => {
+                const matchType = match.match_type || 'ida';
+                const matchday = match.matchday || 1;
+                if (!matchesByVuelta[matchType][matchday]) {
+                    matchesByVuelta[matchType][matchday] = [];
+                }
+                matchesByVuelta[matchType][matchday].push(match);
+            });
+            
+            // Hoja 1: Fixture Ida
+            const idaData = [
+                ['FIXTURE - VUELTA IDA'],
+                [`Categoría: ${categoryName}`],
+                [`Campeonato: ${champName}`],
+                [`Fecha de exportación: ${exportDate}`],
+                [],
+                ['Jornada', 'Fecha', 'Hora', 'Local', 'Visitante', 'Marcador Local', 'Marcador Visitante', 'Ganador', 'Estado']
+            ];
+            
+            const idaMatches = matchesByVuelta['ida'];
+            const idaMatchdays = Object.keys(idaMatches).sort((a, b) => parseInt(a) - parseInt(b));
+            idaMatchdays.forEach(matchday => {
+                idaMatches[matchday].forEach(match => {
+                    const fecha = match.date || 'Por definir';
+                    const hora = match.time || 'Por definir';
+                    const estado = match.played ? 'Jugado' : 'Pendiente';
+                    const marcadorLocal = match.played ? (match.score_a || '') : '';
+                    const marcadorVisitante = match.played ? (match.score_b || '') : '';
+                    const ganador = match.played ? (match.winner || 'Empate') : '';
+                    
+                    idaData.push([
+                        matchday,
+                        fecha,
+                        hora,
+                        match.team_a,
+                        match.team_b,
+                        marcadorLocal,
+                        marcadorVisitante,
+                        ganador,
+                        estado
+                    ]);
+                });
+            });
+            
+            const wsIda = XLSX.utils.aoa_to_sheet(idaData);
+            wsIda['!cols'] = [
+                { wch: 10 }, // Jornada
+                { wch: 12 }, // Fecha
+                { wch: 8 },  // Hora
+                { wch: 20 }, // Local
+                { wch: 20 }, // Visitante
+                { wch: 15 }, // Marcador Local
+                { wch: 15 }, // Marcador Visitante
+                { wch: 15 }, // Ganador
+                { wch: 12 }  // Estado
+            ];
+            XLSX.utils.book_append_sheet(wb, wsIda, 'Vuelta Ida');
+            
+            // Hoja 2: Fixture Vuelta
+            const vueltaData = [
+                ['FIXTURE - VUELTA VUELTA'],
+                [`Categoría: ${categoryName}`],
+                [`Campeonato: ${champName}`],
+                [`Fecha de exportación: ${exportDate}`],
+                [],
+                ['Jornada', 'Fecha', 'Hora', 'Local', 'Visitante', 'Marcador Local', 'Marcador Visitante', 'Ganador', 'Estado']
+            ];
+            
+            const vueltaMatches = matchesByVuelta['vuelta'];
+            const vueltaMatchdays = Object.keys(vueltaMatches).sort((a, b) => parseInt(a) - parseInt(b));
+            vueltaMatchdays.forEach(matchday => {
+                vueltaMatches[matchday].forEach(match => {
+                    const fecha = match.date || 'Por definir';
+                    const hora = match.time || 'Por definir';
+                    const estado = match.played ? 'Jugado' : 'Pendiente';
+                    const marcadorLocal = match.played ? (match.score_a || '') : '';
+                    const marcadorVisitante = match.played ? (match.score_b || '') : '';
+                    const ganador = match.played ? (match.winner || 'Empate') : '';
+                    
+                    vueltaData.push([
+                        matchday,
+                        fecha,
+                        hora,
+                        match.team_a,
+                        match.team_b,
+                        marcadorLocal,
+                        marcadorVisitante,
+                        ganador,
+                        estado
+                    ]);
+                });
+            });
+            
+            const wsVuelta = XLSX.utils.aoa_to_sheet(vueltaData);
+            wsVuelta['!cols'] = [
+                { wch: 10 },
+                { wch: 12 },
+                { wch: 8 },
+                { wch: 20 },
+                { wch: 20 },
+                { wch: 15 },
+                { wch: 15 },
+                { wch: 15 },
+                { wch: 12 }
+            ];
+            XLSX.utils.book_append_sheet(wb, wsVuelta, 'Vuelta Vuelta');
+            
+            // Hoja 3: Resumen
+            const totalMatches = matches.length;
+            const playedMatches = matches.filter(m => m.played).length;
+            const pendingMatches = totalMatches - playedMatches;
+            
+            const summaryData = [
+                ['RESUMEN DEL FIXTURE'],
+                [`Categoría: ${categoryName}`],
+                [`Campeonato: ${champName}`],
+                [],
+                ['Métrica', 'Valor'],
+                ['Total de Partidos', totalMatches],
+                ['Partidos Jugados', playedMatches],
+                ['Partidos Pendientes', pendingMatches],
+                ['Porcentaje Completado', totalMatches > 0 ? ((playedMatches / totalMatches) * 100).toFixed(2) + '%' : '0%']
+            ];
+            
+            const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+            wsSummary['!cols'] = [
+                { wch: 25 },
+                { wch: 15 }
+            ];
+            XLSX.utils.book_append_sheet(wb, wsSummary, 'Resumen');
+            
+            // Generar archivo Excel
+            const fileName = `Fixture_${categoryName}_${champId}_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            
+            showAlert('✅ Fixture exportado a Excel exitosamente', 'success');
+        }
+        
+        // Función para mostrar/ocultar menú móvil
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const overlay = document.querySelector('.mobile-menu-overlay');
+            
+            if (menu && overlay) {
+                menu.classList.toggle('active');
+                overlay.classList.toggle('active');
+            }
+        }
+        
+        // Cerrar menú móvil al hacer clic fuera
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('mobileMenu');
+            const overlay = document.querySelector('.mobile-menu-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            if (menu && overlay && toggle) {
+                if (!menu.contains(event.target) && 
+                    !toggle.contains(event.target) && 
+                    menu.classList.contains('active')) {
+                    menu.classList.remove('active');
+                    overlay.classList.remove('active');
+                }
+            }
+        });
         
         function generateFixtureHTML(matches, categoryName, champId) {
             const champ = championshipsData[champId];
