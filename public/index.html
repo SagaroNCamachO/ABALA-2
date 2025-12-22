@@ -1225,6 +1225,36 @@
         let championshipsData = {};
         let categoriesData = {};
         
+        // Definir switchDataTab inmediatamente para que esté disponible cuando se cargue el HTML
+        function switchDataTab(tab) {
+            document.querySelectorAll('#championshipsTab, #categoriesTab, #historyTab').forEach(t => t.classList.remove('active'));
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach((t, i) => {
+                if ((tab === 'championships' && i === 0) || 
+                    (tab === 'categories' && i === 1) || 
+                    (tab === 'history' && i === 2)) {
+                    t.classList.add('active');
+                } else {
+                    t.classList.remove('active');
+                }
+            });
+            
+            if (tab === 'championships') {
+                const el = document.getElementById('championshipsTab');
+                if (el) el.classList.add('active');
+            } else if (tab === 'categories') {
+                const el = document.getElementById('categoriesTab');
+                if (el) el.classList.add('active');
+            } else if (tab === 'history') {
+                const el = document.getElementById('historyTab');
+                if (el) el.classList.add('active');
+                if (typeof loadAuditLog === 'function') {
+                    loadAuditLog();
+                }
+            }
+        }
+        window.switchDataTab = switchDataTab;
+        
         // Función de utilidad para mostrar alertas
         function showAlert(message, type = 'info') {
             const alertDiv = document.createElement('div');
