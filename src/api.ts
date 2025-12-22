@@ -427,8 +427,9 @@ app.get('/api/dashboard', (_req: Request, res: Response) => {
 
 /**
  * Crear un nuevo campeonato.
+ * Solo administradores pueden crear campeonatos.
  */
-app.post('/api/championships', async (req: Request, res: Response) => {
+app.post('/api/championships', requireAdmin, async (req: Request, res: Response) => {
   try {
     const data = req.body || {};
     
@@ -460,8 +461,10 @@ app.post('/api/championships', async (req: Request, res: Response) => {
     championships.set(champId, championship);
     
     // Registrar en historial
+    const currentUser = (req as any).user;
     AuditLog.log('create', 'championship', champId, {
       entityName: name,
+      user: currentUser ? currentUser.username : 'system',
       metadata: { rounds, pointsPerWin, pointsPerLoss }
     });
     
@@ -650,8 +653,9 @@ app.delete('/api/championships/:id/categories/:category', async (req: Request, r
 
 /**
  * Agregar una categoría a un campeonato.
+ * Solo administradores pueden crear categorías.
  */
-app.post('/api/championships/:id/categories', async (req: Request, res: Response) => {
+app.post('/api/championships/:id/categories', requireAdmin, async (req: Request, res: Response) => {
   try {
     // Asegurar que los campeonatos estén cargados
     await ensureChampionshipsLoaded();
@@ -738,8 +742,10 @@ app.post('/api/championships/:id/categories', async (req: Request, res: Response
     }
     
     // Registrar en historial
+    const currentUser = (req as any).user;
     AuditLog.log('create', 'category', `${champId}_${categoryName}`, {
       entityName: categoryName,
+      user: currentUser ? currentUser.username : 'system',
       metadata: {
         championship_id: champId,
         championship_name: championship.name,

@@ -397,8 +397,9 @@ app.get('/api/dashboard', (_req, res) => {
 });
 /**
  * Crear un nuevo campeonato.
+ * Solo administradores pueden crear campeonatos.
  */
-app.post('/api/championships', async (req, res) => {
+app.post('/api/championships', requireAdmin, async (req, res) => {
     try {
         const data = req.body || {};
         // Validar datos
@@ -424,8 +425,10 @@ app.post('/api/championships', async (req, res) => {
         const championship = new Championship_1.Championship(name, rounds, pointsPerWin, pointsPerLoss);
         championships.set(champId, championship);
         // Registrar en historial
+        const currentUser = req.user;
         AuditLog_1.AuditLog.log('create', 'championship', champId, {
             entityName: name,
+            user: currentUser ? currentUser.username : 'system',
             metadata: { rounds, pointsPerWin, pointsPerLoss }
         });
         // Guardar automáticamente en el almacenamiento
@@ -594,8 +597,9 @@ app.delete('/api/championships/:id/categories/:category', async (req, res) => {
 });
 /**
  * Agregar una categoría a un campeonato.
+ * Solo administradores pueden crear categorías.
  */
-app.post('/api/championships/:id/categories', async (req, res) => {
+app.post('/api/championships/:id/categories', requireAdmin, async (req, res) => {
     try {
         // Asegurar que los campeonatos estén cargados
         await ensureChampionshipsLoaded();
@@ -663,8 +667,10 @@ app.post('/api/championships/:id/categories', async (req, res) => {
             throw new Error("Error al crear la categoría");
         }
         // Registrar en historial
+        const currentUser = req.user;
         AuditLog_1.AuditLog.log('create', 'category', `${champId}_${categoryName}`, {
             entityName: categoryName,
+            user: currentUser ? currentUser.username : 'system',
             metadata: {
                 championship_id: champId,
                 championship_name: championship.name,

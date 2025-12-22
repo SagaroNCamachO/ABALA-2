@@ -3167,7 +3167,7 @@
                         
                         options = {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: headers,
                             body: JSON.stringify(body)
                         };
                         break;
@@ -4171,17 +4171,23 @@
                     
                     const result = await res.json();
                     if (result.success) {
-                        // Agregar categorías
-                        for (const [catName, category] of Object.entries(data.categories || {})) {
-                            const teams = category.teams?.map(t => t.name || t) || [];
-                            await fetch(`${API_BASE}/api/championships/${result.id}/categories`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    name: catName,
-                                    teams: teams
-                                })
-                            });
+                        // Agregar categorías (solo si el usuario es admin)
+                        if (authToken && currentUser && currentUser.role === 'admin') {
+                            for (const [catName, category] of Object.entries(data.categories || {})) {
+                                const teams = category.teams?.map(t => t.name || t) || [];
+                                await fetch(`${API_BASE}/api/championships/${result.id}/categories`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${authToken}`
+                                    },
+                                    body: JSON.stringify({
+                                        name: catName,
+                                        teams: teams
+                                    })
+                                });
+                            }
+                        }
                         }
                         
                         showAlert('Campeonato cargado exitosamente', 'success');
