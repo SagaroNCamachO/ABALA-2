@@ -14,36 +14,42 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Crear usuario admin por defecto si no existe (solo en desarrollo)
+// Crear usuario admin por defecto si no existe
+// En Vercel (serverless), los usuarios se almacenan en memoria, por lo que se pierden entre invocaciones
+// Por eso necesitamos crear el admin en cada invocación si no existe
 // Solo puede haber UN administrador en el sistema
-// Hacerlo de forma segura y asíncrona para evitar errores en el arranque
-(function initAdminUser() {
+function ensureAdminExists() {
   try {
-    if (process.env.NODE_ENV !== 'production') {
-      // Usar setImmediate para ejecutar después de que el módulo se haya cargado completamente
-      setImmediate(() => {
-        try {
-          const existingAdmin = UserManager.getUserByUsername('admin');
-          
-          if (!existingAdmin) {
-            // No existe admin, crear uno nuevo
-            UserManager.createUser('admin', 'abala123', 'admin@abala.com', UserRole.ADMIN);
-            console.log('✅ Usuario admin creado (username: admin, password: abala123)');
-          } else {
-            // Ya existe admin, asegurar que la contraseña sea "abala123"
-            // Actualizar siempre para garantizar que la contraseña sea la correcta
-            UserManager.updatePassword('admin', 'abala123');
-            console.log('✅ Contraseña del admin configurada a: abala123');
-          }
-        } catch (error: any) {
-          console.warn('⚠️ No se pudo crear/actualizar usuario admin:', error?.message || error);
-        }
-      });
+    const existingAdmin = UserManager.getUserByUsername('admin');
+    
+    if (!existingAdmin) {
+      // No existe admin, crear uno nuevo
+      UserManager.createUser('admin', 'abala123', 'admin@abala.com', UserRole.ADMIN);
+      console.log('✅ Usuario admin creado (username: admin, password: abala123)');
+    } else {
+      // Ya existe admin, asegurar que la contraseña sea "abala123"
+      // Actualizar siempre para garantizar que la contraseña sea la correcta
+      UserManager.updatePassword('admin', 'abala123');
+      console.log('✅ Contraseña del admin configurada a: abala123');
     }
   } catch (error: any) {
-    console.warn('⚠️ Error inicializando usuario admin:', error?.message || error);
+    // Si ya existe un admin (error al crear), solo actualizar la contraseña
+    if (error.message && error.message.includes('Ya existe un administrador')) {
+      try {
+        UserManager.updatePassword('admin', 'abala123');
+        console.log('✅ Contraseña del admin actualizada a: abala123');
+      } catch (updateError: any) {
+        console.warn('⚠️ No se pudo actualizar contraseña del admin:', updateError?.message || updateError);
+      }
+    } else {
+      console.warn('⚠️ No se pudo crear/actualizar usuario admin:', error?.message || error);
+    }
   }
-})();
+}
+
+// Ejecutar al cargar el módulo (solo una vez)
+// En serverless, esto se ejecuta en cada invocación "fría", pero no en invocaciones "calientes"
+ensureAdminExists();
 
 // Servir archivos estáticos (HTML, CSS, JS)
 let publicPath: string;
@@ -1388,18 +1394,12 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
 });
 
 /**
- * Resetear contraseña del administrador (solo en desarrollo)
+ * Resetear contraseña del administrador
  * Útil para recuperar acceso si se perdió la contraseña
+ * Disponible en desarrollo y producción (necesario para Vercel serverless)
  */
 app.post('/api/auth/reset-admin-password', async (req: Request, res: Response) => {
   try {
-    // Solo permitir en desarrollo
-    if (process.env.NODE_ENV === 'production') {
-      return res.status(403).json({
-        success: false,
-        error: 'Esta operación solo está disponible en desarrollo'
-      });
-    }
 
     const { newPassword } = req.body;
     const password = newPassword || 'abala123'; // Por defecto usar "abala123"
