@@ -1594,13 +1594,26 @@
                     // Cargar desde localStorage solo los que no están en el servidor (para datos offline)
                     loadFromLocalStorage();
                     
-                    // Filtrar solo campeonatos válidos antes de renderizar
+                    // Filtrar solo campeonatos válidos que existen en el servidor
                     const validChampionships = Object.entries(championshipsData).filter(([id, champ]) => {
-                        return champ && champ.name && id;
+                        // Verificar que el campeonato existe en la lista del servidor
+                        const existsInServer = champList[id] && champList[id].name;
+                        return champ && champ.name && id && existsInServer;
                     });
                     
                     // Actualizar championshipsData con solo los válidos
-                    championshipsData = Object.fromEntries(validChampionships);
+                    const newChampionshipsData = Object.fromEntries(validChampionships);
+                    
+                    // Eliminar de localStorage los que no son válidos
+                    Object.keys(championshipsData).forEach(id => {
+                        if (!newChampionshipsData[id]) {
+                            console.log(`🗑️  Eliminando campeonato ${id} de localStorage (no existe en servidor)`);
+                            removeChampionshipFromLocal(id);
+                        }
+                    });
+                    
+                    // Actualizar la variable global
+                    championshipsData = newChampionshipsData;
                     
                     renderChampionships();
                     renderCategories();
@@ -1616,12 +1629,14 @@
                 }
             } catch (error) {
                 console.error('❌ Error cargando datos:', error);
-                // Si falla el servidor, cargar desde localStorage
-                loadFromLocalStorage();
+                // Si falla el servidor, NO cargar desde localStorage para evitar mostrar campeonatos inexistentes
+                // Solo mostrar si realmente no hay conexión al servidor
+                championshipsData = {};
+                categoriesData = {};
                 renderChampionships();
                 renderCategories();
                 updateForm(); // Actualizar formularios con datos cargados
-                showAlert('⚠️ Cargando desde almacenamiento local (servidor no disponible). Los campeonatos se guardan en MongoDB cuando el servidor está disponible.', 'warning');
+                showAlert('⚠️ No se pudo conectar al servidor. Solo se mostrarán campeonatos que existen en MongoDB.', 'warning');
             }
         }
         
@@ -1665,9 +1680,21 @@
             }
             
             // Filtrar solo campeonatos que realmente existen y tienen datos válidos
+            // Además, verificar que no sean solo datos de localStorage sin validar
             let validChampionships = Object.entries(championshipsData).filter(([id, champ]) => {
-                return champ && champ.name && id;
+                // Verificar que tenga datos válidos
+                if (!champ || !champ.name || !id) {
+                    return false;
+                }
+                // Verificar que no sea solo un objeto vacío o con datos mínimos
+                if (typeof champ !== 'object' || Object.keys(champ).length === 0) {
+                    return false;
+                }
+                return true;
             });
+            
+            // Actualizar championshipsData con solo los válidos
+            championshipsData = Object.fromEntries(validChampionships);
             
             // Aplicar búsqueda si hay término de búsqueda
             const searchInput = document.getElementById('searchInput');
