@@ -119,7 +119,7 @@ export class FixtureGenerator {
 
   /**
    * Reorganiza los partidos para evitar que equipos jueguen en jornadas consecutivas.
-   * PRIORIZA tener 2 partidos por jornada siempre que sea posible.
+   * IMPERATIVO: Todas las jornadas deben tener 2 partidos, EXCEPTO la última jornada.
    * Distribuye equitativamente los partidos entre equipos para evitar cansancio excesivo.
    */
   private static avoidConsecutiveRounds(
@@ -133,6 +133,7 @@ export class FixtureGenerator {
     const availableMatchups = [...matchups];
     let currentRound = startRound;
     let matchday = 1;
+    const totalMatchups = matchups.length;
 
     // Inicializar última jornada y conteo de partidos de cada equipo
     const allTeams = new Set<string>();
@@ -169,12 +170,19 @@ export class FixtureGenerator {
       return countA + countB;
     };
 
+    // Función para verificar si es la última jornada posible
+    const isLastPossibleMatchday = (): boolean => {
+      // Es la última jornada si quedan 1 o menos partidos por asignar
+      return availableMatchups.length <= 1;
+    };
+
     while (availableMatchups.length > 0) {
       const currentMatchday: Match[] = [];
       const teamsInCurrentMatchday = new Set<string>();
+      const isLastMatchday = isLastPossibleMatchday();
 
-      // PRIORIDAD ABSOLUTA: Buscar 2 partidos para la jornada actual
-      // Usar búsqueda exhaustiva para encontrar la mejor combinación
+      // IMPERATIVO: Buscar 2 partidos para la jornada actual (excepto en la última jornada)
+      // Usar búsqueda exhaustiva y más agresiva para encontrar la mejor combinación
       
       // Paso 1: Encontrar TODOS los partidos posibles para esta jornada
       const possibleMatches: Array<{ matchup: [string, string], index: number, weight: number }> = [];
@@ -193,55 +201,107 @@ export class FixtureGenerator {
       // Ordenar por peso (menor peso = mayor prioridad = equipos con menos partidos)
       possibleMatches.sort((a, b) => a.weight - b.weight);
 
-      // Paso 2: Intentar encontrar 2 partidos compatibles
+      // Paso 2: Intentar encontrar 2 partidos compatibles (IMPERATIVO excepto última jornada)
       let foundTwo = false;
-      for (let i = 0; i < possibleMatches.length && !foundTwo; i++) {
-        const firstMatch = possibleMatches[i];
-        const [teamA1, teamB1] = firstMatch.matchup;
-        const teamsAfterFirst = new Set([teamA1, teamB1]);
+      
+      if (!isLastMatchday) {
+        // Búsqueda exhaustiva de 2 partidos compatibles
+        for (let i = 0; i < possibleMatches.length && !foundTwo; i++) {
+          const firstMatch = possibleMatches[i];
+          const [teamA1, teamB1] = firstMatch.matchup;
+          const teamsAfterFirst = new Set([teamA1, teamB1]);
 
-        // Buscar un segundo partido compatible
-        for (let j = i + 1; j < possibleMatches.length; j++) {
-          const secondMatch = possibleMatches[j];
-          const [teamA2, teamB2] = secondMatch.matchup;
+          // Buscar un segundo partido compatible
+          for (let j = i + 1; j < possibleMatches.length; j++) {
+            const secondMatch = possibleMatches[j];
+            const [teamA2, teamB2] = secondMatch.matchup;
 
-          if (canAssignMatch(teamA2, teamB2, teamsAfterFirst)) {
-            // ¡Encontramos 2 partidos compatibles!
-            // Asignar el primer partido
-            const match1 = new Match(teamA1, teamB1, currentRound, matchType, matchday);
-            match1.time = "20:00";
-            currentMatchday.push(match1);
-            teamsInCurrentMatchday.add(teamA1);
-            teamsInCurrentMatchday.add(teamB1);
-            matchCounts.set(teamA1, (matchCounts.get(teamA1) || 0) + 1);
-            matchCounts.set(teamB1, (matchCounts.get(teamB1) || 0) + 1);
-            assignedRounds.set(teamA1, currentRound);
-            assignedRounds.set(teamB1, currentRound);
-            availableMatchups.splice(firstMatch.index, 1);
+            if (canAssignMatch(teamA2, teamB2, teamsAfterFirst)) {
+              // ¡Encontramos 2 partidos compatibles!
+              // Asignar el primer partido
+              const match1 = new Match(teamA1, teamB1, currentRound, matchType, matchday);
+              match1.time = "20:00";
+              currentMatchday.push(match1);
+              teamsInCurrentMatchday.add(teamA1);
+              teamsInCurrentMatchday.add(teamB1);
+              matchCounts.set(teamA1, (matchCounts.get(teamA1) || 0) + 1);
+              matchCounts.set(teamB1, (matchCounts.get(teamB1) || 0) + 1);
+              assignedRounds.set(teamA1, currentRound);
+              assignedRounds.set(teamB1, currentRound);
+              availableMatchups.splice(firstMatch.index, 1);
 
-            // Ajustar índices después de eliminar el primero
-            const adjustedIndex = secondMatch.index > firstMatch.index ? secondMatch.index - 1 : secondMatch.index;
+              // Ajustar índices después de eliminar el primero
+              const adjustedIndex = secondMatch.index > firstMatch.index ? secondMatch.index - 1 : secondMatch.index;
 
-            // Asignar el segundo partido
-            const match2 = new Match(teamA2, teamB2, currentRound, matchType, matchday);
-            match2.time = "21:00";
-            currentMatchday.push(match2);
-            teamsInCurrentMatchday.add(teamA2);
-            teamsInCurrentMatchday.add(teamB2);
-            matchCounts.set(teamA2, (matchCounts.get(teamA2) || 0) + 1);
-            matchCounts.set(teamB2, (matchCounts.get(teamB2) || 0) + 1);
-            assignedRounds.set(teamA2, currentRound);
-            assignedRounds.set(teamB2, currentRound);
-            availableMatchups.splice(adjustedIndex, 1);
+              // Asignar el segundo partido
+              const match2 = new Match(teamA2, teamB2, currentRound, matchType, matchday);
+              match2.time = "21:00";
+              currentMatchday.push(match2);
+              teamsInCurrentMatchday.add(teamA2);
+              teamsInCurrentMatchday.add(teamB2);
+              matchCounts.set(teamA2, (matchCounts.get(teamA2) || 0) + 1);
+              matchCounts.set(teamB2, (matchCounts.get(teamB2) || 0) + 1);
+              assignedRounds.set(teamA2, currentRound);
+              assignedRounds.set(teamB2, currentRound);
+              availableMatchups.splice(adjustedIndex, 1);
 
-            foundTwo = true;
-            break;
+              foundTwo = true;
+              break;
+            }
+          }
+        }
+
+        // Si NO encontramos 2 partidos y NO es la última jornada, intentar relajar restricciones
+        if (!foundTwo && currentMatchday.length === 0) {
+          // Intentar encontrar 2 partidos relajando la restricción de jornadas consecutivas
+          // Solo si es absolutamente necesario
+          for (let i = 0; i < possibleMatches.length && !foundTwo; i++) {
+            const firstMatch = possibleMatches[i];
+            const [teamA1, teamB1] = firstMatch.matchup;
+            const teamsAfterFirst = new Set([teamA1, teamB1]);
+
+            for (let j = i + 1; j < possibleMatches.length; j++) {
+              const secondMatch = possibleMatches[j];
+              const [teamA2, teamB2] = secondMatch.matchup;
+
+              // Verificar que los equipos no estén ya en la jornada (restricción estricta)
+              if (!teamsAfterFirst.has(teamA2) && !teamsAfterFirst.has(teamB2)) {
+                // Aceptar aunque hayan jugado en jornada consecutiva (solo si no hay otra opción)
+                const match1 = new Match(teamA1, teamB1, currentRound, matchType, matchday);
+                match1.time = "20:00";
+                currentMatchday.push(match1);
+                teamsInCurrentMatchday.add(teamA1);
+                teamsInCurrentMatchday.add(teamB1);
+                matchCounts.set(teamA1, (matchCounts.get(teamA1) || 0) + 1);
+                matchCounts.set(teamB1, (matchCounts.get(teamB1) || 0) + 1);
+                assignedRounds.set(teamA1, currentRound);
+                assignedRounds.set(teamB1, currentRound);
+                availableMatchups.splice(firstMatch.index, 1);
+
+                const adjustedIndex = secondMatch.index > firstMatch.index ? secondMatch.index - 1 : secondMatch.index;
+
+                const match2 = new Match(teamA2, teamB2, currentRound, matchType, matchday);
+                match2.time = "21:00";
+                currentMatchday.push(match2);
+                teamsInCurrentMatchday.add(teamA2);
+                teamsInCurrentMatchday.add(teamB2);
+                matchCounts.set(teamA2, (matchCounts.get(teamA2) || 0) + 1);
+                matchCounts.set(teamB2, (matchCounts.get(teamB2) || 0) + 1);
+                assignedRounds.set(teamA2, currentRound);
+                assignedRounds.set(teamB2, currentRound);
+                availableMatchups.splice(adjustedIndex, 1);
+
+                foundTwo = true;
+                break;
+              }
+            }
+            if (foundTwo) break;
           }
         }
       }
 
-      // Si no encontramos 2 partidos, buscar al menos 1 (solo si no hay ninguno)
-      if (!foundTwo && currentMatchday.length === 0 && possibleMatches.length > 0) {
+      // Solo aceptar 1 partido si es la ÚLTIMA jornada y no hay más opciones
+      if (!foundTwo && currentMatchday.length === 0 && isLastMatchday && possibleMatches.length > 0) {
         // Usar el partido con menor peso (equipos con menos partidos)
         const bestMatch = possibleMatches[0];
         const [teamA, teamB] = bestMatch.matchup;
@@ -256,6 +316,40 @@ export class FixtureGenerator {
         assignedRounds.set(teamA, currentRound);
         assignedRounds.set(teamB, currentRound);
         availableMatchups.splice(bestMatch.index, 1);
+      }
+
+      // Si aún no hay partidos y NO es la última jornada, forzar 2 partidos
+      if (currentMatchday.length === 0 && !isLastMatchday && availableMatchups.length >= 2) {
+        // Forzar asignación de 2 partidos aunque violen restricciones
+        const [teamA1, teamB1] = availableMatchups[0];
+        const match1 = new Match(teamA1, teamB1, currentRound, matchType, matchday);
+        match1.time = "20:00";
+        currentMatchday.push(match1);
+        teamsInCurrentMatchday.add(teamA1);
+        teamsInCurrentMatchday.add(teamB1);
+        matchCounts.set(teamA1, (matchCounts.get(teamA1) || 0) + 1);
+        matchCounts.set(teamB1, (matchCounts.get(teamB1) || 0) + 1);
+        assignedRounds.set(teamA1, currentRound);
+        assignedRounds.set(teamB1, currentRound);
+        availableMatchups.splice(0, 1);
+
+        // Buscar un segundo partido que no tenga equipos repetidos
+        for (let i = 0; i < availableMatchups.length; i++) {
+          const [teamA2, teamB2] = availableMatchups[i];
+          if (!teamsInCurrentMatchday.has(teamA2) && !teamsInCurrentMatchday.has(teamB2)) {
+            const match2 = new Match(teamA2, teamB2, currentRound, matchType, matchday);
+            match2.time = "21:00";
+            currentMatchday.push(match2);
+            teamsInCurrentMatchday.add(teamA2);
+            teamsInCurrentMatchday.add(teamB2);
+            matchCounts.set(teamA2, (matchCounts.get(teamA2) || 0) + 1);
+            matchCounts.set(teamB2, (matchCounts.get(teamB2) || 0) + 1);
+            assignedRounds.set(teamA2, currentRound);
+            assignedRounds.set(teamB2, currentRound);
+            availableMatchups.splice(i, 1);
+            break;
+          }
+        }
       }
 
       // Si aún no hay partidos (caso extremo), forzar el primero disponible

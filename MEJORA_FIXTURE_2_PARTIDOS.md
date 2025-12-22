@@ -6,15 +6,17 @@ En algunas categorías (como TC), se estaban generando muchas jornadas con solo 
 
 ## ✅ Solución Implementada
 
-Se mejoró completamente el algoritmo `avoidConsecutiveRounds` en `FixtureGenerator.ts` con un enfoque de **búsqueda exhaustiva**:
+Se mejoró completamente el algoritmo `avoidConsecutiveRounds` en `FixtureGenerator.ts` con un enfoque de **búsqueda exhaustiva y agresiva**:
 
 ### Características del Nuevo Algoritmo:
 
-1. **BÚSQUEDA EXHAUSTIVA DE 2 PARTIDOS (IMPERATIVO)**
+1. **BÚSQUEDA EXHAUSTIVA DE 2 PARTIDOS (IMPERATIVO ABSOLUTO)**
    - Para cada jornada, encuentra TODOS los partidos posibles
    - Ordena por "peso" (prioriza equipos con menos partidos para equidad)
    - Busca exhaustivamente combinaciones de 2 partidos compatibles
-   - Solo acepta 1 partido cuando es IMPOSIBLE encontrar 2
+   - **SOLO acepta 1 partido en la ÚLTIMA jornada** cuando ya no hay más partidos disponibles
+   - Si no encuentra 2 partidos compatibles, relaja restricciones (excepto última jornada)
+   - Si aún así no encuentra 2, fuerza asignación de 2 partidos (excepto última jornada)
 
 2. **DISTRIBUCIÓN EQUITATIVA**
    - Lleva un conteo de partidos por equipo
@@ -23,7 +25,8 @@ Se mejoró completamente el algoritmo `avoidConsecutiveRounds` en `FixtureGenera
    - Garantiza equidad en la programación
 
 3. **RESTRICCIONES ESTRICTAS:**
-   - ✅ **IMPERATIVO**: 2 partidos por jornada (excepto cuando no hay más partidos)
+   - ✅ **IMPERATIVO**: 2 partidos por jornada (EXCEPTO última jornada de ida y vuelta)
+   - ✅ Solo la última jornada puede tener 1 partido
    - ✅ Ningún equipo juega dos veces en la misma jornada
    - ✅ Ningún equipo juega en jornadas consecutivas (cuando es posible)
    - ✅ Distribución equitativa de partidos entre equipos
