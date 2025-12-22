@@ -3092,6 +3092,24 @@
                 responseCard.style.display = 'block';
                 responseDiv.innerHTML = '<pre>Cargando...</pre>';
                 
+                // Verificar autenticación de administrador
+                if (!authToken || !currentUser) {
+                    showAlert('⚠️ Debes iniciar sesión como administrador para crear campeonatos o categorías', 'error');
+                    showAuthModal();
+                    return;
+                }
+                
+                if (currentUser.role !== 'admin') {
+                    showAlert('⚠️ Solo los administradores pueden crear campeonatos y categorías', 'error');
+                    return;
+                }
+                
+                // Preparar headers con autenticación
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                };
+                
                 let url = '';
                 let options = {};
                 switch(action) {
@@ -3099,7 +3117,7 @@
                         url = `${API_BASE}/api/championships`;
                         options = {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: headers,
                             body: JSON.stringify({
                                 id: document.getElementById('champId').value,
                                 name: document.getElementById('name').value,
