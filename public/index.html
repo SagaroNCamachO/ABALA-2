@@ -589,7 +589,6 @@
                         <select id="viewSelect" onchange="loadView()" style="font-size: 1.1em; padding: 18px;">
                             <option value="standings">📈 Ver Tabla de Posiciones</option>
                             <option value="fixture">📅 Ver Calendario de Partidos (Fixture)</option>
-                            <option value="championship">📋 Ver Todo el Campeonato</option>
                         </select>
                         <div class="field-help">Elija qué información desea ver del campeonato</div>
                     </div>
@@ -2079,7 +2078,8 @@
                     if (round) url += `?round=${round}`;
                     window.currentCategory = category; // Guardar para usar en renderFixture
                 } else {
-                    url = `${API_BASE}/api/championships/${champId}`;
+                    showAlert('Selecciona una opción válida', 'error');
+                    return;
                 }
                 
                 const res = await fetch(url);
