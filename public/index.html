@@ -1501,19 +1501,50 @@
                     
                     // Limpiar datos de campeonatos que ya no existen en el servidor
                     const serverIds = new Set(Object.keys(champList));
+                    const idsToRemove = [];
                     Object.keys(championshipsData).forEach(id => {
                         if (!serverIds.has(id)) {
-                            console.log(`Eliminando campeonato ${id} que ya no existe en el servidor`);
-                            delete championshipsData[id];
-                            delete categoriesData[id];
-                            removeChampionshipFromLocal(id);
+                            console.log(`⚠️  Campeonato ${id} ya no existe en el servidor, será removido`);
+                            idsToRemove.push(id);
                         }
                     });
                     
+                    // Eliminar campeonatos que no existen
+                    idsToRemove.forEach(id => {
+                        delete championshipsData[id];
+                        delete categoriesData[id];
+                        removeChampionshipFromLocal(id);
+                    });
+                    
                     // Cargar datos completos de cada campeonato
-                    const loadPromises = Object.keys(champList).map(async (id) => {
+                    // Filtrar solo los que realmente existen
+                    const validChampIds = Object.keys(champList).filter(id => {
+                        // Solo incluir si tiene datos básicos válidos
+                        const champ = champList[id];
+                        return champ && (champ.name || id);
+                    });
+                    
+                    const loadPromises = validChampIds.map(async (id) => {
                         try {
                             const champRes = await fetch(`${API_BASE}/api/championships/${id}`);
+                            
+                            // Si el campeonato no existe (404), omitir silenciosamente
+                            if (champRes.status === 404) {
+                                // No loggear para evitar ruido en la consola
+                                return; // No agregar a championshipsData
+                            }
+                            
+                            // Si hay otro error HTTP, intentar continuar con datos del resumen
+                            if (!champRes.ok && champRes.status !== 404) {
+                                console.warn(`⚠️  Error ${champRes.status} cargando campeonato ${id}, usando datos del resumen`);
+                                const champ = champList[id];
+                                if (champ && champ.name) {
+                                    championshipsData[id] = champ;
+                                    saveToLocalStorage(id, championshipsData[id]);
+                                }
+                                return;
+                            }
+                            
                             const champData = await champRes.json();
                             
                             if (champData.success && champData.championship) {
@@ -1533,15 +1564,28 @@
                                 // Guardar en localStorage como backup
                                 saveToLocalStorage(id, championshipsData[id]);
                                 console.log(`✅ Cargado campeonato: ${champData.championship.name} (${id})`);
-                            } else {
-                                // Si falla, usar datos del resumen
+                            } else if (champList[id] && champList[id].name) {
+                                // Si falla pero tenemos datos del resumen, usarlos
                                 championshipsData[id] = champList[id];
                                 saveToLocalStorage(id, championshipsData[id]);
                             }
                         } catch (error) {
-                            console.error(`Error cargando campeonato ${id}:`, error);
-                            championshipsData[id] = champList[id];
-                            saveToLocalStorage(id, championshipsData[id]);
+                            // Solo loggear errores que no sean relacionados con 404
+                            const is404Error = error.message && (
+                                error.message.includes('404') || 
+                                error.message.includes('Not Found') ||
+                                error.message.includes('not found')
+                            );
+                            
+                            if (!is404Error) {
+                                console.error(`Error cargando campeonato ${id}:`, error);
+                            }
+                            
+                            // Si tenemos datos del resumen, usarlos como fallback
+                            if (champList[id] && champList[id].name) {
+                                championshipsData[id] = champList[id];
+                                saveToLocalStorage(id, championshipsData[id]);
+                            }
                         }
                     });
                     
@@ -1550,10 +1594,18 @@
                     // Cargar desde localStorage solo los que no están en el servidor (para datos offline)
                     loadFromLocalStorage();
                     
+                    // Filtrar solo campeonatos válidos antes de renderizar
+                    const validChampionships = Object.entries(championshipsData).filter(([id, champ]) => {
+                        return champ && champ.name && id;
+                    });
+                    
+                    // Actualizar championshipsData con solo los válidos
+                    championshipsData = Object.fromEntries(validChampionships);
+                    
                     renderChampionships();
                     renderCategories();
                     updateForm(); // Actualizar formularios con datos disponibles
-                    console.log(`✅ Renderizados ${Object.keys(championshipsData).length} campeonato(s) en "📊 Datos Creados"`);
+                    console.log(`✅ Renderizados ${validChampionships.length} campeonato(s) válido(s) en "📊 Datos Creados"`);
                 } else {
                     console.warn('⚠️ El servidor no respondió con success');
                     // Si el servidor no responde con success, cargar desde localStorage
@@ -1672,6 +1724,19 @@
         async function loadChampionshipDetails(champId) {
             try {
                 const res = await fetch(`${API_BASE}/api/championships/${champId}`);
+                
+                // Si el campeonato no existe, no mostrar nada
+                if (res.status === 404) {
+                    console.log(`⚠️  Campeonato ${champId} no encontrado`);
+                    showAlert(`Campeonato "${champId}" no encontrado`, 'warning');
+                    return;
+                }
+                
+                if (!res.ok) {
+                    showAlert(`Error al cargar campeonato: ${res.status}`, 'error');
+                    return;
+                }
+                
                 const data = await res.json();
                 
                 if (data.success) {
@@ -1979,9 +2044,21 @@
         async function obtenerEquiposDeCategoria(champId, categoryName) {
             try {
                 const res = await fetch(`${API_BASE}/api/championships/${champId}`);
+                
+                // Si el campeonato no existe, no mostrar error
+                if (res.status === 404) {
+                    console.log(`⚠️  Campeonato "${champId}" no encontrado`);
+                    return null;
+                }
+                
+                if (!res.ok) {
+                    console.error(`Error ${res.status} obteniendo campeonato`);
+                    return null;
+                }
+                
                 const data = await res.json();
                 
-                if (data.success && data.championship.categories[categoryName]) {
+                if (data.success && data.championship && data.championship.categories && data.championship.categories[categoryName]) {
                     const cat = data.championship.categories[categoryName];
                     const teams = cat.teams.map(t => t.name || t);
                     console.log(`\n📂 Categoría: ${categoryName}`);
@@ -1991,11 +2068,15 @@
                     console.log(`   await recrearCategoria('${champId}', '${categoryName}', ${JSON.stringify(teams)});`);
                     return teams;
                 } else {
-                    console.log(`❌ Categoría "${categoryName}" no encontrada`);
+                    console.log(`❌ Categoría "${categoryName}" no encontrada en el campeonato`);
                     return null;
                 }
             } catch (error) {
-                console.error(`Error obteniendo equipos:`, error);
+                // No mostrar errores 404 en la consola
+                const is404Error = error.message && error.message.includes('404');
+                if (!is404Error) {
+                    console.error(`Error obteniendo equipos:`, error);
+                }
                 return null;
             }
         }
@@ -2069,41 +2150,94 @@
             
             try {
                 const res = await fetch(`${API_BASE}/api/championships`);
+                
+                if (!res.ok) {
+                    if (res.status === 404) {
+                        console.log('⚠️  No hay campeonatos en el servidor');
+                        return [];
+                    }
+                    console.error(`❌ Error ${res.status} obteniendo campeonatos`);
+                    return [];
+                }
+                
                 const data = await res.json();
                 
-                if (data.success) {
+                if (data.success && data.championships && Object.keys(data.championships).length > 0) {
                     console.log('📊 CATEGORÍAS ENCONTRADAS:\n');
                     console.log('='.repeat(80));
                     
                     const categoriasInfo = [];
+                    const validChampIds = Object.keys(data.championships).filter(id => {
+                        const champ = data.championships[id];
+                        return champ && champ.name;
+                    });
                     
-                    for (const [champId, champ] of Object.entries(data.championships)) {
+                    for (const champId of validChampIds) {
+                        const champ = data.championships[champId];
                         console.log(`\n🏆 ${champ.name} (ID: ${champId})`);
                         
-                        // Obtener detalles completos
-                        const champRes = await fetch(`${API_BASE}/api/championships/${champId}`);
-                        const champData = await champRes.json();
-                        
-                        if (champData.success && champData.championship.categories) {
-                            for (const [catName, cat] of Object.entries(champData.championship.categories)) {
-                                const teams = cat.teams.map(t => t.name || t);
-                                console.log(`\n   📂 ${catName}`);
-                                console.log(`      Equipos (${teams.length}): ${teams.join(', ')}`);
-                                
-                                categoriasInfo.push({
-                                    champId: champId,
-                                    champName: champ.name,
-                                    categoryName: catName,
-                                    teams: teams
-                                });
-                                
-                                console.log(`      \n      Para recrear:`);
-                                console.log(`      await recrearCategoria('${champId}', '${catName}', ${JSON.stringify(teams)});`);
+                        try {
+                            // Obtener detalles completos
+                            const champRes = await fetch(`${API_BASE}/api/championships/${champId}`);
+                            
+                            // Si el campeonato no existe, omitir
+                            if (champRes.status === 404) {
+                                console.log(`   ⚠️  Este campeonato no existe en el servidor, omitiendo...`);
+                                continue;
                             }
+                            
+                            if (!champRes.ok) {
+                                console.log(`   ⚠️  Error ${champRes.status} obteniendo detalles, omitiendo...`);
+                                continue;
+                            }
+                            
+                            const champData = await champRes.json();
+                            
+                            if (champData.success && champData.championship && champData.championship.categories) {
+                                const categories = champData.championship.categories;
+                                const categoryNames = Object.keys(categories);
+                                
+                                if (categoryNames.length === 0) {
+                                    console.log(`   ⚠️  No hay categorías en este campeonato`);
+                                    continue;
+                                }
+                                
+                                for (const catName of categoryNames) {
+                                    const cat = categories[catName];
+                                    if (cat && cat.teams) {
+                                        const teams = cat.teams.map(t => t.name || t);
+                                        console.log(`\n   📂 ${catName}`);
+                                        console.log(`      Equipos (${teams.length}): ${teams.join(', ')}`);
+                                        
+                                        categoriasInfo.push({
+                                            champId: champId,
+                                            champName: champ.name,
+                                            categoryName: catName,
+                                            teams: teams
+                                        });
+                                        
+                                        console.log(`      \n      Para recrear:`);
+                                        console.log(`      await recrearCategoria('${champId}', '${catName}', ${JSON.stringify(teams)});`);
+                                    }
+                                }
+                            }
+                        } catch (error) {
+                            // Omitir errores silenciosamente para campeonatos que no existen
+                            const is404Error = error.message && error.message.includes('404');
+                            if (!is404Error) {
+                                console.log(`   ⚠️  Error obteniendo detalles del campeonato ${champId}`);
+                            }
+                            continue;
                         }
                     }
                     
-                    console.log('\n' + '='.repeat(80));
+                    if (categoriasInfo.length === 0) {
+                        console.log('\n⚠️  No se encontraron categorías con equipos');
+                    } else {
+                        console.log('\n' + '='.repeat(80));
+                        console.log(`\n✅ Total: ${categoriasInfo.length} categoría(s) encontrada(s)`);
+                    }
+                    
                     console.log('\n💡 Usa las funciones:');
                     console.log('   - obtenerEquiposDeCategoria(champId, categoryName)');
                     console.log('   - recrearCategoria(champId, categoryName, teams)');
@@ -2111,11 +2245,15 @@
                     
                     return categoriasInfo;
                 } else {
-                    console.error('❌ Error obteniendo campeonatos');
+                    console.log('⚠️  No hay campeonatos en el servidor');
                     return [];
                 }
             } catch (error) {
-                console.error('❌ Error:', error);
+                // No mostrar errores 404
+                const is404Error = error.message && error.message.includes('404');
+                if (!is404Error) {
+                    console.error('❌ Error:', error);
+                }
                 return [];
             }
         }
@@ -2645,6 +2783,21 @@
                 }
                 
                 const res = await fetch(url);
+                
+                // Si no se encuentra el recurso (404), no mostrar nada
+                if (res.status === 404) {
+                    console.log(`⚠️  Recurso no encontrado: ${url}`);
+                    showAlert('El campeonato o categoría no fue encontrado', 'warning');
+                    responseDiv.innerHTML = '<div class="empty-state">El campeonato o categoría no existe</div>';
+                    return;
+                }
+                
+                if (!res.ok) {
+                    showAlert(`Error ${res.status}: No se pudo cargar la información`, 'error');
+                    responseDiv.innerHTML = `<div class="empty-state">Error al cargar datos (${res.status})</div>`;
+                    return;
+                }
+                
                 const data = await res.json();
                 
                 if (!data.success) {
