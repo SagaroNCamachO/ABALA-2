@@ -15,15 +15,16 @@ try {
   fs.appendFileSync(logPath, logEntry);
 } catch(e) { console.error('[DEBUG] Failed to write log:', e); }
 // #endregion
-let AuditLog: any;
+import { AuditLog } from './models/AuditLog';
+// #region agent log
+console.log('[DEBUG] api.ts:10 - AuditLog imported');
 try {
-  const auditLogModule = require('./models/AuditLog');
-  AuditLog = auditLogModule.AuditLog;
-  console.log('[DEBUG] api.ts:10 - AuditLog imported successfully');
-} catch (error: any) {
-  console.error('[DEBUG] api.ts:10 - Error importing AuditLog:', error?.message || error);
-  throw error;
-}
+  const fs = require('fs');
+  const logPath = '.cursor/debug.log';
+  const logEntry = JSON.stringify({location:'api.ts:10',message:'AuditLog imported',data:{hasAuditLog:!!AuditLog,timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'}) + '\n';
+  fs.appendFileSync(logPath, logEntry);
+} catch(e) { console.error('[DEBUG] Failed to write log:', e); }
+// #endregion
 // #region agent log
 console.log('[DEBUG] api.ts:11 - Before UserManager import');
 try {
@@ -33,17 +34,16 @@ try {
   fs.appendFileSync(logPath, logEntry);
 } catch(e) { console.error('[DEBUG] Failed to write log:', e); }
 // #endregion
-let UserManager: any;
-let UserRole: any;
+import { UserManager, UserRole } from './models/User';
+// #region agent log
+console.log('[DEBUG] api.ts:12 - UserManager imported');
 try {
-  const userModule = require('./models/User');
-  UserManager = userModule.UserManager;
-  UserRole = userModule.UserRole;
-  console.log('[DEBUG] api.ts:12 - UserManager and UserRole imported successfully');
-} catch (error: any) {
-  console.error('[DEBUG] api.ts:12 - Error importing UserManager:', error?.message || error);
-  throw error;
-}
+  const fs = require('fs');
+  const logPath = '.cursor/debug.log';
+  const logEntry = JSON.stringify({location:'api.ts:12',message:'UserManager imported',data:{hasUserManager:!!UserManager,hasUserRole:!!UserRole,timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'}) + '\n';
+  fs.appendFileSync(logPath, logEntry);
+} catch(e) { console.error('[DEBUG] Failed to write log:', e); }
+// #endregion
 // #region agent log
 console.log('[DEBUG] api.ts:13 - Before NotificationManager import');
 try {
@@ -53,21 +53,13 @@ try {
   fs.appendFileSync(logPath, logEntry);
 } catch(e) { console.error('[DEBUG] Failed to write log:', e); }
 // #endregion
-let NotificationManager: any;
-try {
-  const notificationModule = require('./models/NotificationSettings');
-  NotificationManager = notificationModule.NotificationManager;
-  console.log('[DEBUG] api.ts:14 - NotificationManager imported successfully');
-} catch (error: any) {
-  console.error('[DEBUG] api.ts:14 - Error importing NotificationManager:', error?.message || error);
-  throw error;
-}
+import { NotificationManager } from './models/NotificationSettings';
 // #region agent log
-console.log('[DEBUG] api.ts:15 - All imports completed', { hasUserManager: !!UserManager, hasNotificationManager: !!NotificationManager, hasAuditLog: !!AuditLog });
+console.log('[DEBUG] api.ts:14 - All imports completed', { hasUserManager: !!UserManager, hasNotificationManager: !!NotificationManager, hasAuditLog: !!AuditLog });
 try {
   const fs = require('fs');
   const logPath = '.cursor/debug.log';
-  const logEntry = JSON.stringify({location:'api.ts:15',message:'All imports completed',data:{hasUserManager:!!UserManager,hasNotificationManager:!!NotificationManager,hasAuditLog:!!AuditLog,timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'}) + '\n';
+  const logEntry = JSON.stringify({location:'api.ts:14',message:'All imports completed',data:{hasUserManager:!!UserManager,hasNotificationManager:!!NotificationManager,hasAuditLog:!!AuditLog,timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'}) + '\n';
   fs.appendFileSync(logPath, logEntry);
 } catch(e) { console.error('[DEBUG] Failed to write log:', e); }
 // #endregion
