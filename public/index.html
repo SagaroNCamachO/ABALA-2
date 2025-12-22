@@ -2965,13 +2965,14 @@
                     jornadaMatches.slice(0, 2).forEach((match, idx) => {
                         const matchId = `match_${vueltaNum}_${matchType}_${matchday}_${idx}`;
                         const played = match.played;
-                        const scoreA = match.score_a !== null ? match.score_a : '';
-                        const scoreB = match.score_b !== null ? match.score_b : '';
+                        const scoreA = match.score_a !== null && match.score_a !== undefined ? match.score_a : '';
+                        const scoreB = match.score_b !== null && match.score_b !== undefined ? match.score_b : '';
                         const date = match.date || '';
                         const time = match.time || '';
+                        const hasResult = played && scoreA !== '' && scoreB !== '';
                         
                         html += `
-                            <div class="fixture-match" style="padding: 25px; background: white; border-radius: 12px; border-left: 6px solid ${played ? '#28a745' : '#667eea'}; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                            <div class="fixture-match" style="padding: 25px; background: ${hasResult ? '#f0fff4' : 'white'}; border-radius: 12px; border-left: 6px solid ${hasResult ? '#28a745' : '#667eea'}; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                                 <div class="fixture-match-teams" style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: center; margin-bottom: 20px;">
                                     <div style="text-align: right;">
                                         <strong style="font-size: 1.3em; color: #1e3c72; font-weight: 700; word-break: break-word;">${match.team_a}</strong>
@@ -2980,14 +2981,14 @@
                                         <input type="number" id="${matchId}_scoreA" value="${scoreA}" 
                                             placeholder="0" min="0" 
                                             class="fixture-score-input"
-                                            style="width: 90px; padding: 15px; text-align: center; border: 3px solid #e0e0e0; border-radius: 10px; font-size: 1.3em; font-weight: 700;"
-                                            ${played ? 'readonly' : ''}>
+                                            style="width: 90px; padding: 15px; text-align: center; border: 3px solid ${played ? '#28a745' : '#e0e0e0'}; border-radius: 10px; font-size: 1.3em; font-weight: 700; background: ${played ? '#f0fff4' : 'white'};"
+                                            title="${played ? 'Resultado guardado - Puedes modificarlo' : 'Ingresa el marcador'}">
                                         <span style="font-weight: bold; color: #666; font-size: 1.5em;">-</span>
                                         <input type="number" id="${matchId}_scoreB" value="${scoreB}" 
                                             placeholder="0" min="0" 
                                             class="fixture-score-input"
-                                            style="width: 90px; padding: 15px; text-align: center; border: 3px solid #e0e0e0; border-radius: 10px; font-size: 1.3em; font-weight: 700;"
-                                            ${played ? 'readonly' : ''}>
+                                            style="width: 90px; padding: 15px; text-align: center; border: 3px solid ${played ? '#28a745' : '#e0e0e0'}; border-radius: 10px; font-size: 1.3em; font-weight: 700; background: ${played ? '#f0fff4' : 'white'};"
+                                            title="${played ? 'Resultado guardado - Puedes modificarlo' : 'Ingresa el marcador'}">
                                     </div>
                                     <div style="text-align: left;">
                                         <strong style="font-size: 1.3em; color: #1e3c72; font-weight: 700; word-break: break-word;">${match.team_b}</strong>
@@ -3008,8 +3009,8 @@
                                     <div>
                                         <button onclick="saveMatch('${champId}', '${category}', '${match.team_a}', '${match.team_b}', ${match.round_number}, ${match.matchday}, '${matchId}')" 
                                             class="fixture-action-button"
-                                            style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; white-space: nowrap; font-size: 1em; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
-                                            ${played ? 'Actualizar' : 'Guardar'}
+                                            style="padding: 12px 24px; background: ${hasResult ? 'linear-gradient(135deg, #28a745 0%, #20c997 100%)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; white-space: nowrap; font-size: 1em; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                                            ${hasResult ? '💾 Actualizar Resultado' : '💾 Guardar Resultado'}
                                         </button>
                                     </div>
                                 </div>
@@ -3028,10 +3029,24 @@
         }
         
         async function saveMatch(champId, category, teamA, teamB, roundNumber, matchday, matchId) {
-            const scoreA = parseInt(document.getElementById(`${matchId}_scoreA`).value) || 0;
-            const scoreB = parseInt(document.getElementById(`${matchId}_scoreB`).value) || 0;
+            const scoreAInput = document.getElementById(`${matchId}_scoreA`);
+            const scoreBInput = document.getElementById(`${matchId}_scoreB`);
+            const scoreA = scoreAInput.value ? parseInt(scoreAInput.value) : null;
+            const scoreB = scoreBInput.value ? parseInt(scoreBInput.value) : null;
             const date = document.getElementById(`${matchId}_date`).value;
             const time = document.getElementById(`${matchId}_time`).value;
+            
+            // Validar que si hay un score, haya ambos
+            if ((scoreA !== null && scoreB === null) || (scoreA === null && scoreB !== null)) {
+                showAlert('⚠️ Debes ingresar ambos marcadores o ninguno', 'error');
+                return;
+            }
+            
+            // Validar que no sean empates
+            if (scoreA !== null && scoreB !== null && scoreA === scoreB && scoreA > 0) {
+                showAlert('⚠️ Los partidos no pueden terminar en empate. Debe haber un ganador.', 'error');
+                return;
+            }
             
             try {
                 // Guardar fecha y horario
@@ -3052,11 +3067,12 @@
                     if (!scheduleRes.ok) {
                         const error = await scheduleRes.json();
                         showAlert(error.error || 'Error al guardar fecha/horario', 'error');
+                        return;
                     }
                 }
                 
-                // Guardar resultado si hay scores
-                if (scoreA >= 0 && scoreB >= 0) {
+                // Guardar resultado si hay scores (permite modificar resultados existentes)
+                if (scoreA !== null && scoreB !== null && scoreA >= 0 && scoreB >= 0) {
                     const resultRes = await fetch(`${API_BASE}/api/championships/${champId}/fixture/${category}/result`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
@@ -3072,20 +3088,20 @@
                     
                     const resultData = await resultRes.json();
                     if (resultData.success) {
-                        showAlert('Partido guardado exitosamente', 'success');
-                        // Recargar vista
+                        showAlert('✅ Resultado guardado exitosamente en MongoDB', 'success');
+                        // Recargar vista para mostrar el resultado actualizado
                         setTimeout(() => loadViewData(), 1000);
                     } else {
                         showAlert(resultData.error || 'Error al guardar resultado', 'error');
                     }
                 } else if (date || time) {
-                    showAlert('Fecha y horario guardados', 'success');
+                    showAlert('✅ Fecha y horario guardados', 'success');
                     setTimeout(() => loadViewData(), 1000);
                 } else {
-                    showAlert('Ingresa al menos fecha/horario o resultado', 'error');
+                    showAlert('⚠️ Ingresa al menos fecha/horario o resultado', 'warning');
                 }
             } catch (error) {
-                showAlert('Error: ' + error.message, 'error');
+                showAlert('❌ Error: ' + error.message, 'error');
             }
         }
         

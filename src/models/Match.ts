@@ -32,6 +32,7 @@ export class Match {
 
   /**
    * Registra el resultado del partido.
+   * Permite actualizar resultados existentes.
    */
   registerResult(scoreA: number, scoreB: number): void {
     this.scoreA = scoreA;
@@ -45,6 +46,16 @@ export class Match {
     } else {
       this.winner = "Empate";
     }
+  }
+
+  /**
+   * Limpia el resultado del partido (para permitir modificación).
+   */
+  clearResult(): void {
+    this.scoreA = null;
+    this.scoreB = null;
+    this.played = false;
+    this.winner = null;
   }
 
   /**

@@ -599,58 +599,69 @@ app.post('/api/championships/:id/categories', async (req: Request, res: Response
 
 /**
  * Registrar el resultado de un partido.
+ * Permite registrar y modificar resultados (se guardan en MongoDB).
  */
 app.post('/api/championships/:id/results', async (req: Request, res: Response) => {
-  const champId = req.params.id;
-  const championship = championships.get(champId);
+  try {
+    await ensureChampionshipsLoaded();
+    
+    const champId = req.params.id;
+    const championship = championships.get(champId);
 
-  if (!championship) {
-    return res.status(404).json({
+    if (!championship) {
+      return res.status(404).json({
+        success: false,
+        error: "Campeonato no encontrado"
+      });
+    }
+
+    const data = req.body || {};
+    
+    // Validar datos
+    const validation = validateMatchResult(data);
+    if (!validation.valid) {
+      return res.status(400).json({
+        success: false,
+        error: validation.errors.join(', ')
+      });
+    }
+
+    const categoryName = data.category;
+    const teamA = data.team_a;
+    const teamB = data.team_b;
+    const roundNumber = data.round_number;
+    const scoreA = data.score_a;
+    const scoreB = data.score_b;
+    const matchType = data.match_type;
+
+    const success = championship.registerMatchResult(
+      categoryName,
+      teamA,
+      teamB,
+      roundNumber,
+      scoreA,
+      scoreB,
+      matchType
+    );
+
+    if (success) {
+      // Guardar automáticamente en MongoDB después de registrar resultado
+      await autoSave();
+      return res.json({
+        success: true,
+        message: "Resultado registrado y guardado en MongoDB"
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        error: "No se pudo registrar el resultado. Verifica que el partido exista."
+      });
+    }
+  } catch (error: any) {
+    console.error('Error en POST /api/championships/:id/results:', error);
+    return res.status(500).json({
       success: false,
-      error: "Campeonato no encontrado"
-    });
-  }
-
-  const data = req.body || {};
-  
-  // Validar datos
-  const validation = validateMatchResult(data);
-  if (!validation.valid) {
-    return res.status(400).json({
-      success: false,
-      error: validation.errors.join(', ')
-    });
-  }
-
-  const categoryName = data.category;
-  const teamA = data.team_a;
-  const teamB = data.team_b;
-  const roundNumber = data.round_number;
-  const scoreA = data.score_a;
-  const scoreB = data.score_b;
-  const matchType = data.match_type;
-
-  const success = championship.registerMatchResult(
-    categoryName,
-    teamA,
-    teamB,
-    roundNumber,
-    scoreA,
-    scoreB,
-    matchType
-  );
-
-  if (success) {
-    // Guardar automáticamente después de registrar resultado
-    await autoSave();
-    return res.json({
-      success: true,
-      message: "Resultado registrado"
-    });
-  } else {
-    return res.status(400).json({
-      success: false,
-      error: "No se pudo registrar el resultado"
+      error: error.message || "Error interno del servidor"
     });
   }
 });
@@ -856,44 +867,83 @@ app.put('/api/championships/:id/fixture/:category/schedule', async (req: Request
  * Actualizar resultado de un partido desde el fixture.
  */
 app.put('/api/championships/:id/fixture/:category/result', async (req: Request, res: Response) => {
-  const champId = req.params.id;
-  const championship = championships.get(champId);
+  try {
+    await ensureChampionshipsLoaded();
+    
+    const champId = req.params.id;
+    const championship = championships.get(champId);
 
-  if (!championship) {
-    return res.status(404).json({
+    if (!championship) {
+      return res.status(404).json({
+        success: false,
+        error: "Campeonato no encontrado"
+      });
+    }
+
+    const categoryName = req.params.category;
+    const data = req.body || {};
+    const teamA = data.team_a;
+    const teamB = data.team_b;
+    const roundNumber = data.round_number;
+    const scoreA = data.score_a;
+    const scoreB = data.score_b;
+
+    // Validar datos
+    if (!teamA || !teamB || roundNumber === undefined) {
+      return res.status(400).json({
+        success: false,
+        error: "Datos incompletos: se requieren team_a, team_b y round_number"
+      });
+    }
+
+    if (scoreA === null || scoreA === undefined || scoreB === null || scoreB === undefined) {
+      return res.status(400).json({
+        success: false,
+        error: "Se requieren ambos marcadores (score_a y score_b)"
+      });
+    }
+
+    if (scoreA < 0 || scoreB < 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Los marcadores no pueden ser negativos"
+      });
+    }
+
+    if (scoreA === scoreB && scoreA > 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Los partidos no pueden terminar en empate"
+      });
+    }
+
+    const success = championship.registerMatchResult(
+      categoryName,
+      teamA,
+      teamB,
+      roundNumber,
+      scoreA,
+      scoreB
+    );
+
+    if (success) {
+      // Guardar automáticamente en MongoDB después de actualizar resultado
+      await autoSave();
+      return res.json({
+        success: true,
+        message: "Resultado guardado exitosamente en MongoDB"
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        error: "No se pudo actualizar el resultado. Verifica que el partido exista."
+      });
+    }
+  } catch (error: any) {
+    console.error('Error en PUT /api/championships/:id/fixture/:category/result:', error);
+    return res.status(500).json({
       success: false,
-      error: "Campeonato no encontrado"
-    });
-  }
-
-  const categoryName = req.params.category;
-  const data = req.body || {};
-  const teamA = data.team_a;
-  const teamB = data.team_b;
-  const roundNumber = data.round_number;
-  const scoreA = data.score_a;
-  const scoreB = data.score_b;
-
-  const success = championship.registerMatchResult(
-    categoryName,
-    teamA,
-    teamB,
-    roundNumber,
-    scoreA,
-    scoreB
-  );
-
-  if (success) {
-    // Guardar automáticamente después de actualizar resultado
-    await autoSave();
-    return res.json({
-      success: true,
-      message: "Resultado actualizado"
-    });
-  } else {
-    return res.status(400).json({
-      success: false,
-      error: "No se pudo actualizar el resultado"
+      error: error.message || "Error interno del servidor"
     });
   }
 });

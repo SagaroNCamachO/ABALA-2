@@ -33,6 +33,27 @@ export class Team {
   }
 
   /**
+   * Remueve un resultado de partido de las estadísticas (para permitir modificación).
+   */
+  removeMatchResult(pointsFor: number, pointsAgainst: number, won: boolean): void {
+    if (this.pj > 0) {
+      this.pj -= 1;
+    }
+    if (this.pf >= pointsFor) {
+      this.pf -= pointsFor;
+    }
+    if (this.pc >= pointsAgainst) {
+      this.pc -= pointsAgainst;
+    }
+
+    if (won && this.pg > 0) {
+      this.pg -= 1;
+    } else if (!won && this.pp > 0) {
+      this.pp -= 1;
+    }
+  }
+
+  /**
    * Calcula los puntos totales del equipo.
    */
   calculatePoints(pointsPerWin: number, pointsPerLoss: number): void {

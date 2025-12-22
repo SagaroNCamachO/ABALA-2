@@ -90,6 +90,22 @@ export class Category {
       finalScoreB = scoreA;
     }
 
+    // Si el partido ya tenía resultado, limpiar estadísticas anteriores
+    const hadPreviousResult = match.played;
+    if (hadPreviousResult && match.scoreA !== null && match.scoreB !== null) {
+      // Remover el resultado anterior de las estadísticas
+      const prevScoreA = match.scoreA;
+      const prevScoreB = match.scoreB;
+      const teamAObj = this.teams.get(teamA);
+      const teamBObj = this.teams.get(teamB);
+      
+      if (teamAObj && teamBObj) {
+        // Remover el resultado anterior (invertir la operación)
+        teamAObj.removeMatchResult(prevScoreA, prevScoreB, prevScoreA > prevScoreB);
+        teamBObj.removeMatchResult(prevScoreB, prevScoreA, prevScoreB > prevScoreA);
+      }
+    }
+
     // Registrar resultado en el partido
     match.registerResult(finalScoreA, finalScoreB);
 
