@@ -1,47 +1,55 @@
-# 🏀 Mejora: Priorizar 2 Partidos por Jornada
+# 🏀 Mejora: Priorizar 2 Partidos por Jornada (IMPERATIVO)
 
 ## 📋 Problema Identificado
 
-En algunas categorías (como TC), se estaban generando muchas jornadas con solo 1 partido, cuando debería haber 2 partidos por jornada siempre que sea posible.
+En algunas categorías (como TC), se estaban generando muchas jornadas con solo 1 partido, cuando **ES IMPERATIVO** tener 2 partidos por jornada debido a las restricciones del arriendo del gimnasio. Solo se acepta 1 partido cuando ya no hay más partidos por programar.
 
 ## ✅ Solución Implementada
 
-Se mejoró el algoritmo `avoidConsecutiveRounds` en `FixtureGenerator.ts` para:
+Se mejoró completamente el algoritmo `avoidConsecutiveRounds` en `FixtureGenerator.ts` con un enfoque de **búsqueda exhaustiva**:
 
-### Prioridades del Nuevo Algoritmo:
+### Características del Nuevo Algoritmo:
 
-1. **PRIORIDAD 1: Llenar jornada con 2 partidos**
-   - El algoritmo busca activamente 2 partidos que puedan jugarse en la misma jornada
-   - Verifica que ningún equipo se repita en la misma jornada
-   - Verifica que ningún equipo haya jugado en la jornada anterior (consecutiva)
+1. **BÚSQUEDA EXHAUSTIVA DE 2 PARTIDOS (IMPERATIVO)**
+   - Para cada jornada, encuentra TODOS los partidos posibles
+   - Ordena por "peso" (prioriza equipos con menos partidos para equidad)
+   - Busca exhaustivamente combinaciones de 2 partidos compatibles
+   - Solo acepta 1 partido cuando es IMPOSIBLE encontrar 2
 
-2. **PRIORIDAD 2: Al menos 1 partido**
-   - Si no se pueden encontrar 2 partidos compatibles, busca al menos 1
-   - Solo se acepta 1 partido si es absolutamente necesario
+2. **DISTRIBUCIÓN EQUITATIVA**
+   - Lleva un conteo de partidos por equipo
+   - Prioriza equipos con menos partidos asignados
+   - Evita que algunos equipos jueguen mucho más que otros
+   - Garantiza equidad en la programación
 
-3. **Restricciones Respetadas:**
+3. **RESTRICCIONES ESTRICTAS:**
+   - ✅ **IMPERATIVO**: 2 partidos por jornada (excepto cuando no hay más partidos)
    - ✅ Ningún equipo juega dos veces en la misma jornada
    - ✅ Ningún equipo juega en jornadas consecutivas (cuando es posible)
-   - ✅ Se prioriza tener 2 partidos por jornada
+   - ✅ Distribución equitativa de partidos entre equipos
 
-## 🔧 Cómo Funciona
+## 🔧 Cómo Funciona el Nuevo Algoritmo
 
-### Algoritmo Mejorado:
+### Proceso de Búsqueda Exhaustiva:
 
 1. **Para cada jornada:**
-   - Crea un conjunto de equipos que ya están en la jornada
-   - Busca partidos donde los equipos no estén ya en la jornada
-   - Verifica que los equipos no hayan jugado en la jornada anterior
-   - Agrega hasta 2 partidos a la jornada
+   - **Paso 1**: Encuentra TODOS los partidos posibles que no violen restricciones
+   - **Paso 2**: Ordena por "peso" (equipos con menos partidos = mayor prioridad)
+   - **Paso 3**: Busca exhaustivamente combinaciones de 2 partidos compatibles
+   - **Paso 4**: Si encuentra 2, los asigna inmediatamente
+   - **Paso 5**: Si no encuentra 2, busca el mejor partido único (solo si es necesario)
 
-2. **Búsqueda Inteligente:**
-   - Primero intenta encontrar 2 partidos compatibles
-   - Si no encuentra 2, busca al menos 1
-   - Solo fuerza un partido si es absolutamente necesario
+2. **Sistema de Pesos para Equidad:**
+   - Cada equipo tiene un contador de partidos asignados
+   - Los partidos se ordenan por: `peso = partidos_equipoA + partidos_equipoB`
+   - Menor peso = mayor prioridad = equipos con menos partidos
+   - Esto garantiza distribución equitativa
 
-3. **Resultado:**
-   - La mayoría de jornadas tendrán 2 partidos
-   - Solo las últimas jornadas (si hay número impar de equipos) pueden tener 1 partido
+3. **Resultado Garantizado:**
+   - **Casi todas las jornadas tendrán 2 partidos**
+   - Solo la última jornada (si hay número impar de equipos) puede tener 1 partido
+   - Distribución equitativa entre todos los equipos
+   - Sin cansancio excesivo en ningún equipo
 
 ## 📊 Ejemplo
 
