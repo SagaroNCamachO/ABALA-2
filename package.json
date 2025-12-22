@@ -10,7 +10,8 @@
     "type-check": "tsc --noEmit",
     "verify-mongodb": "ts-node scripts/verificar-mongodb.ts",
     "delete-champ": "ts-node scripts/eliminar-campeonato.ts",
-    "list-categories": "ts-node scripts/listar-categorias.ts"
+    "list-categories": "ts-node scripts/listar-categorias.ts",
+    "test-complete": "ts-node scripts/prueba-completa.ts"
   },
   "keywords": [
     "basketball",
