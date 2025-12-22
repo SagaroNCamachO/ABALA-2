@@ -982,34 +982,8 @@ app.put('/api/championships/:id/fixture/:category/result', requireAdmin, async (
         }
         const success = championship.registerMatchResult(categoryName, teamA, teamB, roundNumber, scoreA, scoreB);
         if (success) {
-            // #region agent log
-            try {
-                fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'api.ts:PUT-result', message: 'Before autoSave - resultado registrado', data: { champId, categoryName, teamA, teamB, roundNumber, scoreA, scoreB, success }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'A' }) }).catch(() => { });
-            }
-            catch (e) { }
-            // #endregion
             // Guardar automáticamente en MongoDB después de actualizar resultado
             await autoSave();
-            // #region agent log
-            try {
-                fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'api.ts:PUT-result', message: 'After autoSave - verificar match', data: { champId, categoryName, teamA, teamB, roundNumber }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'A' }) }).catch(() => { });
-            }
-            catch (e) { }
-            // #endregion
-            // Verificar que el resultado se guardó correctamente
-            const category = championship.getCategory(categoryName);
-            if (category) {
-                const match = category.matches.find(m => {
-                    const teamsMatch = (m.teamA === teamA && m.teamB === teamB) || (m.teamA === teamB && m.teamB === teamA);
-                    return teamsMatch && m.roundNumber === roundNumber;
-                });
-                // #region agent log
-                try {
-                    fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'api.ts:PUT-result', message: 'Match verification', data: { matchFound: !!match, matchPlayed: match?.played, matchScoreA: match?.scoreA, matchScoreB: match?.scoreB, matchWinner: match?.winner }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'A' }) }).catch(() => { });
-                }
-                catch (e) { }
-                // #endregion
-            }
             return res.json({
                 success: true,
                 message: "Resultado guardado exitosamente en MongoDB"
