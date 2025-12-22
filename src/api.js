@@ -55,6 +55,48 @@ function ensureAdminExists() {
 // Ejecutar al cargar el módulo (solo una vez)
 // En serverless, esto se ejecuta en cada invocación "fría", pero no en invocaciones "calientes"
 ensureAdminExists();
+/**
+ * Middleware de autenticación para verificar que el usuario es administrador
+ */
+function requireAdmin(req, res, next) {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            res.status(401).json({
+                success: false,
+                error: 'No autorizado. Se requiere autenticación de administrador.'
+            });
+            return;
+        }
+        const token = authHeader.substring(7);
+        const decoded = Buffer.from(token, 'base64').toString('utf-8');
+        const [userId] = decoded.split(':');
+        const user = User_1.UserManager.getUser(userId);
+        if (!user) {
+            res.status(401).json({
+                success: false,
+                error: 'Usuario no encontrado'
+            });
+            return;
+        }
+        if (user.role !== User_1.UserRole.ADMIN) {
+            res.status(403).json({
+                success: false,
+                error: 'Acceso denegado. Solo los administradores pueden realizar esta acción.'
+            });
+            return;
+        }
+        // Agregar el usuario al request para uso posterior
+        req.user = user;
+        next();
+    }
+    catch (error) {
+        res.status(401).json({
+            success: false,
+            error: 'Token inválido'
+        });
+    }
+}
 // Servir archivos estáticos (HTML, CSS, JS)
 let publicPath;
 try {
@@ -647,8 +689,9 @@ app.post('/api/championships/:id/categories', async (req, res) => {
 /**
  * Registrar el resultado de un partido.
  * Permite registrar y modificar resultados (se guardan en MongoDB).
+ * Solo administradores pueden registrar resultados.
  */
-app.post('/api/championships/:id/results', async (req, res) => {
+app.post('/api/championships/:id/results', requireAdmin, async (req, res) => {
     try {
         await ensureChampionshipsLoaded();
         const champId = req.params.id;
@@ -679,8 +722,10 @@ app.post('/api/championships/:id/results', async (req, res) => {
         if (success) {
             // Registrar en historial
             const matchId = `${champId}_${categoryName}_${teamA}_${teamB}_${roundNumber}_${matchType}`;
+            const currentUser = req.user;
             AuditLog_1.AuditLog.log('register_result', 'match', matchId, {
                 entityName: `${teamA} vs ${teamB}`,
+                user: currentUser ? currentUser.username : 'system',
                 metadata: {
                     championship_id: champId,
                     category: categoryName,
@@ -834,8 +879,9 @@ app.get('/api/championships/:id/fixture/:category', async (req, res) => {
 });
 /**
  * Actualizar fecha/horario de un partido.
+ * Solo administradores pueden actualizar el horario.
  */
-app.put('/api/championships/:id/fixture/:category/schedule', async (req, res) => {
+app.put('/api/championships/:id/fixture/:category/schedule', requireAdmin, async (req, res) => {
     const champId = req.params.id;
     const championship = championships.get(champId);
     if (!championship) {
@@ -883,8 +929,9 @@ app.put('/api/championships/:id/fixture/:category/schedule', async (req, res) =>
 });
 /**
  * Actualizar resultado de un partido desde el fixture.
+ * Solo administradores pueden actualizar resultados.
  */
-app.put('/api/championships/:id/fixture/:category/result', async (req, res) => {
+app.put('/api/championships/:id/fixture/:category/result', requireAdmin, async (req, res) => {
     try {
         await ensureChampionshipsLoaded();
         const champId = req.params.id;
@@ -953,8 +1000,9 @@ app.put('/api/championships/:id/fixture/:category/result', async (req, res) => {
 });
 /**
  * Aplicar una multa o bonificación de puntos.
+ * Solo administradores pueden aplicar multas.
  */
-app.post('/api/championships/:id/penalty', async (req, res) => {
+app.post('/api/championships/:id/penalty', requireAdmin, async (req, res) => {
     const champId = req.params.id;
     const championship = championships.get(champId);
     if (!championship) {

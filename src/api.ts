@@ -51,6 +51,54 @@ function ensureAdminExists() {
 // En serverless, esto se ejecuta en cada invocación "fría", pero no en invocaciones "calientes"
 ensureAdminExists();
 
+/**
+ * Middleware de autenticación para verificar que el usuario es administrador
+ */
+function requireAdmin(req: Request, res: Response, next: any): void {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      res.status(401).json({
+        success: false,
+        error: 'No autorizado. Se requiere autenticación de administrador.'
+      });
+      return;
+    }
+    
+    const token = authHeader.substring(7);
+    const decoded = Buffer.from(token, 'base64').toString('utf-8');
+    const [userId] = decoded.split(':');
+    
+    const user = UserManager.getUser(userId);
+    
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        error: 'Usuario no encontrado'
+      });
+      return;
+    }
+    
+    if (user.role !== UserRole.ADMIN) {
+      res.status(403).json({
+        success: false,
+        error: 'Acceso denegado. Solo los administradores pueden realizar esta acción.'
+      });
+      return;
+    }
+    
+    // Agregar el usuario al request para uso posterior
+    (req as any).user = user;
+    next();
+  } catch (error: any) {
+    res.status(401).json({
+      success: false,
+      error: 'Token inválido'
+    });
+  }
+}
+
 // Servir archivos estáticos (HTML, CSS, JS)
 let publicPath: string;
 try {
@@ -718,8 +766,9 @@ app.post('/api/championships/:id/categories', async (req: Request, res: Response
 /**
  * Registrar el resultado de un partido.
  * Permite registrar y modificar resultados (se guardan en MongoDB).
+ * Solo administradores pueden registrar resultados.
  */
-app.post('/api/championships/:id/results', async (req: Request, res: Response) => {
+app.post('/api/championships/:id/results', requireAdmin, async (req: Request, res: Response) => {
   try {
     await ensureChampionshipsLoaded();
     
@@ -765,8 +814,10 @@ app.post('/api/championships/:id/results', async (req: Request, res: Response) =
     if (success) {
       // Registrar en historial
       const matchId = `${champId}_${categoryName}_${teamA}_${teamB}_${roundNumber}_${matchType}`;
+      const currentUser = (req as any).user;
       AuditLog.log('register_result', 'match', matchId, {
         entityName: `${teamA} vs ${teamB}`,
+        user: currentUser ? currentUser.username : 'system',
         metadata: {
           championship_id: champId,
           category: categoryName,
@@ -940,8 +991,9 @@ app.get('/api/championships/:id/fixture/:category', async (req: Request, res: Re
 
 /**
  * Actualizar fecha/horario de un partido.
+ * Solo administradores pueden actualizar el horario.
  */
-app.put('/api/championships/:id/fixture/:category/schedule', async (req: Request, res: Response) => {
+app.put('/api/championships/:id/fixture/:category/schedule', requireAdmin, async (req: Request, res: Response) => {
   const champId = req.params.id;
   const championship = championships.get(champId);
 
@@ -999,8 +1051,9 @@ app.put('/api/championships/:id/fixture/:category/schedule', async (req: Request
 
 /**
  * Actualizar resultado de un partido desde el fixture.
+ * Solo administradores pueden actualizar resultados.
  */
-app.put('/api/championships/:id/fixture/:category/result', async (req: Request, res: Response) => {
+app.put('/api/championships/:id/fixture/:category/result', requireAdmin, async (req: Request, res: Response) => {
   try {
     await ensureChampionshipsLoaded();
     
@@ -1084,8 +1137,9 @@ app.put('/api/championships/:id/fixture/:category/result', async (req: Request, 
 
 /**
  * Aplicar una multa o bonificación de puntos.
+ * Solo administradores pueden aplicar multas.
  */
-app.post('/api/championships/:id/penalty', async (req: Request, res: Response) => {
+app.post('/api/championships/:id/penalty', requireAdmin, async (req: Request, res: Response) => {
   const champId = req.params.id;
   const championship = championships.get(champId);
 
