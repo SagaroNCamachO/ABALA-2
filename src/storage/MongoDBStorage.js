@@ -71,31 +71,72 @@ class MongoDBStorage {
      */
     static async save(championships) {
         try {
+            // #region agent log
+            try {
+                fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'MongoDBStorage.ts:save', message: 'Before save - checking MongoDB URI', data: { hasMongoDBUri: !!process.env.MONGODB_URI, championshipsCount: championships.size }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'B' }) }).catch(() => { });
+            }
+            catch (e) { }
+            // #endregion
             // Si no hay URI de MongoDB configurada, no hacer nada
             if (!process.env.MONGODB_URI) {
+                // #region agent log
+                try {
+                    fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'MongoDBStorage.ts:save', message: 'No MongoDB URI - skipping save', data: {}, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'B' }) }).catch(() => { });
+                }
+                catch (e) { }
+                // #endregion
                 return;
             }
             const collection = await this.getCollection();
-            // Convertir a documentos
-            const operations = Array.from(championships.entries()).map(([id, championship]) => ({
-                updateOne: {
-                    filter: { _id: id },
-                    update: {
-                        $set: {
-                            _id: id,
-                            data: championship.toDict(),
-                            updatedAt: new Date()
-                        }
-                    },
-                    upsert: true
+            // Convertir a documentos y verificar que los resultados estén incluidos
+            const operations = Array.from(championships.entries()).map(([id, championship]) => {
+                const champDict = championship.toDict();
+                // #region agent log
+                try {
+                    // Contar partidos jugados en todas las categorías
+                    let totalMatches = 0;
+                    let playedMatches = 0;
+                    for (const [, catData] of Object.entries(champDict.categories || {})) {
+                        const matches = catData.matches || [];
+                        totalMatches += matches.length;
+                        playedMatches += matches.filter((m) => m.played).length;
+                    }
+                    fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'MongoDBStorage.ts:save', message: 'Championship serialization', data: { champId: id, totalMatches, playedMatches, categoriesCount: Object.keys(champDict.categories || {}).length }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'C' }) }).catch(() => { });
                 }
-            }));
+                catch (e) { }
+                // #endregion
+                return {
+                    updateOne: {
+                        filter: { _id: id },
+                        update: {
+                            $set: {
+                                _id: id,
+                                data: champDict,
+                                updatedAt: new Date()
+                            }
+                        },
+                        upsert: true
+                    }
+                };
+            });
             if (operations.length > 0) {
                 await collection.bulkWrite(operations);
                 console.log(`💾 Guardados ${championships.size} campeonato(s) en MongoDB`);
+                // #region agent log
+                try {
+                    fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'MongoDBStorage.ts:save', message: 'After bulkWrite - save completed', data: { operationsCount: operations.length }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'B' }) }).catch(() => { });
+                }
+                catch (e) { }
+                // #endregion
             }
         }
         catch (error) {
+            // #region agent log
+            try {
+                fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'MongoDBStorage.ts:save', message: 'Error saving to MongoDB', data: { error: error?.message || String(error), stack: error?.stack }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'B' }) }).catch(() => { });
+            }
+            catch (e) { }
+            // #endregion
             console.error('❌ Error guardando en MongoDB:', error);
             throw error;
         }
@@ -126,6 +167,13 @@ class MongoDBStorage {
                     }
                     // Ahora restaurar partidos y resultados
                     if (catDataTyped.matches && catDataTyped.matches.length > 0) {
+                        // #region agent log
+                        try {
+                            const playedCount = catDataTyped.matches.filter((m) => m.played).length;
+                            fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'MongoDBStorage.ts:deserialize', message: 'Before restoring matches', data: { categoryName: catName, totalMatches: catDataTyped.matches.length, playedMatches: playedCount }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'D' }) }).catch(() => { });
+                        }
+                        catch (e) { }
+                        // #endregion
                         // Restaurar partidos y resultados
                         for (const matchData of catDataTyped.matches) {
                             // Buscar el partido (buscar en ambos sentidos: A vs B o B vs A)
@@ -139,6 +187,12 @@ class MongoDBStorage {
                                 return teamsMatch && roundMatch && typeMatch && matchdayMatch;
                             });
                             if (match) {
+                                // #region agent log
+                                try {
+                                    fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'MongoDBStorage.ts:deserialize', message: 'Match found - restoring', data: { categoryName: catName, teamA: matchData.team_a, teamB: matchData.team_b, roundNumber: matchData.round_number, played: matchData.played, scoreA: matchData.score_a, scoreB: matchData.score_b }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'D' }) }).catch(() => { });
+                                }
+                                catch (e) { }
+                                // #endregion
                                 // Restaurar fecha y horario primero
                                 if (matchData.date)
                                     match.date = matchData.date;
@@ -161,6 +215,12 @@ class MongoDBStorage {
                                     }
                                     // Registrar resultado directamente en el partido
                                     match.registerResult(finalScoreA, finalScoreB);
+                                    // #region agent log
+                                    try {
+                                        fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'MongoDBStorage.ts:deserialize', message: 'After registerResult', data: { categoryName: catName, teamA: match.teamA, teamB: match.teamB, scoreA: match.scoreA, scoreB: match.scoreB, played: match.played, winner: match.winner }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'D' }) }).catch(() => { });
+                                    }
+                                    catch (e) { }
+                                    // #endregion
                                     // Actualizar estadísticas de los equipos
                                     const teamAObj = category.teams.get(match.teamA);
                                     const teamBObj = category.teams.get(match.teamB);

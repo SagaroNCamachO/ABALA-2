@@ -110,15 +110,18 @@ export class Category {
     match.registerResult(finalScoreA, finalScoreB);
 
     // Actualizar estadísticas de los equipos
-    const teamAObj = this.teams.get(teamA);
-    const teamBObj = this.teams.get(teamB);
+    // IMPORTANTE: Usar finalScoreA y finalScoreB (no scoreA/scoreB) porque el orden puede estar invertido
+    const teamAObj = this.teams.get(match.teamA);
+    const teamBObj = this.teams.get(match.teamB);
 
     if (!teamAObj || !teamBObj) {
       return false;
     }
 
-    teamAObj.addMatchResult(scoreA, scoreB, scoreA > scoreB);
-    teamBObj.addMatchResult(scoreB, scoreA, scoreB > scoreA);
+    // Usar finalScoreA y finalScoreB que ya están en el orden correcto del partido
+    const teamAWon = finalScoreA > finalScoreB;
+    teamAObj.addMatchResult(finalScoreA, finalScoreB, teamAWon);
+    teamBObj.addMatchResult(finalScoreB, finalScoreA, !teamAWon);
 
     // Recalcular tabla de posiciones
     this.standings.updateStandings();
