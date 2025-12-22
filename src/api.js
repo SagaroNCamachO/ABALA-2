@@ -18,10 +18,28 @@ const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 // Crear usuario admin por defecto si no existe (solo en desarrollo)
-if (process.env.NODE_ENV !== 'production' && User_1.UserManager.getUserByUsername('admin') === null) {
-    User_1.UserManager.createUser('admin', 'admin123', 'admin@abala.com', User_1.UserRole.ADMIN);
-    console.log('✅ Usuario admin creado (username: admin, password: admin123)');
-}
+// Hacerlo de forma segura y asíncrona para evitar errores en el arranque
+(function initAdminUser() {
+    try {
+        if (process.env.NODE_ENV !== 'production') {
+            // Usar setImmediate para ejecutar después de que el módulo se haya cargado completamente
+            setImmediate(() => {
+                try {
+                    if (User_1.UserManager && User_1.UserManager.getUserByUsername && User_1.UserManager.getUserByUsername('admin') === null) {
+                        User_1.UserManager.createUser('admin', 'admin123', 'admin@abala.com', User_1.UserRole.ADMIN);
+                        console.log('✅ Usuario admin creado (username: admin, password: admin123)');
+                    }
+                }
+                catch (error) {
+                    console.warn('⚠️ No se pudo crear usuario admin:', error?.message || error);
+                }
+            });
+        }
+    }
+    catch (error) {
+        console.warn('⚠️ Error inicializando usuario admin:', error?.message || error);
+    }
+})();
 // Servir archivos estáticos (HTML, CSS, JS)
 const publicPath = path_1.default.join(__dirname, '../public');
 app.use(express_1.default.static(publicPath));
