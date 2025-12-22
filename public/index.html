@@ -1817,35 +1817,7 @@
             }, 100);
         }
         
-        // Asegurar que switchDataTab esté disponible globalmente
-        // Definirla inmediatamente para que esté disponible cuando se cargue el HTML
-        function switchDataTab(tab) {
-            document.querySelectorAll('#championshipsTab, #categoriesTab, #historyTab').forEach(t => t.classList.remove('active'));
-            const tabs = document.querySelectorAll('.tab');
-            tabs.forEach((t, i) => {
-                if ((tab === 'championships' && i === 0) || 
-                    (tab === 'categories' && i === 1) || 
-                    (tab === 'history' && i === 2)) {
-                    t.classList.add('active');
-                } else {
-                    t.classList.remove('active');
-                }
-            });
-            
-            if (tab === 'championships') {
-                document.getElementById('championshipsTab').classList.add('active');
-            } else if (tab === 'categories') {
-                document.getElementById('categoriesTab').classList.add('active');
-            } else if (tab === 'history') {
-                document.getElementById('historyTab').classList.add('active');
-                if (typeof loadAuditLog === 'function') {
-                    loadAuditLog();
-                }
-            }
-        }
-        
-        // Hacerla disponible globalmente
-        window.switchDataTab = switchDataTab;
+        // switchDataTab ya está definida al inicio del script
         
         // ============================================
         // AUTENTICACIÓN
