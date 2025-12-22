@@ -1357,6 +1357,9 @@ app.post('/api/auth/register', async (req: Request, res: Response) => {
  */
 app.post('/api/auth/login', async (req: Request, res: Response) => {
   try {
+    // Asegurar que el admin existe antes de autenticar (importante en serverless)
+    ensureAdminExists();
+    
     const { username, password } = req.body;
     
     if (!username || !password) {
