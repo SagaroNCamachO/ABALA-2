@@ -132,14 +132,162 @@
             margin-bottom: 20px;
         }
         
+        /* ============================================
+           RESPONSIVE DESIGN - MEDIA QUERIES
+           ============================================ */
+        
+        /* Tablets y pantallas medianas */
         @media (max-width: 968px) {
             .main-grid {
                 grid-template-columns: 1fr;
             }
+            
+            .header h1 {
+                font-size: 2.5em;
+            }
+            
+            .header p {
+                font-size: 1.1em;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .card h2 {
+                font-size: 1.8em;
+            }
         }
         
-        /* Estilos responsive para fixture en móviles */
+        /* Móviles grandes y tablets pequeñas */
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                font-size: 16px;
+            }
+            
+            .container {
+                max-width: 100%;
+            }
+            
+            .header {
+                margin-bottom: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+                margin-bottom: 10px;
+            }
+            
+            .header p {
+                font-size: 1em;
+            }
+            
+            .header > div {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            #themeToggle {
+                width: 100%;
+                font-size: 1em;
+            }
+            
+            .card {
+                padding: 15px;
+                border-radius: 10px;
+            }
+            
+            .card h2 {
+                font-size: 1.5em;
+                margin-bottom: 15px;
+            }
+            
+            .tabs {
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+            
+            .tab {
+                padding: 12px 20px;
+                font-size: 1.1em;
+                min-height: 45px;
+                flex: 1;
+                min-width: calc(50% - 5px);
+            }
+            
+            .form-group label {
+                font-size: 1.1em;
+            }
+            
+            .form-group input,
+            .form-group select {
+                padding: 15px;
+                font-size: 16px; /* Evita zoom en iOS */
+            }
+            
+            .btn {
+                padding: 16px 30px;
+                font-size: 1.1em;
+                min-height: 55px;
+            }
+            
+            .btn-large {
+                padding: 18px 35px;
+                font-size: 1.2em;
+                min-height: 60px;
+            }
+            
+            .help-text {
+                padding: 15px;
+                font-size: 1em;
+            }
+            
+            .data-section {
+                max-height: 500px;
+            }
+            
+            .data-item {
+                padding: 12px;
+            }
+            
+            .data-item strong {
+                font-size: 1.1em;
+            }
+            
+            .alert {
+                padding: 15px;
+                font-size: 1em;
+            }
+            
+            .response {
+                padding: 12px;
+                max-height: 400px;
+            }
+            
+            /* Tablas responsive */
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            table thead,
+            table tbody,
+            table tr {
+                display: table;
+                width: 100%;
+                table-layout: fixed;
+            }
+            
+            table th,
+            table td {
+                padding: 10px 8px;
+                font-size: 0.9em;
+            }
+            
+            /* Fixture responsive */
             .fixture-container {
                 padding: 15px !important;
                 font-size: 14px !important;
@@ -219,6 +367,166 @@
                 width: 100% !important;
                 padding: 14px !important;
                 font-size: 1em !important;
+            }
+        }
+        
+        /* Móviles pequeños */
+        @media (max-width: 480px) {
+            body {
+                padding: 8px;
+                font-size: 14px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .header p {
+                font-size: 0.9em;
+            }
+            
+            .card {
+                padding: 12px;
+            }
+            
+            .card h2 {
+                font-size: 1.3em;
+                margin-bottom: 12px;
+            }
+            
+            .tab {
+                padding: 10px 15px;
+                font-size: 1em;
+                min-height: 40px;
+                min-width: 100%;
+            }
+            
+            .form-group label {
+                font-size: 1em;
+                margin-bottom: 8px;
+            }
+            
+            .form-group input,
+            .form-group select {
+                padding: 12px;
+                font-size: 16px;
+            }
+            
+            .btn {
+                padding: 14px 25px;
+                font-size: 1em;
+                min-height: 50px;
+            }
+            
+            .btn-large {
+                padding: 16px 30px;
+                font-size: 1.1em;
+                min-height: 55px;
+            }
+            
+            .help-text {
+                padding: 12px;
+                font-size: 0.95em;
+            }
+            
+            .data-item {
+                padding: 10px;
+            }
+            
+            .data-item strong {
+                font-size: 1em;
+            }
+            
+            .data-item .info {
+                font-size: 0.8em;
+            }
+            
+            .alert {
+                padding: 12px;
+                font-size: 0.95em;
+            }
+            
+            table th,
+            table td {
+                padding: 8px 5px;
+                font-size: 0.85em;
+            }
+            
+            /* Botones en data-item en móvil */
+            .data-item > div:last-child {
+                width: 100% !important;
+                max-width: 100% !important;
+                flex-direction: row !important;
+            }
+            
+            .data-item button {
+                padding: 10px 15px;
+                font-size: 0.9em;
+                flex: 1;
+                min-height: 45px;
+            }
+            
+            .data-item > div:first-child {
+                width: 100% !important;
+                min-width: 100% !important;
+            }
+            
+            /* Chips más pequeños */
+            .chip {
+                padding: 3px 8px;
+                font-size: 0.75em;
+            }
+        }
+        
+        /* Pantallas muy pequeñas (menos de 360px) */
+        @media (max-width: 360px) {
+            .header h1 {
+                font-size: 1.5em;
+            }
+            
+            .card h2 {
+                font-size: 1.2em;
+            }
+            
+            .tab {
+                font-size: 0.9em;
+                padding: 8px 12px;
+            }
+            
+            .btn {
+                font-size: 0.95em;
+                padding: 12px 20px;
+            }
+        }
+        
+        /* Orientación landscape en móviles */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .main-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .data-section {
+                max-height: 300px;
+            }
+        }
+        
+        /* Impresión */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .header,
+            .tabs,
+            .btn,
+            #themeToggle {
+                display: none;
+            }
+            
+            .card {
+                box-shadow: none;
+                border: 1px solid #ddd;
             }
         }
         
@@ -1335,8 +1643,8 @@
                      onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.3)';" 
                      onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';"
                      onclick="loadChampionshipDetails('${id}')">
-                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
-                        <div style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+                        <div style="flex: 1; min-width: 200px;">
                             <strong style="font-size: 1.2em; color: #667eea;">${champ.name || id}</strong>
                             <div class="info" style="margin-top: 8px; color: #666; font-size: 0.9em;">
                                 <div>ID: <code>${id}</code></div>
@@ -1345,13 +1653,13 @@
                                 <div>Puntos por Victoria: ${champ.points_per_win || 2} | Derrota: ${champ.points_per_loss || 0}</div>
                             </div>
                         </div>
-                        <div style="display: flex; gap: 5px; flex-direction: column;">
+                        <div style="display: flex; gap: 5px; flex-direction: column; width: 100%; max-width: 150px;">
                             <button onclick="event.stopPropagation(); loadChampionshipDetails('${id}')" 
-                                style="padding: 5px 10px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85em;">
+                                style="padding: 8px 12px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.9em; width: 100%; min-height: 40px;">
                                 👁️ Ver
                             </button>
                             <button onclick="event.stopPropagation(); deleteChampionship('${id}')" 
-                                style="padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85em;">
+                                style="padding: 8px 12px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.9em; width: 100%; min-height: 40px;">
                                 🗑️ Eliminar
                             </button>
                         </div>
