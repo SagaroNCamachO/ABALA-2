@@ -1973,6 +1973,179 @@
         // Hacer la función globalmente accesible
         window.deleteCategory = deleteCategory;
         
+        /**
+         * Función helper para obtener equipos de una categoría (útil para recrear)
+         */
+        async function obtenerEquiposDeCategoria(champId, categoryName) {
+            try {
+                const res = await fetch(`${API_BASE}/api/championships/${champId}`);
+                const data = await res.json();
+                
+                if (data.success && data.championship.categories[categoryName]) {
+                    const cat = data.championship.categories[categoryName];
+                    const teams = cat.teams.map(t => t.name || t);
+                    console.log(`\n📂 Categoría: ${categoryName}`);
+                    console.log(`   Equipos (${teams.length}):`);
+                    teams.forEach((team, i) => console.log(`   ${i + 1}. ${team}`));
+                    console.log(`\n   Para recrear:`);
+                    console.log(`   await recrearCategoria('${champId}', '${categoryName}', ${JSON.stringify(teams)});`);
+                    return teams;
+                } else {
+                    console.log(`❌ Categoría "${categoryName}" no encontrada`);
+                    return null;
+                }
+            } catch (error) {
+                console.error(`Error obteniendo equipos:`, error);
+                return null;
+            }
+        }
+        
+        /**
+         * Función helper para recrear una categoría (eliminar y crear con nuevo algoritmo)
+         */
+        async function recrearCategoria(champId, categoryName, teams) {
+            console.log(`\n🔄 Recreando categoría: ${categoryName}`);
+            console.log(`   Campeonato: ${champId}`);
+            console.log(`   Equipos: ${teams.join(', ')}`);
+            
+            // Paso 1: Eliminar
+            console.log(`\n   1️⃣ Eliminando categoría existente...`);
+            try {
+                const deleteRes = await fetch(`${API_BASE}/api/championships/${champId}/categories/${encodeURIComponent(categoryName)}`, {
+                    method: 'DELETE'
+                });
+                const deleteData = await deleteRes.json();
+                
+                if (deleteData.success) {
+                    console.log(`   ✅ Categoría eliminada`);
+                } else {
+                    console.log(`   ⚠️  ${deleteData.error || 'No existía'}`);
+                }
+            } catch (error) {
+                console.log(`   ⚠️  Error al eliminar: ${error.message}`);
+            }
+            
+            // Esperar un momento
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // Paso 2: Crear
+            console.log(`\n   2️⃣ Creando categoría con nuevo algoritmo...`);
+            try {
+                const createRes = await fetch(`${API_BASE}/api/championships/${champId}/categories`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: categoryName,
+                        teams: teams
+                    })
+                });
+                const createData = await createRes.json();
+                
+                if (createData.success) {
+                    console.log(`   ✅ Categoría creada exitosamente`);
+                    console.log(`   📅 El nuevo fixture tiene 2 partidos por jornada`);
+                    
+                    // Recargar datos
+                    if (typeof window.loadData === 'function') {
+                        await window.loadData();
+                    }
+                    
+                    return true;
+                } else {
+                    console.error(`   ❌ Error: ${createData.error}`);
+                    return false;
+                }
+            } catch (error) {
+                console.error(`   ❌ Error al crear: ${error.message}`);
+                return false;
+            }
+        }
+        
+        /**
+         * Función helper para listar todas las categorías con sus equipos
+         */
+        async function listarTodasLasCategorias() {
+            console.log('📋 Obteniendo todas las categorías...\n');
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/championships`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    console.log('📊 CATEGORÍAS ENCONTRADAS:\n');
+                    console.log('='.repeat(80));
+                    
+                    const categoriasInfo = [];
+                    
+                    for (const [champId, champ] of Object.entries(data.championships)) {
+                        console.log(`\n🏆 ${champ.name} (ID: ${champId})`);
+                        
+                        // Obtener detalles completos
+                        const champRes = await fetch(`${API_BASE}/api/championships/${champId}`);
+                        const champData = await champRes.json();
+                        
+                        if (champData.success && champData.championship.categories) {
+                            for (const [catName, cat] of Object.entries(champData.championship.categories)) {
+                                const teams = cat.teams.map(t => t.name || t);
+                                console.log(`\n   📂 ${catName}`);
+                                console.log(`      Equipos (${teams.length}): ${teams.join(', ')}`);
+                                
+                                categoriasInfo.push({
+                                    champId: champId,
+                                    champName: champ.name,
+                                    categoryName: catName,
+                                    teams: teams
+                                });
+                                
+                                console.log(`      \n      Para recrear:`);
+                                console.log(`      await recrearCategoria('${champId}', '${catName}', ${JSON.stringify(teams)});`);
+                            }
+                        }
+                    }
+                    
+                    console.log('\n' + '='.repeat(80));
+                    console.log('\n💡 Usa las funciones:');
+                    console.log('   - obtenerEquiposDeCategoria(champId, categoryName)');
+                    console.log('   - recrearCategoria(champId, categoryName, teams)');
+                    console.log('   - listarTodasLasCategorias()');
+                    
+                    return categoriasInfo;
+                } else {
+                    console.error('❌ Error obteniendo campeonatos');
+                    return [];
+                }
+            } catch (error) {
+                console.error('❌ Error:', error);
+                return [];
+            }
+        }
+        
+        // Hacer funciones globalmente accesibles
+        window.obtenerEquiposDeCategoria = obtenerEquiposDeCategoria;
+        window.recrearCategoria = recrearCategoria;
+        window.listarTodasLasCategorias = listarTodasLasCategorias;
+        
+        console.log(`
+📋 Funciones helper cargadas:
+
+1. listarTodasLasCategorias()
+   - Lista todas las categorías con sus equipos
+   - Muestra código para recrear cada una
+
+2. obtenerEquiposDeCategoria(champId, categoryName)
+   - Obtiene los equipos de una categoría específica
+   - Ejemplo: obtenerEquiposDeCategoria('champ1', 'TC')
+
+3. recrearCategoria(champId, categoryName, teams)
+   - Elimina y recrea una categoría con el nuevo algoritmo
+   - Ejemplo: recrearCategoria('champ1', 'TC', ['Equipo A', 'Equipo B', ...])
+
+💡 Para recrear 3 categorías:
+   1. Ejecuta: listarTodasLasCategorias()
+   2. Copia los equipos de cada categoría
+   3. Ejecuta: recrearCategoria(champId, 'NombreCategoria', [equipos])
+`);
+        
         // Asegurar que updateForm esté disponible globalmente
         window.updateForm = function() {
             const action = document.getElementById('actionSelect').value;
