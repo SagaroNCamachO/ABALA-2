@@ -5,6 +5,77 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.3.0] - 2025-01-27
+
+### Agregado
+- **Integración MongoDB Atlas**:
+  - Persistencia real en MongoDB Atlas
+  - Sincronización automática con base de datos
+  - Carga lazy de campeonatos (optimizado para serverless)
+  - Backup automático en localStorage
+  - Scripts de utilidad para MongoDB (`verify-mongodb`, `list-categories`, `delete-champ`)
+
+- **Algoritmo de Fixture Mejorado**:
+  - Búsqueda exhaustiva para garantizar 2 partidos por jornada
+  - Distribución equitativa de partidos entre equipos
+  - Evita jornadas consecutivas para prevenir cansancio
+  - Solo la última jornada puede tener 1 partido
+  - Optimizado para máximo uso del gimnasio
+
+- **Eliminación de Categorías**:
+  - Endpoint `DELETE /api/championships/:id/categories/:category`
+  - Botón de eliminación en la interfaz
+  - Sincronización automática con MongoDB
+  - Confirmación antes de eliminar
+
+- **Funciones Helper en Consola**:
+  - `listarTodasLasCategorias()` - Lista todas las categorías con equipos
+  - `obtenerEquiposDeCategoria()` - Obtiene equipos de una categoría
+  - `recrearCategoria()` - Elimina y recrea una categoría con nuevo algoritmo
+
+- **Scripts de Prueba**:
+  - `npm run test-complete` - Prueba completa automatizada del sistema
+  - Verificación de fixtures, resultados, tablas de posiciones
+  - Detección automática de problemas
+
+- **Mejoras de Manejo de Errores**:
+  - Manejo silencioso de errores 404
+  - Filtrado de campeonatos inexistentes
+  - Limpieza automática de datos obsoletos
+  - Mensajes de error más descriptivos
+
+### Cambiado
+- **Algoritmo de Generación de Fixture**:
+  - Reescrito completamente para garantizar 2 partidos por jornada
+  - Búsqueda más agresiva de combinaciones compatibles
+  - Priorización de equipos con menos partidos asignados
+
+- **Carga de Datos**:
+  - Carga lazy desde MongoDB (solo cuando se necesita)
+  - Optimizado para entornos serverless
+  - Mejor manejo de datos offline
+
+- **Renderizado de Campeonatos**:
+  - Solo muestra campeonatos que existen en el servidor
+  - Limpieza automática de datos obsoletos
+  - Validación antes de renderizar
+
+### Corregido
+- **Registro de Resultados**:
+  - Corregido formato de datos requeridos
+  - Mejorada validación de partidos
+  - Verificación de existencia del partido antes de registrar
+
+- **Manejo de Errores 404**:
+  - No muestra errores 404 en la consola
+  - Filtra campeonatos inexistentes automáticamente
+  - Limpia localStorage de datos obsoletos
+
+- **Sincronización MongoDB**:
+  - Corregida carga inicial en serverless
+  - Mejorado manejo de conexiones
+  - Validación de datos antes de guardar
+
 ## [1.2.0] - 2025-01-27
 
 ### Agregado
