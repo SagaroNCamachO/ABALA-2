@@ -108,14 +108,14 @@ git reset --hard v1.3.0-estable
 
 ## Commit Hash
 
-El commit exacto de este punto de recuperación será:
+El commit exacto de este punto de recuperación es:
 ```
-$(git rev-parse HEAD)
+494372e8c8e6de51d6027e19688be5934c778645c
 ```
 
 O en formato corto:
 ```
-$(git rev-parse --short HEAD)
+494372e
 ```
 
 ## Cambios desde v1.1.0-estable

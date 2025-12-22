@@ -5,7 +5,7 @@
 **Versión:** 1.3.0  
 **Tag:** `v1.3.0-estable`  
 **Fecha:** 2025-01-27  
-**Commit:** `$(git rev-parse --short HEAD)`
+**Commit:** `494372e`
 
 ## ✨ Funcionalidades Verificadas
 
