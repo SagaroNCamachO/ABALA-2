@@ -24,26 +24,61 @@ app.use(express.static(publicPath));
 // Cargar campeonatos desde almacenamiento persistente al iniciar
 // Intenta MongoDB primero, luego fallback a archivos JSON
 let championships: Map<string, Championship> = new Map<string, Championship>();
+let isLoading = false;
+let loadPromise: Promise<void> | null = null;
 
-(async () => {
-  try {
-    // Intentar cargar desde MongoDB si está configurado
-    if (process.env.MONGODB_URI) {
-      championships = await MongoDBStorage.load();
-      if (championships.size > 0) {
-        console.log(`✅ Cargados ${championships.size} campeonato(s) desde MongoDB`);
-        return;
-      }
+/**
+ * Cargar campeonatos de forma lazy (solo cuando se necesite).
+ * Esto es importante en serverless donde la carga asíncrona inicial puede no completarse.
+ */
+async function ensureChampionshipsLoaded(): Promise<void> {
+  // Si ya están cargados, no hacer nada
+  if (championships.size > 0 || isLoading) {
+    if (loadPromise) {
+      return loadPromise;
     }
-    
-    // Fallback a almacenamiento local (archivos JSON)
-    championships = ChampionshipStorage.load();
-    console.log(`✅ Cargados ${championships.size} campeonato(s) desde almacenamiento local`);
-  } catch (error: any) {
-    console.error('❌ Error cargando campeonatos al iniciar:', error);
-    championships = new Map<string, Championship>();
+    return Promise.resolve();
   }
-})();
+
+  // Si ya hay una carga en progreso, esperar a que termine
+  if (loadPromise) {
+    return loadPromise;
+  }
+
+  isLoading = true;
+  loadPromise = (async () => {
+    try {
+      console.log('🔄 Cargando campeonatos desde almacenamiento...');
+      
+      // Intentar cargar desde MongoDB si está configurado
+      if (process.env.MONGODB_URI) {
+        try {
+          const mongoChamps = await MongoDBStorage.load();
+          if (mongoChamps.size > 0) {
+            championships = mongoChamps;
+            console.log(`✅ Cargados ${championships.size} campeonato(s) desde MongoDB`);
+            isLoading = false;
+            return;
+          }
+        } catch (mongoError: any) {
+          console.warn('⚠️ Error cargando desde MongoDB, usando fallback:', mongoError.message);
+        }
+      }
+      
+      // Fallback a almacenamiento local (archivos JSON)
+      championships = ChampionshipStorage.load();
+      console.log(`✅ Cargados ${championships.size} campeonato(s) desde almacenamiento local`);
+    } catch (error: any) {
+      console.error('❌ Error cargando campeonatos:', error);
+      championships = new Map<string, Championship>();
+    } finally {
+      isLoading = false;
+      loadPromise = null;
+    }
+  })();
+
+  return loadPromise;
+}
 
 /**
  * Función auxiliar para guardar automáticamente después de cambios.
@@ -323,82 +358,119 @@ app.post('/api/championships', async (req: Request, res: Response) => {
 /**
  * Listar todos los campeonatos.
  */
-app.get('/api/championships', (_req: Request, res: Response) => {
-  const championshipsList: Record<string, any> = {};
-  for (const [id, champ] of championships.entries()) {
-    championshipsList[id] = {
-      id,
-      name: champ.name,
-      rounds: champ.rounds,
-      categories: Array.from(champ.categories.keys())
-    };
-  }
+app.get('/api/championships', async (_req: Request, res: Response) => {
+  try {
+    // Asegurar que los campeonatos estén cargados
+    await ensureChampionshipsLoaded();
+    
+    const championshipsList: Record<string, any> = {};
+    for (const [id, champ] of championships.entries()) {
+      championshipsList[id] = {
+        id,
+        name: champ.name,
+        rounds: champ.rounds,
+        categories: Array.from(champ.categories.keys())
+      };
+    }
 
-  return res.json({
-    success: true,
-    championships: championshipsList
-  });
+    return res.json({
+      success: true,
+      championships: championshipsList
+    });
+  } catch (error: any) {
+    console.error('Error en GET /api/championships:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
 });
 
 /**
  * Eliminar un campeonato.
  */
 app.delete('/api/championships/:id', async (req: Request, res: Response) => {
-  const champId = req.params.id;
-  
-  if (!championships.has(champId)) {
-    return res.status(404).json({
+  try {
+    // Asegurar que los campeonatos estén cargados
+    await ensureChampionshipsLoaded();
+    
+    const champId = req.params.id;
+    
+    if (!championships.has(champId)) {
+      return res.status(404).json({
+        success: false,
+        error: "Campeonato no encontrado"
+      });
+    }
+
+    championships.delete(champId);
+    
+    // Guardar automáticamente después de eliminar
+    await autoSave();
+
+    return res.json({
+      success: true,
+      message: "Campeonato eliminado exitosamente"
+    });
+  } catch (error: any) {
+    console.error('Error en DELETE /api/championships/:id:', error);
+    return res.status(500).json({
       success: false,
-      error: "Campeonato no encontrado"
+      error: error.message
     });
   }
-
-  championships.delete(champId);
-  
-  // Guardar automáticamente después de eliminar
-  await autoSave();
-
-  return res.json({
-    success: true,
-    message: "Campeonato eliminado exitosamente"
-  });
 });
 
 /**
  * Obtener un campeonato específico.
  */
-app.get('/api/championships/:id', (req: Request, res: Response) => {
-  const champId = req.params.id;
-  const championship = championships.get(champId);
+app.get('/api/championships/:id', async (req: Request, res: Response) => {
+  try {
+    // Asegurar que los campeonatos estén cargados
+    await ensureChampionshipsLoaded();
+    
+    const champId = req.params.id;
+    const championship = championships.get(champId);
 
-  if (!championship) {
-    return res.status(404).json({
+    if (!championship) {
+      console.log(`❌ Campeonato ${champId} no encontrado. Campeonatos disponibles: ${Array.from(championships.keys()).join(', ')}`);
+      return res.status(404).json({
+        success: false,
+        error: "Campeonato no encontrado"
+      });
+    }
+
+    return res.json({
+      success: true,
+      championship: championship.toDict()
+    });
+  } catch (error: any) {
+    console.error('Error en GET /api/championships/:id:', error);
+    return res.status(500).json({
       success: false,
-      error: "Campeonato no encontrado"
+      error: error.message
     });
   }
-
-  return res.json({
-    success: true,
-    championship: championship.toDict()
-  });
 });
 
 /**
  * Agregar una categoría a un campeonato.
  */
 app.post('/api/championships/:id/categories', async (req: Request, res: Response) => {
-  const champId = req.params.id;
-  const championship = championships.get(champId);
-
-  if (!championship) {
-    return res.status(404).json({
-      success: false,
-      error: "Campeonato no encontrado"
-    });
-  }
-
   try {
+    // Asegurar que los campeonatos estén cargados
+    await ensureChampionshipsLoaded();
+    
+    const champId = req.params.id;
+    const championship = championships.get(champId);
+
+    if (!championship) {
+      return res.status(404).json({
+        success: false,
+        error: "Campeonato no encontrado"
+      });
+    }
+
     const data = req.body || {};
     
     console.log('📥 Datos recibidos para crear categoría:', JSON.stringify(data, null, 2));
@@ -478,6 +550,7 @@ app.post('/api/championships/:id/categories', async (req: Request, res: Response
       category: category.toDict()
     });
   } catch (error: any) {
+    console.error('Error en POST /api/championships/:id/categories:', error);
     return res.status(400).json({
       success: false,
       error: error.message
@@ -546,31 +619,42 @@ app.post('/api/championships/:id/results', async (req: Request, res: Response) =
 /**
  * Obtener la tabla de posiciones de una categoría.
  */
-app.get('/api/championships/:id/standings/:category', (req: Request, res: Response) => {
-  const champId = req.params.id;
-  const championship = championships.get(champId);
+app.get('/api/championships/:id/standings/:category', async (req: Request, res: Response) => {
+  try {
+    // Asegurar que los campeonatos estén cargados
+    await ensureChampionshipsLoaded();
+    
+    const champId = req.params.id;
+    const championship = championships.get(champId);
 
-  if (!championship) {
-    return res.status(404).json({
+    if (!championship) {
+      return res.status(404).json({
+        success: false,
+        error: "Campeonato no encontrado"
+      });
+    }
+
+    const categoryName = req.params.category;
+    const standings = championship.getStandings(categoryName);
+
+    if (standings === null) {
+      return res.status(404).json({
+        success: false,
+        error: "Categoría no encontrada"
+      });
+    }
+
+    return res.json({
+      success: true,
+      standings: standings.map(team => team.toDict())
+    });
+  } catch (error: any) {
+    console.error('Error en GET /api/championships/:id/standings/:category:', error);
+    return res.status(500).json({
       success: false,
-      error: "Campeonato no encontrado"
+      error: error.message
     });
   }
-
-  const categoryName = req.params.category;
-  const standings = championship.getStandings(categoryName);
-
-  if (standings === null) {
-    return res.status(404).json({
-      success: false,
-      error: "Categoría no encontrada"
-    });
-  }
-
-  return res.json({
-    success: true,
-    standings: standings.map(team => team.toDict())
-  });
 });
 
 /**
@@ -627,36 +711,47 @@ app.get('/api/championships/:id/team-stats/:category/:team', (req: Request, res:
 /**
  * Obtener el fixture de una categoría.
  */
-app.get('/api/championships/:id/fixture/:category', (req: Request, res: Response) => {
-  const champId = req.params.id;
-  const championship = championships.get(champId);
+app.get('/api/championships/:id/fixture/:category', async (req: Request, res: Response) => {
+  try {
+    // Asegurar que los campeonatos estén cargados
+    await ensureChampionshipsLoaded();
+    
+    const champId = req.params.id;
+    const championship = championships.get(champId);
 
-  if (!championship) {
-    return res.status(404).json({
+    if (!championship) {
+      return res.status(404).json({
+        success: false,
+        error: "Campeonato no encontrado"
+      });
+    }
+
+    const categoryName = req.params.category;
+    const category = championship.getCategory(categoryName);
+
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        error: "Categoría no encontrada"
+      });
+    }
+
+    const roundNumber = req.query.round ? parseInt(req.query.round as string) : undefined;
+    const matches = roundNumber
+      ? category.getMatchesByRound(roundNumber)
+      : category.matches;
+
+    return res.json({
+      success: true,
+      matches: matches.map(match => match.toDict())
+    });
+  } catch (error: any) {
+    console.error('Error en GET /api/championships/:id/fixture/:category:', error);
+    return res.status(500).json({
       success: false,
-      error: "Campeonato no encontrado"
+      error: error.message
     });
   }
-
-  const categoryName = req.params.category;
-  const category = championship.getCategory(categoryName);
-
-  if (!category) {
-    return res.status(404).json({
-      success: false,
-      error: "Categoría no encontrada"
-    });
-  }
-
-  const roundNumber = req.query.round ? parseInt(req.query.round as string) : undefined;
-  const matches = roundNumber
-    ? category.getMatchesByRound(roundNumber)
-    : category.matches;
-
-  return res.json({
-    success: true,
-    matches: matches.map(match => match.toDict())
-  });
 });
 
 /**
