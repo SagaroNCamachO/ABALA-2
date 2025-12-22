@@ -8,17 +8,11 @@ import { TeamStatisticsCalculator } from './utils/TeamStatistics';
 import { validateChampionship, validateCategory, validateMatchResult, validatePenalty } from './utils/Validation';
 
 const app = express();
-// #region agent log
-fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'src/api.ts:10',message:'Express app created',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-// #endregion
 app.use(cors());
 app.use(express.json());
 
 // Servir archivos estáticos (HTML, CSS, JS)
 const publicPath = path.join(__dirname, '../public');
-// #region agent log
-fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'src/api.ts:18',message:'Setting static path',data:{publicPath,__dirname},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-// #endregion
 app.use(express.static(publicPath));
 
 // Cargar campeonatos desde almacenamiento persistente al iniciar
@@ -101,25 +95,19 @@ async function autoSave(): Promise<void> {
  * Endpoint raíz - Servir interfaz HTML o JSON según Accept header.
  */
 app.get('/', (_req: Request, res: Response) => {
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'src/api.ts:43',message:'Root endpoint called',data:{accept:_req.headers.accept||'none'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-  // #endregion
   try {
     const accept = _req.headers.accept || '';
     
     // Si el cliente acepta HTML, servir la interfaz web
     if (accept.includes('text/html')) {
       const htmlPath = path.join(__dirname, '../public/index.html');
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'src/api.ts:48',message:'Serving HTML file',data:{htmlPath,__dirname},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-      // #endregion
       return res.sendFile(htmlPath);
     }
     
     // Si no, devolver JSON (para APIs)
     return res.json({
       message: "API de Gestión de Campeonatos de Básquetbol",
-      version: "1.2.0",
+      version: "1.3.0",
       status: "operational",
       endpoints: {
         "POST /api/championships": "Crear un nuevo campeonato",
@@ -136,9 +124,6 @@ app.get('/', (_req: Request, res: Response) => {
       web_interface: "Visita esta URL en un navegador para ver la interfaz web"
     });
   } catch (error: any) {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'src/api.ts:72',message:'Error in root endpoint',data:{error:error?.message||'unknown',stack:error?.stack?.substring(0,200)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-    // #endregion
     console.error('❌ Error en endpoint raíz:', error);
     return res.status(500).json({
       error: 'Error interno del servidor',
@@ -1040,9 +1025,6 @@ app.post('/api/championships/:id/generate-final/:category', async (req: Request,
 
 // Manejo global de errores no capturados
 app.use((err: any, _req: Request, res: Response, _next: any) => {
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'src/api.ts:850',message:'Unhandled error caught',data:{error:err?.message||'unknown',path:_req.path},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-  // #endregion
   console.error('❌ Error no capturado en Express:', err);
   res.status(500).json({
     success: false,

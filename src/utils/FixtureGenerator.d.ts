@@ -19,11 +19,18 @@ export declare class FixtureGenerator {
      */
     static groupMatchupsIntoMatchdays(matchups: Array<[string, string]>): Array<Array<[string, string]>>;
     /**
+     * Reorganiza los partidos para evitar que equipos jueguen en jornadas consecutivas.
+     * IMPERATIVO: Todas las jornadas deben tener 2 partidos, EXCEPTO la última jornada.
+     * Distribuye equitativamente los partidos entre equipos para evitar cansancio excesivo.
+     */
+    private static avoidConsecutiveRounds;
+    /**
      * Genera el fixture completo (ida y vuelta) para todas las vueltas.
      * Garantiza que:
      * - En ida: todos juegan una vez contra todos (sin repetir)
      * - En vuelta: mismos enfrentamientos pero con localía invertida
      * - Ningún equipo se repite en la misma jornada
+     * - Ningún equipo juega en jornadas consecutivas (evita cansancio)
      */
     static generateFixture(teams: string[], rounds: number): Match[];
     /**

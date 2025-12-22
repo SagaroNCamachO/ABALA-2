@@ -13,10 +13,6 @@ yarn.lock
 !src/**/*.js
 !src/**/*.d.ts
 models/
-api.d.ts
-api.d.ts.map
-api.js
-api.js.map
 
 # TypeScript
 *.tsbuildinfo

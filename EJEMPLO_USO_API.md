@@ -211,3 +211,5 @@ POST /api/championships/CampeonatoLaboralAncud2026/categories
 ```
 
 
+
+
