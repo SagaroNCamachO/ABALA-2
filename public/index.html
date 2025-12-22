@@ -3679,11 +3679,29 @@
             }
             
             try {
+                // Verificar que el usuario esté autenticado como administrador
+                if (!authToken || !currentUser) {
+                    showAlert('⚠️ Debes iniciar sesión como administrador para registrar resultados', 'error');
+                    showAuthModal();
+                    return;
+                }
+                
+                if (currentUser.role !== 'admin') {
+                    showAlert('⚠️ Solo los administradores pueden registrar resultados de partidos', 'error');
+                    return;
+                }
+                
+                // Preparar headers con autenticación
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                };
+                
                 // Guardar fecha y horario
                 if (date || time) {
                     const scheduleRes = await fetch(`${API_BASE}/api/championships/${champId}/fixture/${category}/schedule`, {
                         method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: headers,
                         body: JSON.stringify({
                             team_a: teamA,
                             team_b: teamB,
@@ -3696,7 +3714,14 @@
                     
                     if (!scheduleRes.ok) {
                         const error = await scheduleRes.json();
-                        showAlert(error.error || 'Error al guardar fecha/horario', 'error');
+                        if (scheduleRes.status === 401 || scheduleRes.status === 403) {
+                            showAlert('⚠️ ' + (error.error || 'No autorizado. Solo administradores pueden realizar esta acción.'), 'error');
+                            if (scheduleRes.status === 401) {
+                                showAuthModal();
+                            }
+                        } else {
+                            showAlert(error.error || 'Error al guardar fecha/horario', 'error');
+                        }
                         return;
                     }
                 }
@@ -3705,7 +3730,7 @@
                 if (scoreA !== null && scoreB !== null && scoreA >= 0 && scoreB >= 0) {
                     const resultRes = await fetch(`${API_BASE}/api/championships/${champId}/fixture/${category}/result`, {
                         method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: headers,
                         body: JSON.stringify({
                             team_a: teamA,
                             team_b: teamB,
@@ -3717,12 +3742,19 @@
                     });
                     
                     const resultData = await resultRes.json();
-                    if (resultData.success) {
+                    if (resultRes.ok && resultData.success) {
                         showAlert('✅ Resultado guardado exitosamente en MongoDB', 'success');
                         // Recargar vista para mostrar el resultado actualizado
                         setTimeout(() => loadViewData(), 1000);
                     } else {
-                        showAlert(resultData.error || 'Error al guardar resultado', 'error');
+                        if (resultRes.status === 401 || resultRes.status === 403) {
+                            showAlert('⚠️ ' + (resultData.error || 'No autorizado. Solo administradores pueden registrar resultados.'), 'error');
+                            if (resultRes.status === 401) {
+                                showAuthModal();
+                            }
+                        } else {
+                            showAlert(resultData.error || 'Error al guardar resultado', 'error');
+                        }
                     }
                 } else if (date || time) {
                     showAlert('✅ Fecha y horario guardados', 'success');
