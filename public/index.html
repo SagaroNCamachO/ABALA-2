@@ -864,7 +864,7 @@
                         <strong>📊 Resumen General</strong>
                         Vista general de todos los campeonatos, próximos partidos y resultados recientes.
                     </div>
-                    <button class="btn btn-large" onclick="loadDashboard()" style="width: 100%; margin-top: 20px;">
+                    <button class="btn btn-large" onclick="if(typeof window.loadDashboard === 'function') { window.loadDashboard(); } else { alert('Cargando dashboard...'); setTimeout(() => { if(typeof window.loadDashboard === 'function') window.loadDashboard(); }, 500); }" style="width: 100%; margin-top: 20px;">
                         🔄 Actualizar Dashboard
                     </button>
                     <div id="dashboardContent" style="margin-top: 30px;"></div>
@@ -1280,6 +1280,9 @@
             
             const { summary, championships, upcoming_matches, recent_results, top_teams } = dashboard;
             
+            // Guardar summary en una variable accesible para el gráfico
+            window.dashboardSummary = summary;
+            
             // Validar que los datos existan
             if (!summary) {
                 dashboardContent.innerHTML = '<div class="alert alert-error">Error: Resumen no disponible</div>';
@@ -1502,12 +1505,17 @@
             setTimeout(() => {
                 const ctx = document.getElementById('progressChart');
                 if (ctx && typeof Chart !== 'undefined') {
+                    const summaryData = window.dashboardSummary || summary || {};
+                    const played = summaryData.matches_played || 0;
+                    const pending = summaryData.matches_pending || 0;
+                    const total = summaryData.total_matches || 0;
+                    
                     new Chart(ctx, {
                         type: 'doughnut',
                         data: {
                             labels: ['Jugados', 'Pendientes'],
                             datasets: [{
-                                data: [${summary.matches_played || 0}, ${summary.matches_pending || 0}],
+                                data: [played, pending],
                                 backgroundColor: ['#28a745', '#ffc107'],
                                 borderWidth: 3,
                                 borderColor: '#fff'
@@ -1532,7 +1540,6 @@
                                         label: function(context) {
                                             const label = context.label || '';
                                             const value = context.parsed || 0;
-                                            const total = ${summary.total_matches || 0};
                                             const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
                                             return label + ': ' + value + ' (' + percentage + '%)';
                                         }
