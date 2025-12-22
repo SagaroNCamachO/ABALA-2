@@ -12,43 +12,84 @@ const MongoDBStorage_1 = require("./storage/MongoDBStorage");
 const TeamStatistics_1 = require("./utils/TeamStatistics");
 const Validation_1 = require("./utils/Validation");
 // #region agent log
+console.log('[DEBUG] api.ts:9 - Before AuditLog import');
 try {
     const fs = require('fs');
     const logPath = '.cursor/debug.log';
     const logEntry = JSON.stringify({ location: 'api.ts:9', message: 'Before AuditLog import', data: { timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'B' }) + '\n';
     fs.appendFileSync(logPath, logEntry);
 }
-catch (e) { }
+catch (e) {
+    console.error('[DEBUG] Failed to write log:', e);
+}
 // #endregion
-const AuditLog_1 = require("./models/AuditLog");
+let AuditLog;
+try {
+    const auditLogModule = require('./models/AuditLog');
+    AuditLog = auditLogModule.AuditLog;
+    console.log('[DEBUG] api.ts:10 - AuditLog imported successfully');
+}
+catch (error) {
+    console.error('[DEBUG] api.ts:10 - Error importing AuditLog:', error?.message || error);
+    throw error;
+}
 // #region agent log
+console.log('[DEBUG] api.ts:11 - Before UserManager import');
 try {
     const fs = require('fs');
     const logPath = '.cursor/debug.log';
-    const logEntry = JSON.stringify({ location: 'api.ts:10', message: 'Before UserManager import', data: { timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'B' }) + '\n';
+    const logEntry = JSON.stringify({ location: 'api.ts:11', message: 'Before UserManager import', data: { timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'B' }) + '\n';
     fs.appendFileSync(logPath, logEntry);
 }
-catch (e) { }
+catch (e) {
+    console.error('[DEBUG] Failed to write log:', e);
+}
 // #endregion
-const User_1 = require("./models/User");
+let UserManager;
+let UserRole;
+try {
+    const userModule = require('./models/User');
+    UserManager = userModule.UserManager;
+    UserRole = userModule.UserRole;
+    console.log('[DEBUG] api.ts:12 - UserManager and UserRole imported successfully');
+}
+catch (error) {
+    console.error('[DEBUG] api.ts:12 - Error importing UserManager:', error?.message || error);
+    throw error;
+}
 // #region agent log
+console.log('[DEBUG] api.ts:13 - Before NotificationManager import');
 try {
     const fs = require('fs');
     const logPath = '.cursor/debug.log';
-    const logEntry = JSON.stringify({ location: 'api.ts:11', message: 'Before NotificationManager import', data: { timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'B' }) + '\n';
+    const logEntry = JSON.stringify({ location: 'api.ts:13', message: 'Before NotificationManager import', data: { timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'B' }) + '\n';
     fs.appendFileSync(logPath, logEntry);
 }
-catch (e) { }
+catch (e) {
+    console.error('[DEBUG] Failed to write log:', e);
+}
 // #endregion
-const NotificationSettings_1 = require("./models/NotificationSettings");
+let NotificationManager;
+try {
+    const notificationModule = require('./models/NotificationSettings');
+    NotificationManager = notificationModule.NotificationManager;
+    console.log('[DEBUG] api.ts:14 - NotificationManager imported successfully');
+}
+catch (error) {
+    console.error('[DEBUG] api.ts:14 - Error importing NotificationManager:', error?.message || error);
+    throw error;
+}
 // #region agent log
+console.log('[DEBUG] api.ts:15 - All imports completed', { hasUserManager: !!UserManager, hasNotificationManager: !!NotificationManager, hasAuditLog: !!AuditLog });
 try {
     const fs = require('fs');
     const logPath = '.cursor/debug.log';
-    const logEntry = JSON.stringify({ location: 'api.ts:13', message: 'All imports completed', data: { hasUserManager: !!User_1.UserManager, hasNotificationManager: !!NotificationSettings_1.NotificationManager, hasAuditLog: !!AuditLog_1.AuditLog, timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'B' }) + '\n';
+    const logEntry = JSON.stringify({ location: 'api.ts:15', message: 'All imports completed', data: { hasUserManager: !!UserManager, hasNotificationManager: !!NotificationManager, hasAuditLog: !!AuditLog, timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'B' }) + '\n';
     fs.appendFileSync(logPath, logEntry);
 }
-catch (e) { }
+catch (e) {
+    console.error('[DEBUG] Failed to write log:', e);
+}
 // #endregion
 const app = (0, express_1.default)();
 // #region agent log
@@ -86,7 +127,7 @@ catch (e) { }
 try {
     const fs = require('fs');
     const logPath = '.cursor/debug.log';
-    const logEntry = JSON.stringify({ location: 'api.ts:21', message: 'Before initAdminUser', data: { nodeEnv: process.env.NODE_ENV, hasUserManager: !!User_1.UserManager, hasUserRole: !!User_1.UserRole, timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'D' }) + '\n';
+    const logEntry = JSON.stringify({ location: 'api.ts:21', message: 'Before initAdminUser', data: { nodeEnv: process.env.NODE_ENV, hasUserManager: !!UserManager, hasUserRole: !!UserRole, timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'D' }) + '\n';
     fs.appendFileSync(logPath, logEntry);
 }
 catch (e) { }
@@ -110,22 +151,22 @@ catch (e) { }
                     try {
                         const fs = require('fs');
                         const logPath = '.cursor/debug.log';
-                        const logEntry = JSON.stringify({ location: 'api.ts:28', message: 'Inside setImmediate', data: { hasUserManager: !!User_1.UserManager, hasGetUserByUsername: !!(User_1.UserManager && User_1.UserManager.getUserByUsername), timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'D' }) + '\n';
+                        const logEntry = JSON.stringify({ location: 'api.ts:28', message: 'Inside setImmediate', data: { hasUserManager: !!UserManager, hasGetUserByUsername: !!(UserManager && UserManager.getUserByUsername), timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'D' }) + '\n';
                         fs.appendFileSync(logPath, logEntry);
                     }
                     catch (e) { }
                     // #endregion
-                    if (User_1.UserManager && User_1.UserManager.getUserByUsername && User_1.UserManager.getUserByUsername('admin') === null) {
+                    if (UserManager && UserManager.getUserByUsername && UserManager.getUserByUsername('admin') === null) {
                         // #region agent log
                         try {
                             const fs = require('fs');
                             const logPath = '.cursor/debug.log';
-                            const logEntry = JSON.stringify({ location: 'api.ts:30', message: 'Before createUser', data: { hasUserRole: !!User_1.UserRole, timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'D' }) + '\n';
+                            const logEntry = JSON.stringify({ location: 'api.ts:30', message: 'Before createUser', data: { hasUserRole: !!UserRole, timestamp: Date.now() }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'D' }) + '\n';
                             fs.appendFileSync(logPath, logEntry);
                         }
                         catch (e) { }
                         // #endregion
-                        User_1.UserManager.createUser('admin', 'admin123', 'admin@abala.com', User_1.UserRole.ADMIN);
+                        UserManager.createUser('admin', 'admin123', 'admin@abala.com', UserRole.ADMIN);
                         // #region agent log
                         try {
                             const fs = require('fs');
@@ -520,7 +561,7 @@ app.post('/api/championships', async (req, res) => {
         const championship = new Championship_1.Championship(name, rounds, pointsPerWin, pointsPerLoss);
         championships.set(champId, championship);
         // Registrar en historial
-        AuditLog_1.AuditLog.log('create', 'championship', champId, {
+        AuditLog.log('create', 'championship', champId, {
             entityName: name,
             metadata: { rounds, pointsPerWin, pointsPerLoss }
         });
@@ -586,7 +627,7 @@ app.delete('/api/championships/:id', async (req, res) => {
         const champName = championship.name;
         championships.delete(champId);
         // Registrar en historial
-        AuditLog_1.AuditLog.log('delete', 'championship', champId, {
+        AuditLog.log('delete', 'championship', champId, {
             entityName: champName
         });
         // Guardar automáticamente después de eliminar
@@ -665,7 +706,7 @@ app.delete('/api/championships/:id/categories/:category', async (req, res) => {
             });
         }
         // Registrar en historial
-        AuditLog_1.AuditLog.log('delete', 'category', `${champId}_${categoryName}`, {
+        AuditLog.log('delete', 'category', `${champId}_${categoryName}`, {
             entityName: categoryName,
             metadata: {
                 championship_id: champId,
@@ -759,7 +800,7 @@ app.post('/api/championships/:id/categories', async (req, res) => {
             throw new Error("Error al crear la categoría");
         }
         // Registrar en historial
-        AuditLog_1.AuditLog.log('create', 'category', `${champId}_${categoryName}`, {
+        AuditLog.log('create', 'category', `${champId}_${categoryName}`, {
             entityName: categoryName,
             metadata: {
                 championship_id: champId,
@@ -817,7 +858,7 @@ app.post('/api/championships/:id/results', async (req, res) => {
         if (success) {
             // Registrar en historial
             const matchId = `${champId}_${categoryName}_${teamA}_${teamB}_${roundNumber}_${matchType}`;
-            AuditLog_1.AuditLog.log('register_result', 'match', matchId, {
+            AuditLog.log('register_result', 'match', matchId, {
                 entityName: `${teamA} vs ${teamB}`,
                 metadata: {
                     championship_id: champId,
@@ -1221,19 +1262,19 @@ app.get('/api/audit-log', async (req, res) => {
         let logs;
         if (entity_type && entity_id) {
             // Logs de una entidad específica
-            logs = AuditLog_1.AuditLog.getLogsByEntity(entity_type, entity_id);
+            logs = AuditLog.getLogsByEntity(entity_type, entity_id);
         }
         else if (action) {
             // Logs de una acción específica
-            logs = AuditLog_1.AuditLog.getLogsByAction(action, limit ? parseInt(limit) : 100);
+            logs = AuditLog.getLogsByAction(action, limit ? parseInt(limit) : 100);
         }
         else {
             // Todos los logs recientes
-            logs = AuditLog_1.AuditLog.getRecentLogs(limit ? parseInt(limit) : 100);
+            logs = AuditLog.getRecentLogs(limit ? parseInt(limit) : 100);
         }
         return res.json({
             success: true,
-            logs: logs.map(log => ({
+            logs: logs.map((log) => ({
                 id: log.id,
                 timestamp: log.timestamp.toISOString(),
                 action: log.action,
@@ -1261,10 +1302,10 @@ app.get('/api/audit-log', async (req, res) => {
 app.get('/api/audit-log/:entity_type/:entity_id', async (req, res) => {
     try {
         const { entity_type, entity_id } = req.params;
-        const logs = AuditLog_1.AuditLog.getLogsByEntity(entity_type, entity_id);
+        const logs = AuditLog.getLogsByEntity(entity_type, entity_id);
         return res.json({
             success: true,
-            logs: logs.map(log => ({
+            logs: logs.map((log) => ({
                 id: log.id,
                 timestamp: log.timestamp.toISOString(),
                 action: log.action,
@@ -1304,14 +1345,14 @@ app.post('/api/auth/register', async (req, res) => {
             });
         }
         // Verificar que el username no exista
-        if (User_1.UserManager.getUserByUsername(username)) {
+        if (UserManager.getUserByUsername(username)) {
             return res.status(400).json({
                 success: false,
                 error: 'El username ya existe'
             });
         }
-        const userRole = role && Object.values(User_1.UserRole).includes(role) ? role : User_1.UserRole.VIEWER;
-        const user = User_1.UserManager.createUser(username, password, email, userRole);
+        const userRole = role && Object.values(UserRole).includes(role) ? role : UserRole.VIEWER;
+        const user = UserManager.createUser(username, password, email, userRole);
         return res.status(201).json({
             success: true,
             user: {
@@ -1341,7 +1382,7 @@ app.post('/api/auth/login', async (req, res) => {
                 error: 'Username y password son requeridos'
             });
         }
-        const user = User_1.UserManager.authenticate(username, password);
+        const user = UserManager.authenticate(username, password);
         if (!user) {
             return res.status(401).json({
                 success: false,
@@ -1381,7 +1422,7 @@ app.get('/api/auth/me', async (req, res) => {
         const token = authHeader.substring(7);
         const decoded = Buffer.from(token, 'base64').toString('utf-8');
         const [userId] = decoded.split(':');
-        const user = User_1.UserManager.getUser(userId);
+        const user = UserManager.getUser(userId);
         if (!user) {
             return res.status(401).json({
                 success: false,
@@ -1422,7 +1463,7 @@ app.get('/api/notifications/settings', async (req, res) => {
         const token = authHeader.substring(7);
         const decoded = Buffer.from(token, 'base64').toString('utf-8');
         const [userId] = decoded.split(':');
-        const settings = NotificationSettings_1.NotificationManager.getSettings(userId);
+        const settings = NotificationManager.getSettings(userId);
         return res.json({ success: true, settings });
     }
     catch (error) {
@@ -1442,8 +1483,8 @@ app.put('/api/notifications/settings', async (req, res) => {
         const decoded = Buffer.from(token, 'base64').toString('utf-8');
         const [userId] = decoded.split(':');
         const settings = req.body;
-        NotificationSettings_1.NotificationManager.updateSettings(userId, settings);
-        return res.json({ success: true, settings: NotificationSettings_1.NotificationManager.getSettings(userId) });
+        NotificationManager.updateSettings(userId, settings);
+        return res.json({ success: true, settings: NotificationManager.getSettings(userId) });
     }
     catch (error) {
         return res.status(500).json({ success: false, error: error.message });
@@ -1463,7 +1504,7 @@ app.post('/api/notifications/subscribe', async (req, res) => {
         const [userId] = decoded.split(':');
         // En producción, guardar la suscripción en base de datos
         // Por ahora solo actualizamos la configuración
-        NotificationSettings_1.NotificationManager.updateSettings(userId, { enablePush: true });
+        NotificationManager.updateSettings(userId, { enablePush: true });
         return res.json({ success: true, message: 'Suscripción exitosa' });
     }
     catch (error) {

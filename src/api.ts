@@ -7,39 +7,69 @@ import { MongoDBStorage } from './storage/MongoDBStorage';
 import { TeamStatisticsCalculator } from './utils/TeamStatistics';
 import { validateChampionship, validateCategory, validateMatchResult, validatePenalty } from './utils/Validation';
 // #region agent log
+console.log('[DEBUG] api.ts:9 - Before AuditLog import');
 try {
   const fs = require('fs');
   const logPath = '.cursor/debug.log';
   const logEntry = JSON.stringify({location:'api.ts:9',message:'Before AuditLog import',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'}) + '\n';
   fs.appendFileSync(logPath, logEntry);
-} catch(e) {}
+} catch(e) { console.error('[DEBUG] Failed to write log:', e); }
 // #endregion
-import { AuditLog } from './models/AuditLog';
+let AuditLog: any;
+try {
+  const auditLogModule = require('./models/AuditLog');
+  AuditLog = auditLogModule.AuditLog;
+  console.log('[DEBUG] api.ts:10 - AuditLog imported successfully');
+} catch (error: any) {
+  console.error('[DEBUG] api.ts:10 - Error importing AuditLog:', error?.message || error);
+  throw error;
+}
 // #region agent log
+console.log('[DEBUG] api.ts:11 - Before UserManager import');
 try {
   const fs = require('fs');
   const logPath = '.cursor/debug.log';
-  const logEntry = JSON.stringify({location:'api.ts:10',message:'Before UserManager import',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'}) + '\n';
+  const logEntry = JSON.stringify({location:'api.ts:11',message:'Before UserManager import',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'}) + '\n';
   fs.appendFileSync(logPath, logEntry);
-} catch(e) {}
+} catch(e) { console.error('[DEBUG] Failed to write log:', e); }
 // #endregion
-import { UserManager, UserRole } from './models/User';
+let UserManager: any;
+let UserRole: any;
+try {
+  const userModule = require('./models/User');
+  UserManager = userModule.UserManager;
+  UserRole = userModule.UserRole;
+  console.log('[DEBUG] api.ts:12 - UserManager and UserRole imported successfully');
+} catch (error: any) {
+  console.error('[DEBUG] api.ts:12 - Error importing UserManager:', error?.message || error);
+  throw error;
+}
 // #region agent log
+console.log('[DEBUG] api.ts:13 - Before NotificationManager import');
 try {
   const fs = require('fs');
   const logPath = '.cursor/debug.log';
-  const logEntry = JSON.stringify({location:'api.ts:11',message:'Before NotificationManager import',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'}) + '\n';
+  const logEntry = JSON.stringify({location:'api.ts:13',message:'Before NotificationManager import',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'}) + '\n';
   fs.appendFileSync(logPath, logEntry);
-} catch(e) {}
+} catch(e) { console.error('[DEBUG] Failed to write log:', e); }
 // #endregion
-import { NotificationManager } from './models/NotificationSettings';
+let NotificationManager: any;
+try {
+  const notificationModule = require('./models/NotificationSettings');
+  NotificationManager = notificationModule.NotificationManager;
+  console.log('[DEBUG] api.ts:14 - NotificationManager imported successfully');
+} catch (error: any) {
+  console.error('[DEBUG] api.ts:14 - Error importing NotificationManager:', error?.message || error);
+  throw error;
+}
 // #region agent log
+console.log('[DEBUG] api.ts:15 - All imports completed', { hasUserManager: !!UserManager, hasNotificationManager: !!NotificationManager, hasAuditLog: !!AuditLog });
 try {
   const fs = require('fs');
   const logPath = '.cursor/debug.log';
-  const logEntry = JSON.stringify({location:'api.ts:13',message:'All imports completed',data:{hasUserManager:!!UserManager,hasNotificationManager:!!NotificationManager,hasAuditLog:!!AuditLog,timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'}) + '\n';
+  const logEntry = JSON.stringify({location:'api.ts:15',message:'All imports completed',data:{hasUserManager:!!UserManager,hasNotificationManager:!!NotificationManager,hasAuditLog:!!AuditLog,timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'}) + '\n';
   fs.appendFileSync(logPath, logEntry);
-} catch(e) {}
+} catch(e) { console.error('[DEBUG] Failed to write log:', e); }
 // #endregion
 
 const app = express();
@@ -1368,7 +1398,7 @@ app.get('/api/audit-log', async (req: Request, res: Response) => {
     
     return res.json({
       success: true,
-      logs: logs.map(log => ({
+      logs: logs.map((log: any) => ({
         id: log.id,
         timestamp: log.timestamp.toISOString(),
         action: log.action,
@@ -1400,7 +1430,7 @@ app.get('/api/audit-log/:entity_type/:entity_id', async (req: Request, res: Resp
     
     return res.json({
       success: true,
-      logs: logs.map(log => ({
+      logs: logs.map((log: any) => ({
         id: log.id,
         timestamp: log.timestamp.toISOString(),
         action: log.action,
