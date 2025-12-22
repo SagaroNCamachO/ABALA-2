@@ -18,6 +18,7 @@ const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 // Crear usuario admin por defecto si no existe (solo en desarrollo)
+// Solo puede haber UN administrador en el sistema
 // Hacerlo de forma segura y asíncrona para evitar errores en el arranque
 (function initAdminUser() {
     try {
@@ -25,9 +26,15 @@ app.use(express_1.default.json());
             // Usar setImmediate para ejecutar después de que el módulo se haya cargado completamente
             setImmediate(() => {
                 try {
-                    if (User_1.UserManager && User_1.UserManager.getUserByUsername && User_1.UserManager.getUserByUsername('admin') === null) {
-                        User_1.UserManager.createUser('admin', 'admin123', 'admin@abala.com', User_1.UserRole.ADMIN);
-                        console.log('✅ Usuario admin creado (username: admin, password: admin123)');
+                    // Verificar que no exista ningún admin antes de crear uno
+                    if (User_1.UserManager && User_1.UserManager.hasAdmin && !User_1.UserManager.hasAdmin()) {
+                        if (User_1.UserManager.getUserByUsername && User_1.UserManager.getUserByUsername('admin') === null) {
+                            User_1.UserManager.createUser('admin', 'admin123', 'admin@abala.com', User_1.UserRole.ADMIN);
+                            console.log('✅ Usuario admin creado (username: admin, password: admin123)');
+                        }
+                    }
+                    else if (User_1.UserManager && User_1.UserManager.hasAdmin && User_1.UserManager.hasAdmin()) {
+                        console.log('ℹ️ Ya existe un administrador en el sistema');
                     }
                 }
                 catch (error) {
@@ -1140,10 +1147,11 @@ app.get('/api/audit-log/:entity_type/:entity_id', async (req, res) => {
  */
 /**
  * Registrar nuevo usuario
+ * Solo permite crear usuarios con rol VIEWER. Solo puede haber un ADMIN (creado por defecto).
  */
 app.post('/api/auth/register', async (req, res) => {
     try {
-        const { username, password, email, role } = req.body;
+        const { username, password, email } = req.body;
         if (!username || !password) {
             return res.status(400).json({
                 success: false,
@@ -1157,8 +1165,9 @@ app.post('/api/auth/register', async (req, res) => {
                 error: 'El username ya existe'
             });
         }
-        const userRole = role && Object.values(User_1.UserRole).includes(role) ? role : User_1.UserRole.VIEWER;
-        const user = User_1.UserManager.createUser(username, password, email, userRole);
+        // Todos los usuarios nuevos son VIEWER (visualizadores)
+        // El rol ADMIN solo puede ser asignado durante la inicialización del sistema
+        const user = User_1.UserManager.createUser(username, password, email, User_1.UserRole.VIEWER);
         return res.status(201).json({
             success: true,
             user: {
@@ -1166,13 +1175,14 @@ app.post('/api/auth/register', async (req, res) => {
                 username: user.username,
                 email: user.email,
                 role: user.role
-            }
+            },
+            message: 'Usuario creado como visualizador'
         });
     }
     catch (error) {
-        return res.status(500).json({
+        return res.status(400).json({
             success: false,
-            error: error.message
+            error: error.message || 'Error al crear usuario'
         });
     }
 });

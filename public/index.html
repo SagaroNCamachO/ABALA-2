@@ -960,13 +960,8 @@
                     <label>Email (opcional):</label>
                     <input type="email" id="authEmail" placeholder="tu@email.com">
                 </div>
-                <div class="form-group" id="authRoleGroup" style="display: none;">
-                    <label>Rol:</label>
-                    <select id="authRole">
-                        <option value="viewer">Visualizador</option>
-                        <option value="editor">Editor</option>
-                        <option value="admin">Administrador</option>
-                    </select>
+                <div id="authRoleInfo" style="display: none; padding: 10px; background: #f0f0f0; border-radius: 5px; margin-bottom: 15px; font-size: 0.9em; color: #666;">
+                    ℹ️ Todos los usuarios nuevos se crean como <strong>Visualizadores</strong>. Solo puede haber un administrador en el sistema.
                 </div>
                 <button class="btn btn-large" onclick="handleAuth()" style="width: 100%; margin-top: 20px;">
                     Iniciar Sesión
@@ -1840,7 +1835,7 @@
             document.getElementById('authModal').style.display = 'block';
             document.getElementById('authModalTitle').textContent = 'Iniciar Sesión';
             document.getElementById('authEmailGroup').style.display = 'none';
-            document.getElementById('authRoleGroup').style.display = 'none';
+            document.getElementById('authRoleInfo').style.display = 'none';
             document.querySelector('#authForm button').textContent = 'Iniciar Sesión';
             window.authMode = 'login';
         }
@@ -1854,7 +1849,7 @@
             window.authMode = isLogin ? 'register' : 'login';
             document.getElementById('authModalTitle').textContent = isLogin ? 'Registrarse' : 'Iniciar Sesión';
             document.getElementById('authEmailGroup').style.display = isLogin ? 'block' : 'none';
-            document.getElementById('authRoleGroup').style.display = isLogin ? 'block' : 'none';
+            document.getElementById('authRoleInfo').style.display = isLogin ? 'block' : 'none';
             document.querySelector('#authForm button').textContent = isLogin ? 'Registrarse' : 'Iniciar Sesión';
             document.querySelector('#authForm a').textContent = isLogin ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate';
         }
@@ -1863,8 +1858,6 @@
             const username = document.getElementById('authUsername').value;
             const password = document.getElementById('authPassword').value;
             const email = document.getElementById('authEmail').value;
-            const role = document.getElementById('authRole')?.value;
-            
             if (!username || !password) {
                 showAlert('Username y password son requeridos', 'error');
                 return;
@@ -1872,10 +1865,11 @@
             
             try {
                 if (window.authMode === 'register') {
+                    // No enviar 'role' - todos los usuarios nuevos son VIEWER por defecto
                     const res = await fetch(`${API_BASE}/api/auth/register`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username, password, email, role })
+                        body: JSON.stringify({ username, password, email })
                     });
                     const data = await res.json();
                     if (data.success) {

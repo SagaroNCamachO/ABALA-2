@@ -25,7 +25,12 @@ export declare class UserManager {
     private static users;
     private static permissions;
     /**
+     * Verificar si ya existe un administrador
+     */
+    static hasAdmin(): boolean;
+    /**
      * Crear un nuevo usuario
+     * Solo permite crear ADMIN si no existe ninguno. Todos los demás usuarios serán VIEWER.
      */
     static createUser(username: string, password: string, email?: string, role?: UserRole): User;
     /**

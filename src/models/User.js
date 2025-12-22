@@ -12,9 +12,25 @@ var UserRole;
 })(UserRole || (exports.UserRole = UserRole = {}));
 class UserManager {
     /**
+     * Verificar si ya existe un administrador
+     */
+    static hasAdmin() {
+        for (const user of this.users.values()) {
+            if (user.role === UserRole.ADMIN) {
+                return true;
+            }
+        }
+        return false;
+    }
+    /**
      * Crear un nuevo usuario
+     * Solo permite crear ADMIN si no existe ninguno. Todos los demás usuarios serán VIEWER.
      */
     static createUser(username, password, email, role = UserRole.VIEWER) {
+        // Validar que no se pueda crear un ADMIN si ya existe uno
+        if (role === UserRole.ADMIN && this.hasAdmin()) {
+            throw new Error('Ya existe un administrador. Solo puede haber un administrador en el sistema.');
+        }
         const id = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const user = {
             id,
