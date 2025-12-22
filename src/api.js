@@ -49,6 +49,16 @@ async function ensureChampionshipsLoaded() {
                     if (mongoChamps.size > 0) {
                         championships = mongoChamps;
                         console.log(`✅ Cargados ${championships.size} campeonato(s) desde MongoDB`);
+                        // Verificar que los resultados se hayan cargado correctamente
+                        let totalMatches = 0;
+                        let totalPlayed = 0;
+                        for (const [, champ] of championships.entries()) {
+                            for (const category of Array.from(champ.categories.values())) {
+                                totalMatches += category.matches.length;
+                                totalPlayed += category.matches.filter(m => m.played).length;
+                            }
+                        }
+                        console.log(`📊 Estadísticas cargadas: ${totalPlayed}/${totalMatches} partidos jugados`);
                         isLoading = false;
                         return;
                     }

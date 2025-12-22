@@ -138,31 +138,83 @@ export class MongoDBStorage {
         );
 
         const category = championship.getCategory(catName);
-        if (category && catDataTyped.matches) {
-          // Restaurar partidos y resultados
-          for (const matchData of catDataTyped.matches) {
-            if (matchData.played && matchData.score_a !== null && matchData.score_b !== null) {
-              category.registerMatchResult(
-                matchData.team_a,
-                matchData.team_b,
-                matchData.round_number,
-                matchData.score_a,
-                matchData.score_b,
-                matchData.match_type
+        if (category) {
+          // Asegurar que el fixture esté generado ANTES de restaurar resultados
+          // Esto es crítico porque los partidos deben existir antes de restaurar resultados
+          if (!category.fixtureGenerated || category.matches.length === 0) {
+            try {
+              category.generateFixture();
+              console.log(`✅ Fixture generado para categoría ${catName} (${category.matches.length} partidos)`);
+            } catch (error) {
+              console.error(`❌ Error generando fixture para ${catName}:`, error);
+            }
+          }
+          
+          // Ahora restaurar partidos y resultados
+          if (catDataTyped.matches && catDataTyped.matches.length > 0) {
+            // Restaurar partidos y resultados
+            for (const matchData of catDataTyped.matches) {
+              // Buscar el partido (buscar en ambos sentidos: A vs B o B vs A)
+              // También considerar matchday si está disponible
+              let match = category.matches.find(
+                m => {
+                  const teamsMatch = (m.teamA === matchData.team_a && m.teamB === matchData.team_b) ||
+                                    (m.teamA === matchData.team_b && m.teamB === matchData.team_a);
+                  const roundMatch = m.roundNumber === matchData.round_number;
+                  const typeMatch = matchData.match_type === undefined || m.matchType === matchData.match_type;
+                  const matchdayMatch = matchData.matchday === undefined || m.matchday === matchData.matchday;
+                  
+                  return teamsMatch && roundMatch && typeMatch && matchdayMatch;
+                }
               );
+
+              if (match) {
+                // Restaurar fecha y horario primero
+                if (matchData.date) match.date = matchData.date;
+                if (matchData.time) match.time = matchData.time;
+
+                // Restaurar resultado si existe
+                if (matchData.played && matchData.score_a !== null && matchData.score_b !== null) {
+                  // Ajustar el orden de los puntajes según el orden del partido
+                  let finalScoreA: number;
+                  let finalScoreB: number;
+                  if (match.teamA === matchData.team_a) {
+                    // El orden coincide
+                    finalScoreA = matchData.score_a;
+                    finalScoreB = matchData.score_b;
+                  } else {
+                    // El orden está invertido
+                    finalScoreA = matchData.score_b;
+                    finalScoreB = matchData.score_a;
+                  }
+
+                  // Registrar resultado directamente en el partido
+                  match.registerResult(finalScoreA, finalScoreB);
+                  
+                  // Actualizar estadísticas de los equipos
+                  const teamAObj = category.teams.get(match.teamA);
+                  const teamBObj = category.teams.get(match.teamB);
+                  
+                  if (teamAObj && teamBObj) {
+                    // Calcular si ganó el equipo A
+                    const teamAWon = finalScoreA > finalScoreB;
+                    teamAObj.addMatchResult(finalScoreA, finalScoreB, teamAWon);
+                    teamBObj.addMatchResult(finalScoreB, finalScoreA, !teamAWon);
+                  }
+                }
+              } else {
+                console.warn(`⚠️ Partido no encontrado al restaurar: ${matchData.team_a} vs ${matchData.team_b}, Round ${matchData.round_number}, Type ${matchData.match_type || 'N/A'}, Matchday ${matchData.matchday || 'N/A'}`);
+                console.warn(`   Partidos disponibles en categoría: ${category.matches.length}`);
+                if (category.matches.length > 0) {
+                  console.warn(`   Primer partido: ${category.matches[0].teamA} vs ${category.matches[0].teamB}, Round ${category.matches[0].roundNumber}, Type ${category.matches[0].matchType}`);
+                }
+              }
             }
 
-            // Restaurar fecha y horario
-            const match = category.matches.find(
-              m => m.teamA === matchData.team_a &&
-                   m.teamB === matchData.team_b &&
-                   m.roundNumber === matchData.round_number &&
-                   m.matchType === matchData.match_type
-            );
-            if (match) {
-              if (matchData.date) match.date = matchData.date;
-              if (matchData.time) match.time = matchData.time;
-            }
+            // Recalcular tabla de posiciones después de restaurar todos los resultados
+            category.standings.updateStandings();
+            
+            console.log(`✅ Restaurados resultados para categoría ${catName}: ${category.matches.filter(m => m.played).length} partidos jugados`);
           }
 
           // Restaurar penalizaciones
