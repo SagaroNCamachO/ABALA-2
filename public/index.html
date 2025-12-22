@@ -227,10 +227,53 @@
             background: rgba(255, 255, 255, 0.1);
         }
         
+        /* Estilos para modales */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 30px;
+            border: 1px solid #888;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: #000;
+        }
+        
         @media (max-width: 768px) {
             .mobile-menu-toggle {
                 display: block;
             }
+            
+            .modal-content {
+                margin: 5% auto;
+                padding: 20px;
+            }
+        }
             body {
                 padding: 10px;
                 font-size: 16px;
@@ -899,6 +942,110 @@
     </style>
 </head>
 <body>
+    <!-- Modal de Login/Registro -->
+    <div id="authModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close" onclick="closeAuthModal()">&times;</span>
+            <h2 id="authModalTitle" style="color: #667eea; margin-bottom: 20px;">Iniciar Sesión</h2>
+            <div id="authForm">
+                <div class="form-group">
+                    <label>Username:</label>
+                    <input type="text" id="authUsername" placeholder="Ingresa tu username" required>
+                </div>
+                <div class="form-group">
+                    <label>Password:</label>
+                    <input type="password" id="authPassword" placeholder="Ingresa tu password" required>
+                </div>
+                <div class="form-group" id="authEmailGroup" style="display: none;">
+                    <label>Email (opcional):</label>
+                    <input type="email" id="authEmail" placeholder="tu@email.com">
+                </div>
+                <div class="form-group" id="authRoleGroup" style="display: none;">
+                    <label>Rol:</label>
+                    <select id="authRole">
+                        <option value="viewer">Visualizador</option>
+                        <option value="editor">Editor</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+                <button class="btn btn-large" onclick="handleAuth()" style="width: 100%; margin-top: 20px;">
+                    Iniciar Sesión
+                </button>
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="#" onclick="toggleAuthMode(); return false;" style="color: #667eea; text-decoration: underline;">
+                        ¿No tienes cuenta? Regístrate
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Panel de Usuario -->
+    <div id="userPanel" style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: none;">
+        <div style="background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); min-width: 200px;">
+            <div style="font-weight: 700; color: #667eea; margin-bottom: 10px;" id="userInfo">Usuario</div>
+            <button class="btn" onclick="showNotificationSettings()" style="width: 100%; margin-bottom: 5px; background: #17a2b8; color: white;">
+                🔔 Notificaciones
+            </button>
+            <button class="btn" onclick="logout()" style="width: 100%; background: #dc3545; color: white;">
+                Cerrar Sesión
+            </button>
+        </div>
+    </div>
+    
+    <!-- Modal de Configuración de Notificaciones -->
+    <div id="notificationSettingsModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close" onclick="closeNotificationSettings()">&times;</span>
+            <h2 style="color: #667eea; margin-bottom: 20px;">🔔 Configuración de Notificaciones</h2>
+            <div id="notificationSettingsContent">
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="notifEnablePush" onchange="updateNotificationSettings()">
+                        Activar notificaciones push del navegador
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="notifEnableEmail" onchange="updateNotificationSettings()">
+                        Activar notificaciones por email
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="notifEmail" placeholder="tu@email.com" onchange="updateNotificationSettings()">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="notifUpcomingMatches" onchange="updateNotificationSettings()">
+                        Notificar partidos próximos (24h antes)
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="notifMatchResults" onchange="updateNotificationSettings()">
+                        Notificar resultados importantes
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="notifWeeklySummary" onchange="updateNotificationSettings()">
+                        Resumen semanal
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="notifUnprogrammed" onchange="updateNotificationSettings()">
+                        Alertar sobre partidos sin fecha programada
+                    </label>
+                </div>
+                <button class="btn btn-large" onclick="requestNotificationPermission()" style="width: 100%; margin-top: 20px; background: #28a745; color: white;">
+                    🔔 Solicitar Permiso de Notificaciones
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Menú hamburguesa para móviles -->
     <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Menú">
         ☰
@@ -1668,6 +1815,245 @@
                 loadAuditLog();
             }
         };
+        
+        // ============================================
+        // AUTENTICACIÓN
+        // ============================================
+        
+        let currentUser = null;
+        let authToken = null;
+        
+        // Verificar si hay sesión guardada
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedToken = localStorage.getItem('authToken');
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedToken && savedUser) {
+                authToken = savedToken;
+                currentUser = JSON.parse(savedUser);
+                updateUserUI();
+            } else {
+                showAuthModal();
+            }
+        });
+        
+        function showAuthModal() {
+            document.getElementById('authModal').style.display = 'block';
+            document.getElementById('authModalTitle').textContent = 'Iniciar Sesión';
+            document.getElementById('authEmailGroup').style.display = 'none';
+            document.getElementById('authRoleGroup').style.display = 'none';
+            document.querySelector('#authForm button').textContent = 'Iniciar Sesión';
+            window.authMode = 'login';
+        }
+        
+        function closeAuthModal() {
+            document.getElementById('authModal').style.display = 'none';
+        }
+        
+        function toggleAuthMode() {
+            const isLogin = window.authMode === 'login';
+            window.authMode = isLogin ? 'register' : 'login';
+            document.getElementById('authModalTitle').textContent = isLogin ? 'Registrarse' : 'Iniciar Sesión';
+            document.getElementById('authEmailGroup').style.display = isLogin ? 'block' : 'none';
+            document.getElementById('authRoleGroup').style.display = isLogin ? 'block' : 'none';
+            document.querySelector('#authForm button').textContent = isLogin ? 'Registrarse' : 'Iniciar Sesión';
+            document.querySelector('#authForm a').textContent = isLogin ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate';
+        }
+        
+        async function handleAuth() {
+            const username = document.getElementById('authUsername').value;
+            const password = document.getElementById('authPassword').value;
+            const email = document.getElementById('authEmail').value;
+            const role = document.getElementById('authRole')?.value;
+            
+            if (!username || !password) {
+                showAlert('Username y password son requeridos', 'error');
+                return;
+            }
+            
+            try {
+                if (window.authMode === 'register') {
+                    const res = await fetch(`${API_BASE}/api/auth/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password, email, role })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showAlert('✅ Registro exitoso. Ahora inicia sesión.', 'success');
+                        toggleAuthMode();
+                    } else {
+                        showAlert(data.error || 'Error al registrarse', 'error');
+                    }
+                } else {
+                    const res = await fetch(`${API_BASE}/api/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        currentUser = data.user;
+                        authToken = data.token;
+                        localStorage.setItem('authToken', authToken);
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        updateUserUI();
+                        closeAuthModal();
+                        showAlert(`✅ Bienvenido, ${currentUser.username}!`, 'success');
+                        // Cargar configuración de notificaciones
+                        loadNotificationSettings();
+                    } else {
+                        showAlert(data.error || 'Error al iniciar sesión', 'error');
+                    }
+                }
+            } catch (error) {
+                showAlert('Error de conexión: ' + error.message, 'error');
+            }
+        }
+        
+        function logout() {
+            currentUser = null;
+            authToken = null;
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            updateUserUI();
+            showAuthModal();
+            showAlert('Sesión cerrada', 'success');
+        }
+        
+        function updateUserUI() {
+            const userPanel = document.getElementById('userPanel');
+            const userInfo = document.getElementById('userInfo');
+            if (currentUser) {
+                userPanel.style.display = 'block';
+                userInfo.textContent = `${currentUser.username} (${currentUser.role})`;
+            } else {
+                userPanel.style.display = 'none';
+            }
+        }
+        
+        // ============================================
+        // NOTIFICACIONES
+        // ============================================
+        
+        let notificationSettings = null;
+        
+        async function loadNotificationSettings() {
+            if (!authToken) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/notifications/settings`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    notificationSettings = data.settings;
+                    updateNotificationSettingsUI();
+                }
+            } catch (error) {
+                console.error('Error cargando configuración de notificaciones:', error);
+            }
+        }
+        
+        function showNotificationSettings() {
+            document.getElementById('notificationSettingsModal').style.display = 'block';
+            if (notificationSettings) {
+                updateNotificationSettingsUI();
+            }
+        }
+        
+        function closeNotificationSettings() {
+            document.getElementById('notificationSettingsModal').style.display = 'none';
+        }
+        
+        function updateNotificationSettingsUI() {
+            if (!notificationSettings) return;
+            
+            document.getElementById('notifEnablePush').checked = notificationSettings.enablePush || false;
+            document.getElementById('notifEnableEmail').checked = notificationSettings.enableEmail || false;
+            document.getElementById('notifEmail').value = notificationSettings.email || '';
+            document.getElementById('notifUpcomingMatches').checked = notificationSettings.upcomingMatches || false;
+            document.getElementById('notifMatchResults').checked = notificationSettings.matchResults || false;
+            document.getElementById('notifWeeklySummary').checked = notificationSettings.weeklySummary || false;
+            document.getElementById('notifUnprogrammed').checked = notificationSettings.unprogrammedMatches || false;
+        }
+        
+        async function updateNotificationSettings() {
+            if (!authToken) return;
+            
+            const settings = {
+                enablePush: document.getElementById('notifEnablePush').checked,
+                enableEmail: document.getElementById('notifEnableEmail').checked,
+                email: document.getElementById('notifEmail').value,
+                upcomingMatches: document.getElementById('notifUpcomingMatches').checked,
+                matchResults: document.getElementById('notifMatchResults').checked,
+                weeklySummary: document.getElementById('notifWeeklySummary').checked,
+                unprogrammedMatches: document.getElementById('notifUnprogrammed').checked
+            };
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/notifications/settings`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(settings)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    notificationSettings = data.settings;
+                    showAlert('✅ Configuración guardada', 'success');
+                }
+            } catch (error) {
+                showAlert('Error al guardar configuración: ' + error.message, 'error');
+            }
+        }
+        
+        async function requestNotificationPermission() {
+            if (!('Notification' in window)) {
+                showAlert('Tu navegador no soporta notificaciones', 'error');
+                return;
+            }
+            
+            if (Notification.permission === 'granted') {
+                showAlert('✅ Ya tienes permisos de notificaciones', 'success');
+                await subscribeToPush();
+                return;
+            }
+            
+            if (Notification.permission !== 'denied') {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    showAlert('✅ Permisos de notificaciones concedidos', 'success');
+                    await subscribeToPush();
+                } else {
+                    showAlert('Permisos de notificaciones denegados', 'error');
+                }
+            }
+        }
+        
+        async function subscribeToPush() {
+            if (!authToken) return;
+            
+            try {
+                // En producción, usar Service Worker y Push API
+                // Por ahora solo actualizamos la configuración
+                const res = await fetch(`${API_BASE}/api/notifications/subscribe`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ subscription: {} })
+                });
+                
+                if (res.ok) {
+                    showAlert('✅ Suscrito a notificaciones push', 'success');
+                }
+            } catch (error) {
+                console.error('Error suscribiéndose a push:', error);
+            }
+        }
         
         // Función para cargar el historial de cambios
         async function loadAuditLog() {

@@ -12,9 +12,16 @@ const MongoDBStorage_1 = require("./storage/MongoDBStorage");
 const TeamStatistics_1 = require("./utils/TeamStatistics");
 const Validation_1 = require("./utils/Validation");
 const AuditLog_1 = require("./models/AuditLog");
+const User_1 = require("./models/User");
+const NotificationSettings_1 = require("./models/NotificationSettings");
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
+// Crear usuario admin por defecto si no existe (solo en desarrollo)
+if (process.env.NODE_ENV !== 'production' && User_1.UserManager.getUserByUsername('admin') === null) {
+    User_1.UserManager.createUser('admin', 'admin123', 'admin@abala.com', User_1.UserRole.ADMIN);
+    console.log('✅ Usuario admin creado (username: admin, password: admin123)');
+}
 // Servir archivos estáticos (HTML, CSS, JS)
 const publicPath = path_1.default.join(__dirname, '../public');
 app.use(express_1.default.static(publicPath));
@@ -1099,6 +1106,190 @@ app.get('/api/audit-log/:entity_type/:entity_id', async (req, res) => {
             success: false,
             error: error.message
         });
+    }
+});
+/**
+ * ============================================
+ * AUTENTICACIÓN Y USUARIOS
+ * ============================================
+ */
+/**
+ * Registrar nuevo usuario
+ */
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        const { username, password, email, role } = req.body;
+        if (!username || !password) {
+            return res.status(400).json({
+                success: false,
+                error: 'Username y password son requeridos'
+            });
+        }
+        // Verificar que el username no exista
+        if (User_1.UserManager.getUserByUsername(username)) {
+            return res.status(400).json({
+                success: false,
+                error: 'El username ya existe'
+            });
+        }
+        const userRole = role && Object.values(User_1.UserRole).includes(role) ? role : User_1.UserRole.VIEWER;
+        const user = User_1.UserManager.createUser(username, password, email, userRole);
+        return res.status(201).json({
+            success: true,
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                role: user.role
+            }
+        });
+    }
+    catch (error) {
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+/**
+ * Iniciar sesión
+ */
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        if (!username || !password) {
+            return res.status(400).json({
+                success: false,
+                error: 'Username y password son requeridos'
+            });
+        }
+        const user = User_1.UserManager.authenticate(username, password);
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                error: 'Credenciales inválidas'
+            });
+        }
+        return res.json({
+            success: true,
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                role: user.role
+            },
+            token: Buffer.from(`${user.id}:${user.username}`).toString('base64') // Token simple - en producción usar JWT
+        });
+    }
+    catch (error) {
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+/**
+ * Obtener usuario actual
+ */
+app.get('/api/auth/me', async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({
+                success: false,
+                error: 'No autorizado'
+            });
+        }
+        const token = authHeader.substring(7);
+        const decoded = Buffer.from(token, 'base64').toString('utf-8');
+        const [userId] = decoded.split(':');
+        const user = User_1.UserManager.getUser(userId);
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                error: 'Usuario no encontrado'
+            });
+        }
+        return res.json({
+            success: true,
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                role: user.role
+            }
+        });
+    }
+    catch (error) {
+        return res.status(401).json({
+            success: false,
+            error: 'Token inválido'
+        });
+    }
+});
+/**
+ * ============================================
+ * NOTIFICACIONES
+ * ============================================
+ */
+/**
+ * Obtener configuración de notificaciones
+ */
+app.get('/api/notifications/settings', async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+            return res.status(401).json({ success: false, error: 'No autorizado' });
+        }
+        const token = authHeader.substring(7);
+        const decoded = Buffer.from(token, 'base64').toString('utf-8');
+        const [userId] = decoded.split(':');
+        const settings = NotificationSettings_1.NotificationManager.getSettings(userId);
+        return res.json({ success: true, settings });
+    }
+    catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+});
+/**
+ * Actualizar configuración de notificaciones
+ */
+app.put('/api/notifications/settings', async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+            return res.status(401).json({ success: false, error: 'No autorizado' });
+        }
+        const token = authHeader.substring(7);
+        const decoded = Buffer.from(token, 'base64').toString('utf-8');
+        const [userId] = decoded.split(':');
+        const settings = req.body;
+        NotificationSettings_1.NotificationManager.updateSettings(userId, settings);
+        return res.json({ success: true, settings: NotificationSettings_1.NotificationManager.getSettings(userId) });
+    }
+    catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+});
+/**
+ * Suscribirse a notificaciones push
+ */
+app.post('/api/notifications/subscribe', async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+            return res.status(401).json({ success: false, error: 'No autorizado' });
+        }
+        const token = authHeader.substring(7);
+        const decoded = Buffer.from(token, 'base64').toString('utf-8');
+        const [userId] = decoded.split(':');
+        // En producción, guardar la suscripción en base de datos
+        // Por ahora solo actualizamos la configuración
+        NotificationSettings_1.NotificationManager.updateSettings(userId, { enablePush: true });
+        return res.json({ success: true, message: 'Suscripción exitosa' });
+    }
+    catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
     }
 });
 exports.default = app;

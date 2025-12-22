@@ -7,10 +7,18 @@ import { MongoDBStorage } from './storage/MongoDBStorage';
 import { TeamStatisticsCalculator } from './utils/TeamStatistics';
 import { validateChampionship, validateCategory, validateMatchResult, validatePenalty } from './utils/Validation';
 import { AuditLog } from './models/AuditLog';
+import { UserManager, UserRole } from './models/User';
+import { NotificationManager } from './models/NotificationSettings';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Crear usuario admin por defecto si no existe (solo en desarrollo)
+if (process.env.NODE_ENV !== 'production' && UserManager.getUserByUsername('admin') === null) {
+  UserManager.createUser('admin', 'admin123', 'admin@abala.com', UserRole.ADMIN);
+  console.log('✅ Usuario admin creado (username: admin, password: admin123)');
+}
 
 // Servir archivos estáticos (HTML, CSS, JS)
 const publicPath = path.join(__dirname, '../public');
@@ -1253,6 +1261,211 @@ app.get('/api/audit-log/:entity_type/:entity_id', async (req: Request, res: Resp
       success: false,
       error: error.message
     });
+  }
+});
+
+/**
+ * ============================================
+ * AUTENTICACIÓN Y USUARIOS
+ * ============================================
+ */
+
+/**
+ * Registrar nuevo usuario
+ */
+app.post('/api/auth/register', async (req: Request, res: Response) => {
+  try {
+    const { username, password, email, role } = req.body;
+    
+    if (!username || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Username y password son requeridos'
+      });
+    }
+    
+    // Verificar que el username no exista
+    if (UserManager.getUserByUsername(username)) {
+      return res.status(400).json({
+        success: false,
+        error: 'El username ya existe'
+      });
+    }
+    
+    const userRole = role && Object.values(UserRole).includes(role) ? role : UserRole.VIEWER;
+    const user = UserManager.createUser(username, password, email, userRole);
+    
+    return res.status(201).json({
+      success: true,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * Iniciar sesión
+ */
+app.post('/api/auth/login', async (req: Request, res: Response) => {
+  try {
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Username y password son requeridos'
+      });
+    }
+    
+    const user = UserManager.authenticate(username, password);
+    
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Credenciales inválidas'
+      });
+    }
+    
+    return res.json({
+      success: true,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      },
+      token: Buffer.from(`${user.id}:${user.username}`).toString('base64') // Token simple - en producción usar JWT
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * Obtener usuario actual
+ */
+app.get('/api/auth/me', async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        error: 'No autorizado'
+      });
+    }
+    
+    const token = authHeader.substring(7);
+    const decoded = Buffer.from(token, 'base64').toString('utf-8');
+    const [userId] = decoded.split(':');
+    
+    const user = UserManager.getUser(userId);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Usuario no encontrado'
+      });
+    }
+    
+    return res.json({
+      success: true,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error: any) {
+    return res.status(401).json({
+      success: false,
+      error: 'Token inválido'
+    });
+  }
+});
+
+/**
+ * ============================================
+ * NOTIFICACIONES
+ * ============================================
+ */
+
+/**
+ * Obtener configuración de notificaciones
+ */
+app.get('/api/notifications/settings', async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'No autorizado' });
+    }
+    
+    const token = authHeader.substring(7);
+    const decoded = Buffer.from(token, 'base64').toString('utf-8');
+    const [userId] = decoded.split(':');
+    
+    const settings = NotificationManager.getSettings(userId);
+    return res.json({ success: true, settings });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * Actualizar configuración de notificaciones
+ */
+app.put('/api/notifications/settings', async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'No autorizado' });
+    }
+    
+    const token = authHeader.substring(7);
+    const decoded = Buffer.from(token, 'base64').toString('utf-8');
+    const [userId] = decoded.split(':');
+    
+    const settings = req.body;
+    NotificationManager.updateSettings(userId, settings);
+    
+    return res.json({ success: true, settings: NotificationManager.getSettings(userId) });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * Suscribirse a notificaciones push
+ */
+app.post('/api/notifications/subscribe', async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'No autorizado' });
+    }
+    
+    const token = authHeader.substring(7);
+    const decoded = Buffer.from(token, 'base64').toString('utf-8');
+    const [userId] = decoded.split(':');
+    
+    // En producción, guardar la suscripción en base de datos
+    // Por ahora solo actualizamos la configuración
+    NotificationManager.updateSettings(userId, { enablePush: true });
+    
+    return res.json({ success: true, message: 'Suscripción exitosa' });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, error: error.message });
   }
 });
 
