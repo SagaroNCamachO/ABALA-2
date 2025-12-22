@@ -1788,7 +1788,8 @@
         }
         
         // Asegurar que switchDataTab esté disponible globalmente
-        window.switchDataTab = function(tab) {
+        // Definirla inmediatamente para que esté disponible cuando se cargue el HTML
+        function switchDataTab(tab) {
             document.querySelectorAll('#championshipsTab, #categoriesTab, #historyTab').forEach(t => t.classList.remove('active'));
             const tabs = document.querySelectorAll('.tab');
             tabs.forEach((t, i) => {
@@ -1807,9 +1808,14 @@
                 document.getElementById('categoriesTab').classList.add('active');
             } else if (tab === 'history') {
                 document.getElementById('historyTab').classList.add('active');
-                loadAuditLog();
+                if (typeof loadAuditLog === 'function') {
+                    loadAuditLog();
+                }
             }
-        };
+        }
+        
+        // Hacerla disponible globalmente
+        window.switchDataTab = switchDataTab;
         
         // ============================================
         // AUTENTICACIÓN
@@ -4174,10 +4180,19 @@
                     const text = await file.text();
                     const data = JSON.parse(text);
                     
+                    // Verificar autenticación de administrador
+                    if (!authToken || !currentUser || currentUser.role !== 'admin') {
+                        showAlert('⚠️ Debes iniciar sesión como administrador para importar campeonatos', 'error');
+                        return;
+                    }
+                    
                     // Crear campeonato desde JSON
                     const res = await fetch(`${API_BASE}/api/championships`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${authToken}`
+                        },
                         body: JSON.stringify({
                             id: data.name?.toLowerCase().replace(/\s+/g, '_') + '_imported',
                             name: data.name,
@@ -4205,7 +4220,6 @@
                                     })
                                 });
                             }
-                        }
                         }
                         
                         showAlert('Campeonato cargado exitosamente', 'success');
