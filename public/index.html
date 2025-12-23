@@ -285,6 +285,12 @@
             cursor: default;
         }
         
+        /* Panel de usuario siempre oculto */
+        #userPanel {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        
         .close {
             color: #aaa;
             float: right;
@@ -1009,8 +1015,8 @@
         </div>
     </div>
     
-    <!-- Panel de Usuario -->
-    <div id="userPanel" style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: none;">
+    <!-- Panel de Usuario (Oculto) -->
+    <div id="userPanel" style="display: none !important; visibility: hidden !important;">
         <div style="background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); min-width: 200px;">
             <div style="font-weight: 700; color: #667eea; margin-bottom: 10px;" id="userInfo">Usuario</div>
             <button class="btn" onclick="showNotificationSettings()" style="width: 100%; margin-bottom: 5px; background: #17a2b8; color: white;">
@@ -1956,13 +1962,15 @@
         }
         
         function updateUserUI() {
+            // Panel de usuario siempre oculto
             const userPanel = document.getElementById('userPanel');
             const userInfo = document.getElementById('userInfo');
-            if (currentUser) {
-                userPanel.style.display = 'block';
-                userInfo.textContent = `${currentUser.username} (${currentUser.role})`;
-            } else {
+            if (userPanel) {
                 userPanel.style.display = 'none';
+                userPanel.style.visibility = 'hidden';
+            }
+            if (currentUser && userInfo) {
+                userInfo.textContent = `${currentUser.username} (${currentUser.role})`;
             }
         }
         
