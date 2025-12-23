@@ -237,18 +237,52 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(0,0,0,0.3);
+            backdrop-filter: blur(2px);
         }
         
         .modal-content {
             background-color: #fefefe;
-            margin: 10% auto;
+            margin: 5% auto;
             padding: 30px;
             border: 1px solid #888;
             border-radius: 15px;
             width: 90%;
-            max-width: 600px;
+            max-width: 450px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Modal de autenticación más compacto y menos intrusivo */
+        #authModal {
+            background-color: rgba(0,0,0,0.2);
+            backdrop-filter: blur(3px);
+        }
+        
+        #authModal .modal-content {
+            max-width: 380px;
+            margin: 3% auto;
+            padding: 25px;
+        }
+        
+        /* Permitir hacer clic fuera del modal para cerrarlo */
+        #authModal .modal {
+            cursor: pointer;
+        }
+        
+        #authModal .modal-content {
+            cursor: default;
         }
         
         .close {
@@ -944,7 +978,7 @@
 <body>
     <!-- Modal de Login/Registro -->
     <div id="authModal" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-content">
             <span class="close" onclick="closeAuthModal()">&times;</span>
             <h2 id="authModalTitle" style="color: #667eea; margin-bottom: 20px;">Iniciar Sesión</h2>
             <div id="authForm">
@@ -1826,9 +1860,8 @@
                 authToken = savedToken;
                 currentUser = JSON.parse(savedUser);
                 updateUserUI();
-            } else {
-                showAuthModal();
             }
+            // No mostrar el modal automáticamente - solo cuando se necesite autenticación
         });
         
         function showAuthModal() {
@@ -1843,6 +1876,14 @@
         function closeAuthModal() {
             document.getElementById('authModal').style.display = 'none';
         }
+        
+        // Cerrar modal al hacer clic fuera del contenido
+        window.addEventListener('click', (event) => {
+            const authModal = document.getElementById('authModal');
+            if (event.target === authModal) {
+                closeAuthModal();
+            }
+        });
         
         function toggleAuthMode() {
             const isLogin = window.authMode === 'login';
