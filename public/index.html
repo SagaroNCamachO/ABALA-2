@@ -5204,30 +5204,47 @@
                 return;
             }
             
+            // Verificar que el responseDiv tenga contenido
+            if (!responseDiv.innerHTML || responseDiv.innerHTML.trim() === '' || responseDiv.innerHTML.includes('Cargando...')) {
+                showAlert('El fixture aún no se ha cargado. Por favor, espera a que termine de cargar y luego intenta exportar nuevamente.', 'error');
+                return;
+            }
+            
             // Buscar el contenedor del fixture/calendario (puede ser vista de calendario o fixture normal)
             // Intentar múltiples selectores para encontrar el fixture
             let calendarContainer = responseDiv.querySelector('.fixture-container') ||
                                    responseDiv.querySelector('.calendar-container') || 
                                    responseDiv.querySelector('.calendar-week-container');
             
-            // Si no se encuentra, buscar dentro de responseDiv directamente
-            if (!calendarContainer && responseDiv.innerHTML.includes('fixture-container')) {
-                // El fixture puede estar renderizado pero no encontrado por el selector
-                // Intentar buscar cualquier div que contenga partidos
-                const allDivs = responseDiv.querySelectorAll('div');
-                for (let div of allDivs) {
-                    if (div.classList.contains('fixture-container') || 
-                        div.innerHTML.includes('Jornada') || 
-                        div.innerHTML.includes('Equipo A') ||
-                        div.innerHTML.includes('vs')) {
-                        calendarContainer = div;
-                        break;
+            // Si no se encuentra por clase, buscar por contenido o usar el responseDiv completo si contiene el fixture
+            if (!calendarContainer) {
+                // Verificar si el responseDiv contiene el fixture directamente
+                if (responseDiv.innerHTML.includes('fixture-container') || 
+                    responseDiv.innerHTML.includes('Fixture -') ||
+                    responseDiv.innerHTML.includes('Jornada') ||
+                    responseDiv.innerHTML.includes('vs')) {
+                    // El fixture está en el responseDiv, usar el primer div hijo o el mismo responseDiv
+                    calendarContainer = responseDiv.querySelector('div') || responseDiv;
+                } else {
+                    // Intentar buscar cualquier div que contenga partidos
+                    const allDivs = responseDiv.querySelectorAll('div');
+                    for (let div of allDivs) {
+                        if (div.classList.contains('fixture-container') || 
+                            div.innerHTML.includes('Jornada') || 
+                            div.innerHTML.includes('Equipo A') ||
+                            div.innerHTML.includes('vs') ||
+                            div.innerHTML.includes('Fixture')) {
+                            calendarContainer = div;
+                            break;
+                        }
                     }
                 }
             }
             
             if (!calendarContainer) {
-                showAlert('No se encontró el fixture. Por favor:\n1. Selecciona "Fixture" en el selector "Ver Información"\n2. Haz clic en el botón "Ver Información"\n3. Espera a que se cargue el fixture\n4. Luego intenta exportar nuevamente.', 'error');
+                showAlert('No se encontró el fixture. Por favor:\n1. Selecciona "Fixture" en el selector "Ver Información"\n2. Haz clic en el botón "Ver Información"\n3. Espera a que se cargue completamente el fixture\n4. Luego intenta exportar nuevamente.', 'error');
+                console.error('Debug: responseDiv.innerHTML length:', responseDiv.innerHTML.length);
+                console.error('Debug: responseDiv children:', responseDiv.children.length);
                 return;
             }
             
