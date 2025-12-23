@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ABALA - Gestión de Campeonatos</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏀</text></svg>">
     <!-- Chart.js para gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <!-- SheetJS para exportación a Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- html2canvas para exportar a imágenes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -115,6 +118,26 @@
             text-align: center;
             color: white;
             margin-bottom: 30px;
+        }
+        
+        /* Asegurar que los botones de exportación sean siempre visibles */
+        #headerExportButton,
+        #ultraVisibleExportContainer,
+        #ultraVisibleExportButton,
+        #exportBothButton,
+        #whatsappExportSection {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative !important;
+            z-index: 9999 !important;
+        }
+        
+        #headerExportButton button,
+        #ultraVisibleExportButton {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
         
         .header h1 {
@@ -862,7 +885,64 @@
         }
         
         .tab-content.active {
-            display: block;
+            display: block !important;
+        }
+        
+        /* Asegurar que el botón de exportación sea siempre visible */
+        #exportBothButton {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative !important;
+            z-index: 1001 !important;
+        }
+        
+        #whatsappExportSection {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative !important;
+            z-index: 1000 !important;
+        }
+        
+        #manageTab.active #exportBothButton {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative !important;
+            z-index: 1001 !important;
+        }
+        
+        #manageTab.active #whatsappExportSection {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative !important;
+            z-index: 1000 !important;
+        }
+        
+        /* Asegurar visibilidad incluso si el tab no está activo (para debugging) */
+        #manageTab #exportBothButton {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative !important;
+            z-index: 1001 !important;
+        }
+        
+        #manageTab #whatsappExportSection {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative !important;
+            z-index: 1000 !important;
+        }
+        
+        /* Forzar visibilidad del manageTab cuando está activo */
+        #manageTab.active {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
         
         .response {
@@ -982,6 +1062,17 @@
     </style>
 </head>
 <body>
+    <!-- BOTÓN DE EXPORTACIÓN ULTRA SIMPLE Y VISIBLE - PRIMERO EN EL BODY -->
+    <div style="position: fixed; top: 0; left: 0; right: 0; background: #25d366; padding: 15px; text-align: center; z-index: 999999; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
+        <button onclick="if(typeof window.exportBothToImage==='function'){window.exportBothToImage();}else if(typeof exportBothToImage==='function'){exportBothToImage();}else{alert('Error: La función no está disponible. Recarga la página.');}" style="background: white; color: #25d366; padding: 10px 20px; border: 2px solid white; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 1.1em; margin: 0 10px;">
+            📤 EXPORTAR FIXTURE Y TABLA
+        </button>
+        <span style="color: white; font-size: 0.9em;">Selecciona campeonato y categoría, luego haz clic aquí</span>
+    </div>
+    <div style="height: 70px;"></div>
+    
+    <!-- VERIFICACIÓN: Si ves este comentario, el archivo se actualizó correctamente -->
+    
     <!-- Modal de Login/Registro -->
     <div id="authModal" class="modal" style="display: none;">
         <div class="modal-content">
@@ -989,16 +1080,16 @@
             <h2 id="authModalTitle" style="color: #667eea; margin-bottom: 20px;">Iniciar Sesión</h2>
             <div id="authForm">
                 <div class="form-group">
-                    <label>Username:</label>
-                    <input type="text" id="authUsername" placeholder="Ingresa tu username" required>
+                    <label for="authUsername">Username:</label>
+                    <input type="text" id="authUsername" name="username" autocomplete="username" placeholder="Ingresa tu username" required>
                 </div>
                 <div class="form-group">
-                    <label>Password:</label>
-                    <input type="password" id="authPassword" placeholder="Ingresa tu password" required>
+                    <label for="authPassword">Password:</label>
+                    <input type="password" id="authPassword" name="password" autocomplete="current-password" placeholder="Ingresa tu password" required>
                 </div>
                 <div class="form-group" id="authEmailGroup" style="display: none;">
-                    <label>Email (opcional):</label>
-                    <input type="email" id="authEmail" placeholder="tu@email.com">
+                    <label for="authEmail">Email (opcional):</label>
+                    <input type="email" id="authEmail" name="email" autocomplete="email" placeholder="tu@email.com">
                 </div>
                 <div id="authRoleInfo" style="display: none; padding: 10px; background: #f0f0f0; border-radius: 5px; margin-bottom: 15px; font-size: 0.9em; color: #666;">
                     ℹ️ Todos los usuarios nuevos se crean como <strong>Visualizadores</strong>. Solo puede haber un administrador en el sistema.
@@ -1047,8 +1138,8 @@
                     </label>
                 </div>
                 <div class="form-group">
-                    <label>Email:</label>
-                    <input type="email" id="notifEmail" placeholder="tu@email.com" onchange="updateNotificationSettings()">
+                    <label for="notifEmail">Email:</label>
+                    <input type="email" id="notifEmail" name="notifEmail" autocomplete="email" placeholder="tu@email.com" onchange="updateNotificationSettings()">
                 </div>
                 <div class="form-group">
                     <label>
@@ -1093,15 +1184,60 @@
         <a href="#" class="mobile-menu-item" onclick="switchTab('dashboard'); toggleMobileMenu();">📈 Dashboard</a>
     </div>
     
+    <!-- BOTÓN DE EXPORTACIÓN ABSOLUTAMENTE VISIBLE - FUERA DE TODO -->
+    <div style="position: fixed; top: 10px; right: 10px; z-index: 99999; padding: 15px; background: #25d366; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); min-width: 300px; max-width: 400px;">
+        <button onclick="console.log('🔴 CLICK EN BOTÓN EXPORTAR (FIXED)'); if(typeof window.exportBothToImage === 'function') { window.exportBothToImage(); } else if(typeof exportBothToImage === 'function') { exportBothToImage(); } else { alert('Error: La función exportBothToImage no está disponible. Por favor, recarga la página.'); }" style="background: white; color: #25d366; padding: 12px 20px; border: 2px solid white; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 1em; width: 100%;">
+            📤 EXPORTAR
+        </button>
+        <p style="color: white; margin-top: 8px; font-size: 0.8em; text-align: center;">Fixture y Tabla</p>
+    </div>
+    
+    <!-- VERIFICACIÓN: Si ves este texto, el archivo se actualizó -->
+    <!-- BOTÓN DE EXPORTACIÓN EN LA PARTE SUPERIOR -->
+    <div style="position: fixed; top: 0; left: 0; right: 0; background: #25d366; padding: 15px; text-align: center; z-index: 999999; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
+        <button onclick="if(typeof window.exportBothToImage==='function'){window.exportBothToImage();}else if(typeof exportBothToImage==='function'){exportBothToImage();}else{alert('Error: La función no está disponible. Recarga la página.');}" style="background: white; color: #25d366; padding: 10px 20px; border: 2px solid white; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 1.1em; margin: 0 10px;">
+            📤 EXPORTAR FIXTURE Y TABLA
+        </button>
+        <span style="color: white; font-size: 0.9em;">Selecciona campeonato y categoría, luego haz clic aquí</span>
+    </div>
+    <div style="height: 70px; margin-top: 70px;"></div>
+    
     <div class="container">
         <div class="header">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 15px;">
                 <h1 style="margin: 0;">🏀 ABALA</h1>
-                <button id="themeToggle" onclick="toggleTheme()" style="background: rgba(255,255,255,0.2); border: 2px solid white; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 1.1em; font-weight: 700;">
-                    🌙 Modo Oscuro
-                </button>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <!-- Búsqueda Global -->
+                    <div style="position: relative;">
+                        <input type="text" id="globalSearch" placeholder="🔍 Buscar campeonatos, equipos, partidos..." 
+                               style="padding: 10px 40px 10px 15px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.2); color: white; font-size: 1em; min-width: 300px; max-width: 400px; backdrop-filter: blur(10px);"
+                               onkeyup="performGlobalSearch(this.value)"
+                               onfocus="showGlobalSearchResults()"
+                               onblur="setTimeout(() => hideGlobalSearchResults(), 200)">
+                        <div id="globalSearchResults" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); max-height: 400px; overflow-y: auto; z-index: 1000; margin-top: 5px; color: #333;"></div>
+                    </div>
+                    <button id="themeToggle" onclick="toggleTheme()" style="background: rgba(255,255,255,0.2); border: 2px solid white; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 1.1em; font-weight: 700;">
+                        🌙 Modo Oscuro
+                    </button>
+                </div>
             </div>
             <p style="font-size: 1.4em; opacity: 0.95; margin-top: 10px;">Sistema Simple para Administrar Campeonatos de Básquetbol</p>
+            <!-- BOTÓN DE EXPORTACIÓN EN EL HEADER - SIEMPRE VISIBLE -->
+            <div id="headerExportButton" style="margin-top: 15px; padding: 15px; background: #25d366; border-radius: 10px; text-align: center; width: 100%; display: block !important; visibility: visible !important; position: relative !important; z-index: 9999 !important;">
+                <button onclick="console.log('🔴 CLICK EN BOTÓN EXPORTAR (HEADER)'); if(typeof window.exportBothToImage === 'function') { window.exportBothToImage(); } else if(typeof exportBothToImage === 'function') { exportBothToImage(); } else { alert('Error: La función exportBothToImage no está disponible. Por favor, recarga la página.'); }" style="background: white; color: #25d366; padding: 12px 25px; border: 2px solid white; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 1.1em; width: 100%; min-height: 50px; display: block !important; visibility: visible !important;">
+                    📤 EXPORTAR FIXTURE Y TABLA DE POSICIONES
+                </button>
+                <p style="color: rgba(255,255,255,0.9); margin-top: 8px; font-size: 0.85em;">💡 Selecciona campeonato y categoría en "Ver y Gestionar", luego haz clic aquí</p>
+            </div>
+        </div>
+        
+        <!-- BOTÓN DE EXPORTACIÓN ULTRA VISIBLE - ANTES DE TODO -->
+        <div id="ultraVisibleExportContainer" style="margin: 20px auto; padding: 20px; background: #25d366; border-radius: 12px; text-align: center; max-width: 800px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); display: block !important; visibility: visible !important; position: relative !important; z-index: 9999 !important;">
+            <h2 style="color: white; margin-bottom: 15px; font-size: 1.5em;">📤 Exportar para WhatsApp</h2>
+            <button id="ultraVisibleExportButton" onclick="console.log('🔴 CLICK EN BOTÓN EXPORTAR (ULTRA VISIBLE)'); if(typeof window.exportBothToImage === 'function') { window.exportBothToImage(); } else if(typeof exportBothToImage === 'function') { exportBothToImage(); } else { alert('Error: La función exportBothToImage no está disponible. Por favor, recarga la página.'); console.error('exportBothToImage no disponible'); }" style="background: white; color: #25d366; padding: 18px 35px; border: 3px solid white; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 1.4em; width: 100%; min-height: 70px; display: block !important; visibility: visible !important; box-shadow: 0 6px 20px rgba(0,0,0,0.3);">
+                📤 EXPORTAR FIXTURE Y TABLA DE POSICIONES
+            </button>
+            <p style="color: rgba(255,255,255,0.95); margin-top: 15px; font-size: 1em; font-weight: 500;">💡 Primero selecciona un campeonato y categoría en "Ver y Gestionar", luego haz clic aquí para exportar</p>
         </div>
         
         <div class="main-grid">
@@ -1115,9 +1251,17 @@
                 </div>
                 
                 <div class="tabs">
-                    <button class="tab active" data-tab="dashboard">📊 Dashboard</button>
-                    <button class="tab" data-tab="create">➕ Crear Nuevo</button>
-                    <button class="tab" data-tab="manage">👁️ Ver y Gestionar</button>
+                    <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Dashboard</button>
+                    <button class="tab" data-tab="create" onclick="switchTab('create')">➕ Crear Nuevo</button>
+                    <button class="tab" data-tab="manage" onclick="switchTab('manage')">👁️ Ver y Gestionar</button>
+                </div>
+                <!-- BOTÓN DE EXPORTACIÓN SIEMPRE VISIBLE - FUERA DE LOS TABS -->
+                <div id="alwaysVisibleExportButton" style="margin: 20px 0; padding: 20px; background: #25d366; border-radius: 12px; text-align: center; display: block !important; visibility: visible !important; position: relative !important; z-index: 9999 !important;">
+                    <h3 style="color: white; margin-bottom: 10px; font-size: 1.3em;">📤 Exportar para WhatsApp</h3>
+                    <button onclick="console.log('🔴 CLICK EN BOTÓN EXPORTAR (SIEMPRE VISIBLE)'); if(typeof exportBothToImage === 'function') { exportBothToImage(); } else { alert('Error: La función exportBothToImage no está disponible. Por favor, recarga la página.'); }" style="background: white; color: #25d366; padding: 15px 30px; border: 3px solid white; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 1.2em; width: 100%; min-height: 60px; display: block !important; visibility: visible !important;">
+                        📤 EXPORTAR FIXTURE Y TABLA DE POSICIONES
+                    </button>
+                    <p style="color: rgba(255,255,255,0.9); margin-top: 10px; font-size: 0.9em;">💡 Selecciona campeonato y categoría en "Ver y Gestionar", luego haz clic aquí</p>
                 </div>
                 
                 <!-- Tab: Dashboard -->
@@ -1129,13 +1273,24 @@
                     <button class="btn btn-large" onclick="if(typeof window.loadDashboard === 'function') { window.loadDashboard(); } else { alert('Cargando dashboard...'); setTimeout(() => { if(typeof window.loadDashboard === 'function') window.loadDashboard(); }, 500); }" style="width: 100%; margin-top: 20px;">
                         🔄 Actualizar Dashboard
                     </button>
+                    
+                    <!-- Botón de Exportación para WhatsApp -->
+                    <div class="form-group" style="margin-top: 25px; padding: 20px; background: linear-gradient(135deg, #25d366 0%, #128c7e 100%); border-radius: 12px; text-align: center;">
+                        <h3 style="color: white; margin-bottom: 15px; font-size: 1.3em;">📤 Exportar para WhatsApp</h3>
+                        <p style="color: rgba(255,255,255,0.9); margin-bottom: 20px; font-size: 1em;">Exporta el fixture y la tabla de posiciones como imagen para compartir en grupos de WhatsApp</p>
+                        <button onclick="exportBothToImage()" class="btn btn-large" style="background: white; color: #25d366; padding: 15px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 1.2em; box-shadow: 0 4px 15px rgba(0,0,0,0.2); width: 100%;">
+                            📤 Exportar Fixture y Tabla de Posiciones
+                        </button>
+                        <p style="color: rgba(255,255,255,0.8); margin-top: 15px; font-size: 0.9em;">💡 Primero selecciona un campeonato y categoría en "Ver y Gestionar"</p>
+                    </div>
+                    
                     <div id="dashboardContent" style="margin-top: 30px;"></div>
                 </div>
                 
                 <!-- Tab: Crear -->
                 <div id="createTab" class="tab-content">
                     <div class="form-group">
-                        <label>📋 ¿Qué desea crear?</label>
+                        <label for="actionSelect">📋 ¿Qué desea crear?</label>
                         <select id="actionSelect" onchange="updateForm()" style="font-size: 1.1em; padding: 18px;">
                             <option value="createChamp" selected>🏆 Crear un Nuevo Campeonato</option>
                             <option value="addCategory">📁 Agregar una Categoría a un Campeonato</option>
@@ -1151,16 +1306,43 @@
                 
                 <!-- Tab: Gestionar -->
                 <div id="manageTab" class="tab-content">
+                    <!-- Botón de Exportación para WhatsApp - PRIMERO Y MÁS VISIBLE -->
+                    <div id="whatsappExportSection" style="margin-bottom: 25px; padding: 25px; background: linear-gradient(135deg, #25d366 0%, #128c7e 100%); border-radius: 12px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.2); display: block !important; visibility: visible !important; opacity: 1 !important; position: relative !important; z-index: 1000 !important;">
+                        <h3 style="color: white; margin-bottom: 10px; font-size: 1.5em; font-weight: 700;">📤 Exportar para WhatsApp</h3>
+                        <p style="color: rgba(255,255,255,0.95); margin-bottom: 20px; font-size: 1.1em; font-weight: 500;">Exporta el fixture y la tabla de posiciones como imagen para compartir en grupos de WhatsApp</p>
+                        <button id="exportBothButton" onclick="console.log('🔴 CLICK EN BOTÓN EXPORTAR'); if(typeof exportBothToImage === 'function') { exportBothToImage(); } else { alert('Error: La función exportBothToImage no está disponible. Por favor, recarga la página.'); }" class="btn btn-large" style="background: white !important; color: #25d366 !important; padding: 18px 35px !important; border: 3px solid #128c7e !important; border-radius: 10px !important; cursor: pointer !important; font-weight: 700 !important; font-size: 1.3em !important; box-shadow: 0 6px 20px rgba(0,0,0,0.3) !important; width: 100% !important; min-height: 60px !important; display: block !important; visibility: visible !important; opacity: 1 !important; position: relative !important; z-index: 1001 !important; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                            📤 Exportar Fixture y Tabla de Posiciones
+                        </button>
+                        <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                            <button onclick="exportStandingsToImage()" style="background: rgba(255,255,255,0.25); color: white; padding: 12px 24px; border: 2px solid white; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.4)'" onmouseout="this.style.background='rgba(255,255,255,0.25)'">
+                                📊 Solo Tabla
+                            </button>
+                            <button onclick="exportCalendarToImage()" style="background: rgba(255,255,255,0.25); color: white; padding: 12px 24px; border: 2px solid white; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.4)'" onmouseout="this.style.background='rgba(255,255,255,0.25)'">
+                                📅 Solo Fixture
+                            </button>
+                        </div>
+                        <p style="color: rgba(255,255,255,0.85); margin-top: 15px; font-size: 0.95em; font-style: italic;">💡 Selecciona campeonato y categoría abajo, luego haz clic en "Ver Información"</p>
+                    </div>
+                    
+                    <!-- Botón de Exportación DUPLICADO - Para asegurar visibilidad -->
+                    <div style="margin-bottom: 20px; padding: 20px; background: #25d366; border-radius: 10px; text-align: center;">
+                        <button onclick="console.log('🔴 CLICK EN BOTÓN EXPORTAR (DUPLICADO)'); if(typeof exportBothToImage === 'function') { exportBothToImage(); } else { alert('Error: La función exportBothToImage no está disponible. Por favor, recarga la página.'); }" style="background: white; color: #25d366; padding: 15px 30px; border: 3px solid white; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 1.2em; width: 100%; min-height: 50px;">
+                            📤 EXPORTAR FIXTURE Y TABLA DE POSICIONES
+                        </button>
+                    </div>
+                    
                     <div class="help-text">
                         <strong>👁️ Ver Información del Campeonato</strong>
                         Seleccione qué desea ver y el campeonato correspondiente. Luego haga clic en "Ver Información" para mostrar los datos.
                     </div>
                     
                     <div class="form-group">
-                        <label>📊 ¿Qué desea ver?</label>
+                        <label for="viewSelect">📊 ¿Qué desea ver?</label>
                         <select id="viewSelect" onchange="loadView()" style="font-size: 1.1em; padding: 18px;">
                             <option value="standings">📈 Ver Tabla de Posiciones</option>
                             <option value="fixture">📅 Ver Calendario de Partidos (Fixture)</option>
+                            <option value="calendar">📆 Vista de Calendario Mensual</option>
+                            <option value="calendar-week">📅 Vista de Calendario Semanal</option>
                         </select>
                         <div class="field-help">Elija qué información desea ver del campeonato</div>
                     </div>
@@ -1329,6 +1511,25 @@
             setTimeout(initTheme, 100);
         }
         
+        // #region agent log - Verificar botón al cargar página
+        function checkExportButtonOnLoad() {
+            setTimeout(() => {
+                const manageTab = document.getElementById('manageTab');
+                const exportButton = document.getElementById('exportBothButton');
+                const exportSection = document.getElementById('whatsappExportSection');
+                
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:1378',message:'verificación inicial botón exportación',data:{hasManageTab:!!manageTab,manageTabClasses:manageTab?.className,manageTabDisplay:manageTab?window.getComputedStyle(manageTab).display:'N/A',hasExportButton:!!exportButton,exportButtonText:exportButton?.textContent,exportButtonDisplay:exportButton?window.getComputedStyle(exportButton).display:'N/A',exportButtonVisible:exportButton?.offsetParent!==null,hasExportSection:!!exportSection,exportSectionDisplay:exportSection?window.getComputedStyle(exportSection).display:'N/A'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+                // #endregion
+            }, 2000);
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', checkExportButtonOnLoad);
+        } else {
+            checkExportButtonOnLoad();
+        }
+        // #endregion
+        
         // Asegurar que switchTab esté disponible globalmente ANTES de cualquier otra cosa
         window.switchTab = function(tab) {
             try {
@@ -1391,6 +1592,58 @@
                         tabs[2].classList.add('active');
                         manageTab.classList.add('active');
                         console.log('Gestionar tab activado');
+                        
+                        // Forzar visibilidad del manageTab
+                        manageTab.style.display = 'block';
+                        manageTab.style.visibility = 'visible';
+                        manageTab.style.opacity = '1';
+                        
+                        // Verificar y forzar visibilidad del botón de exportación
+                        setTimeout(() => {
+                            const exportButton = document.getElementById('exportBothButton');
+                            const exportSection = document.getElementById('whatsappExportSection');
+                            
+                            console.log('🔍 ========== VERIFICACIÓN BOTÓN EXPORTACIÓN ==========');
+                            console.log('🔍 manageTab existe:', !!manageTab);
+                            console.log('🔍 manageTab tiene clase active:', manageTab.classList.contains('active'));
+                            console.log('🔍 manageTab display:', window.getComputedStyle(manageTab).display);
+                            console.log('🔍 manageTab visibility:', window.getComputedStyle(manageTab).visibility);
+                            console.log('🔍 manageTab opacity:', window.getComputedStyle(manageTab).opacity);
+                            console.log('🔍 exportSection existe:', !!exportSection);
+                            console.log('🔍 exportButton existe:', !!exportButton);
+                            
+                            if (exportSection) {
+                                console.log('🔍 exportSection display:', window.getComputedStyle(exportSection).display);
+                                console.log('🔍 exportSection visibility:', window.getComputedStyle(exportSection).visibility);
+                                console.log('🔍 exportSection opacity:', window.getComputedStyle(exportSection).opacity);
+                                exportSection.style.display = 'block';
+                                exportSection.style.visibility = 'visible';
+                                exportSection.style.opacity = '1';
+                                exportSection.style.position = 'relative';
+                                exportSection.style.zIndex = '1000';
+                            }
+                            
+                            if (exportButton) {
+                                console.log('🔍 exportButton display:', window.getComputedStyle(exportButton).display);
+                                console.log('🔍 exportButton visibility:', window.getComputedStyle(exportButton).visibility);
+                                console.log('🔍 exportButton opacity:', window.getComputedStyle(exportButton).opacity);
+                                console.log('🔍 exportButton offsetParent:', exportButton.offsetParent);
+                                exportButton.style.display = 'block';
+                                exportButton.style.visibility = 'visible';
+                                exportButton.style.opacity = '1';
+                                exportButton.style.position = 'relative';
+                                exportButton.style.zIndex = '1001';
+                                console.log('✅ Botón de exportación encontrado y forzado a ser visible');
+                                console.log('✅ DESPUÉS DE FORZAR - display:', window.getComputedStyle(exportButton).display);
+                                console.log('✅ DESPUÉS DE FORZAR - visibility:', window.getComputedStyle(exportButton).visibility);
+                            } else {
+                                console.error('❌ Botón de exportación NO encontrado en el DOM');
+                                console.error('❌ Buscando todos los botones en manageTab:', manageTab.querySelectorAll('button').length);
+                                console.error('❌ HTML de manageTab (primeros 500 chars):', manageTab.innerHTML.substring(0, 500));
+                            }
+                            console.log('🔍 ====================================================');
+                        }, 200);
+                        
                         // Asegurar que el formulario de vista se actualice
                         setTimeout(() => {
                             try {
@@ -2842,27 +3095,27 @@
                             Complete todos los campos a continuación. Todos los campos son obligatorios.
                         </div>
                         <div class="form-group">
-                            <label>🔑 Código del Campeonato (ID):</label>
+                            <label for="champId">🔑 Código del Campeonato (ID):</label>
                             <input type="text" id="champId" placeholder="champ1" value="champ${champIds.length + 1}" style="font-size: 1.1em; padding: 18px;">
                             <div class="field-help">Ingrese un código único para identificar este campeonato (por ejemplo: champ1, torneo2024)</div>
                         </div>
                         <div class="form-group">
-                            <label>📛 Nombre del Campeonato:</label>
+                            <label for="name">📛 Nombre del Campeonato:</label>
                             <input type="text" id="name" placeholder="Campeonato 2024" value="Campeonato ${new Date().getFullYear()}" style="font-size: 1.1em; padding: 18px;">
                             <div class="field-help">Escriba el nombre completo del campeonato (por ejemplo: "Campeonato de Básquetbol 2024")</div>
                         </div>
                         <div class="form-group">
-                            <label>🔄 Número de Vueltas:</label>
+                            <label for="rounds">🔄 Número de Vueltas:</label>
                             <input type="number" id="rounds" value="2" min="1" style="font-size: 1.1em; padding: 18px;">
                             <div class="field-help">Ingrese cuántas vueltas tendrá el campeonato. Normalmente son 2 vueltas (ida y vuelta).</div>
                         </div>
                         <div class="form-group">
-                            <label>⭐ Puntos por Victoria:</label>
+                            <label for="pointsWin">⭐ Puntos por Victoria:</label>
                             <input type="number" id="pointsWin" value="2" min="0" style="font-size: 1.1em; padding: 18px;">
                             <div class="field-help">Cuantos puntos gana un equipo cuando gana un partido (normalmente 2 puntos)</div>
                         </div>
                         <div class="form-group">
-                            <label>📉 Puntos por Derrota:</label>
+                            <label for="pointsLoss">📉 Puntos por Derrota:</label>
                             <input type="number" id="pointsLoss" value="0" min="0" style="font-size: 1.1em; padding: 18px;">
                             <div class="field-help">Cuantos puntos gana un equipo cuando pierde un partido (normalmente 0 puntos)</div>
                         </div>
@@ -2877,14 +3130,14 @@
                             Primero seleccione el campeonato al que desea agregar la categoría, luego complete los datos de la categoría.
                         </div>
                         <div class="form-group">
-                            <label>🏆 Seleccione el Campeonato:</label>
+                            <label for="champIdSelect">🏆 Seleccione el Campeonato:</label>
                             <select id="champIdSelect" onchange="loadCategoryTeams()" style="font-size: 1.1em; padding: 18px;">
                                 ${champOptions}
                             </select>
                             <div class="field-help">Elija el campeonato al que desea agregar esta categoría</div>
                         </div>
                         <div class="form-group">
-                            <label>📛 Nombre de la Categoría:</label>
+                            <label for="categoryName">📛 Nombre de la Categoría:</label>
                             <input type="text" id="categoryName" placeholder="TC" list="categorySuggestions" style="font-size: 1.1em; padding: 18px;">
                             <datalist id="categorySuggestions">
                                 <option value="TC">
@@ -2894,12 +3147,12 @@
                             <div class="field-help">Escriba el nombre de la categoría (por ejemplo: TC, Senior, Super Senior)</div>
                         </div>
                         <div class="form-group">
-                            <label>👥 Nombres de los Equipos (separados por comas):</label>
+                            <label for="teams">👥 Nombres de los Equipos (separados por comas):</label>
                             <input type="text" id="teams" placeholder="Equipo A, Equipo B, Equipo C" style="font-size: 1.1em; padding: 18px;">
                             <div class="field-help">Escriba los nombres de los equipos separados por comas. Ejemplo: "Los Leones, Los Tigres, Los Osos"</div>
                         </div>
                         <div class="form-group">
-                            <label>🔢 O ingrese el número de equipos (se crearán nombres automáticos):</label>
+                            <label for="numTeams">🔢 O ingrese el número de equipos (se crearán nombres automáticos):</label>
                             <input type="number" id="numTeams" placeholder="4" min="2" style="font-size: 1.1em; padding: 18px;">
                             <div class="field-help">Si prefiere, puede ingresar solo el número de equipos y se crearán nombres automáticos (Equipo 1, Equipo 2, etc.)</div>
                         </div>
@@ -3157,17 +3410,17 @@
             
             let html = `
                 <div class="form-group">
-                    <label>Campeonato:</label>
+                    <label for="champIdView">Campeonato:</label>
                     <select id="champIdView" onchange="loadViewCategories()">
                         ${champOptions}
                     </select>
                 </div>
             `;
             
-            if (view === 'standings' || view === 'fixture') {
+            if (view === 'standings' || view === 'fixture' || view === 'calendar' || view === 'calendar-week') {
                 html += `
                     <div class="form-group">
-                        <label>Categoría:</label>
+                        <label for="categoryView">Categoría:</label>
                         <select id="categoryView">
                             <option value="">Selecciona categoría</option>
                         </select>
@@ -3177,7 +3430,7 @@
                 if (view === 'fixture') {
                     html += `
                         <div class="form-group">
-                            <label>Vuelta (opcional):</label>
+                            <label for="roundView">Vuelta (opcional):</label>
                             <input type="number" id="roundView" placeholder="Dejar vacío para todas" min="1">
                         </div>
                     `;
@@ -3303,13 +3556,13 @@
                         return;
                     }
                     url = `${API_BASE}/api/championships/${champId}/standings/${category}`;
-                } else if (view === 'fixture') {
+                } else if (view === 'fixture' || view === 'calendar') {
                     const category = document.getElementById('categoryView').value;
                     if (!category) {
                         showAlert('Selecciona una categoría', 'error');
                         return;
                     }
-                    const round = document.getElementById('roundView').value;
+                    const round = document.getElementById('roundView')?.value;
                     url = `${API_BASE}/api/championships/${champId}/fixture/${category}`;
                     if (round) url += `?round=${round}`;
                     window.currentCategory = category; // Guardar para usar en renderFixture
@@ -3345,7 +3598,16 @@
                 // Renderizar según el tipo de vista
                 if (view === 'fixture' && data.matches) {
                     const category = document.getElementById('categoryView').value;
+                    window.originalMatches = data.matches; // Guardar matches originales para filtrado
                     responseDiv.innerHTML = renderFixture(data.matches, category || 'Categoría');
+                } else if (view === 'calendar' && data.matches) {
+                    const category = document.getElementById('categoryView').value;
+                    window.originalMatches = data.matches; // Guardar matches originales
+                    responseDiv.innerHTML = renderCalendarView(data.matches, category || 'Categoría');
+                } else if (view === 'calendar-week' && data.matches) {
+                    const category = document.getElementById('categoryView').value;
+                    window.originalMatches = data.matches; // Guardar matches originales
+                    responseDiv.innerHTML = renderCalendarWeekView(data.matches, category || 'Categoría');
                 } else if (view === 'standings' && data.standings) {
                     window.currentStandings = data.standings; // Guardar para usar en estadísticas
                     responseDiv.innerHTML = renderStandings(data.standings);
@@ -3369,6 +3631,14 @@
             if (!matches || matches.length === 0) {
                 return '<div class="empty-state">No hay partidos en el fixture</div>';
             }
+            
+            // Guardar matches originales si no están guardados
+            if (!window.originalMatches) {
+                window.originalMatches = matches;
+            }
+            
+            // Cargar preferencias de filtro después de un pequeño delay
+            setTimeout(loadFixtureFilterPreferences, 100);
             
             // Agrupar partidos por tipo (ida/vuelta) y luego por jornada
             const matchesByVuelta = {
@@ -3398,20 +3668,62 @@
             const partidosPendientes = totalPartidos - partidosJugados;
             
             let html = `<div class="fixture-container" style="padding: 25px; font-size: 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
-                    <h3 class="fixture-title" style="color: #667eea; margin: 0; font-size: 2em; font-weight: 700;">📅 Fixture - ${categoryName}</h3>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <input type="text" id="fixtureSearchTeam" placeholder="🔍 Buscar equipo..." 
-                               style="padding: 10px; border-radius: 8px; border: 2px solid #667eea; font-size: 1em; min-width: 200px;"
-                               onkeyup="filterFixtureMatches()">
-                        <select id="fixtureFilterStatus" onchange="filterFixtureMatches()"
-                                style="padding: 10px; border-radius: 8px; border: 2px solid #667eea; font-size: 1em;">
-                            <option value="">Todos los estados</option>
-                            <option value="played">Solo jugados</option>
-                            <option value="pending">Solo pendientes</option>
-                        </select>
-                        <input type="date" id="fixtureFilterDate" onchange="filterFixtureMatches()"
-                               style="padding: 10px; border-radius: 8px; border: 2px solid #667eea; font-size: 1em;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                        <h3 class="fixture-title" style="color: #667eea; margin: 0; font-size: 2em; font-weight: 700;">📅 Fixture - ${categoryName}</h3>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button onclick="exportToICal()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em;">
+                                📥 Exportar a Calendario (.ics)
+                            </button>
+                            <button onclick="exportCalendarToImage()" style="padding: 10px 20px; background: #25d366; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em;">
+                                📤 Exportar a WhatsApp
+                            </button>
+                        </div>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                            <div>
+                                <label for="fixtureSearchTeam" style="display: block; margin-bottom: 5px; font-weight: 600; color: #667eea; font-size: 0.9em;">🔍 Buscar Equipo</label>
+                                <input type="text" id="fixtureSearchTeam" placeholder="Nombre del equipo..." 
+                                       style="width: 100%; padding: 10px; border-radius: 8px; border: 2px solid #667eea; font-size: 1em;"
+                                       onkeyup="filterFixtureMatches()">
+                            </div>
+                            <div>
+                                <label for="fixtureFilterStatus" style="display: block; margin-bottom: 5px; font-weight: 600; color: #667eea; font-size: 0.9em;">📊 Estado</label>
+                                <select id="fixtureFilterStatus" onchange="filterFixtureMatches()"
+                                        style="width: 100%; padding: 10px; border-radius: 8px; border: 2px solid #667eea; font-size: 1em;">
+                                    <option value="">Todos</option>
+                                    <option value="played">Solo jugados</option>
+                                    <option value="pending">Solo pendientes</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="fixtureFilterVuelta" style="display: block; margin-bottom: 5px; font-weight: 600; color: #667eea; font-size: 0.9em;">🔄 Vuelta</label>
+                                <select id="fixtureFilterVuelta" onchange="filterFixtureMatches()"
+                                        style="width: 100%; padding: 10px; border-radius: 8px; border: 2px solid #667eea; font-size: 1em;">
+                                    <option value="">Todas</option>
+                                    <option value="ida">Vuelta Ida</option>
+                                    <option value="vuelta">Vuelta Vuelta</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="fixtureFilterDateFrom" style="display: block; margin-bottom: 5px; font-weight: 600; color: #667eea; font-size: 0.9em;">📅 Fecha Desde</label>
+                                <input type="date" id="fixtureFilterDateFrom" onchange="filterFixtureMatches()"
+                                       style="width: 100%; padding: 10px; border-radius: 8px; border: 2px solid #667eea; font-size: 1em;">
+                            </div>
+                            <div>
+                                <label for="fixtureFilterDateTo" style="display: block; margin-bottom: 5px; font-weight: 600; color: #667eea; font-size: 0.9em;">📅 Fecha Hasta</label>
+                                <input type="date" id="fixtureFilterDateTo" onchange="filterFixtureMatches()"
+                                       style="width: 100%; padding: 10px; border-radius: 8px; border: 2px solid #667eea; font-size: 1em;">
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <button onclick="clearFixtureFilters()" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
+                                🗑️ Limpiar Filtros
+                            </button>
+                            <div id="fixtureFilterCount" style="font-weight: 600; color: #667eea;">
+                                Mostrando <span id="fixtureVisibleCount">${totalPartidos}</span> de <span id="fixtureTotalCount">${totalPartidos}</span> partidos
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="fixture-stats" style="background: linear-gradient(135deg, #f0f8ff 0%, #e0e8f0 100%); padding: 25px; border-radius: 15px; margin-bottom: 30px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
@@ -3506,12 +3818,12 @@
                                 
                                 <div class="fixture-match-actions" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: center;">
                                     <div>
-                                        <label style="font-size: 1em; color: #666; display: block; margin-bottom: 8px; font-weight: 600;">Fecha:</label>
+                                        <label for="${matchId}_date" style="font-size: 1em; color: #666; display: block; margin-bottom: 8px; font-weight: 600;">Fecha:</label>
                                         <input type="date" id="${matchId}_date" value="${date}" 
                                             style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1em;">
                                     </div>
                                     <div>
-                                        <label style="font-size: 1em; color: #666; display: block; margin-bottom: 8px; font-weight: 600;">Horario:</label>
+                                        <label for="${matchId}_time" style="font-size: 1em; color: #666; display: block; margin-bottom: 8px; font-weight: 600;">Horario:</label>
                                         <input type="time" id="${matchId}_time" value="${time}" 
                                             style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1em;">
                                     </div>
@@ -3665,9 +3977,26 @@
                 <div style="padding: 10px; overflow-x: auto;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
                         <h3 style="color: #667eea; margin: 0;">📊 Tabla de Posiciones</h3>
-                        <button onclick="toggleStandingsCharts()" class="btn" style="background: #667eea; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">
-                            📈 Ver Gráficos
-                        </button>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <input type="text" id="standingsSearch" placeholder="🔍 Buscar equipo..." 
+                                   style="padding: 10px; border-radius: 8px; border: 2px solid #667eea; font-size: 1em; min-width: 200px;"
+                                   onkeyup="searchInStandings(this.value)">
+                            <button onclick="toggleStandingsCharts()" class="btn" style="background: #667eea; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">
+                                📈 Ver Gráficos
+                            </button>
+                            <button onclick="showPointsEvolutionChart()" class="btn" style="background: #17a2b8; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">
+                                📊 Evolución de Puntos
+                            </button>
+                            <button onclick="showHeatmapChart()" class="btn" style="background: #ff6b6b; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">
+                                🔥 Heatmap
+                            </button>
+                            <button onclick="exportStandingsToImage()" class="btn" style="background: #25d366; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">
+                                📤 Exportar Tabla
+                            </button>
+                            <button onclick="exportBothToImage()" class="btn" style="background: #128c7e; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">
+                                📤 Exportar Todo
+                            </button>
+                        </div>
                     </div>
                     
                     <!-- Gráficos (ocultos inicialmente) -->
@@ -3687,26 +4016,48 @@
                         </div>
                     </div>
                     
+                    <!-- Modal de Evolución de Puntos -->
+                    <div id="evolutionChartModal" class="modal" style="display: none;">
+                        <div class="modal-content" style="max-width: 900px;">
+                            <span class="close" onclick="document.getElementById('evolutionChartModal').style.display='none'">&times;</span>
+                            <h2 style="color: #667eea; margin-bottom: 20px;">📊 Evolución de Puntos por Equipo</h2>
+                            <div id="evolutionChartContainer" style="padding: 20px;">
+                                <div style="text-align: center; padding: 40px;">
+                                    <div style="font-size: 2em; margin-bottom: 20px;">⏳</div>
+                                    <div style="font-size: 1.2em;">Cargando gráfico...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden;">
                         <thead>
                             <tr style="background: #667eea; color: white;">
-                                <th style="padding: 12px; text-align: left; cursor: pointer;" onclick="sortStandings('position')" title="Ordenar por posición">Pos ↕️</th>
-                                <th style="padding: 12px; text-align: left; cursor: pointer;" onclick="sortStandings('name')" title="Ordenar por nombre">Equipo ↕️</th>
-                                <th style="padding: 12px; text-align: center; cursor: pointer;" onclick="sortStandings('pj')" title="Ordenar por partidos jugados">PJ ↕️</th>
-                                <th style="padding: 12px; text-align: center; cursor: pointer;" onclick="sortStandings('pg')" title="Ordenar por partidos ganados">PG ↕️</th>
-                                <th style="padding: 12px; text-align: center; cursor: pointer;" onclick="sortStandings('pp')" title="Ordenar por partidos perdidos">PP ↕️</th>
-                                <th style="padding: 12px; text-align: center; cursor: pointer;" onclick="sortStandings('pf')" title="Ordenar por puntos a favor">PF ↕️</th>
-                                <th style="padding: 12px; text-align: center; cursor: pointer;" onclick="sortStandings('pc')" title="Ordenar por puntos en contra">PC ↕️</th>
-                                <th style="padding: 12px; text-align: center; cursor: pointer;" onclick="sortStandings('difference')" title="Ordenar por diferencia">Dif ↕️</th>
-                                <th style="padding: 12px; text-align: center; font-weight: bold; cursor: pointer;" onclick="sortStandings('points')" title="Ordenar por puntos">Pts ↕️</th>
-                                <th style="padding: 12px; text-align: center;">Acciones</th>
+                                <th id="th_position" style="padding: 12px; text-align: left; cursor: pointer; user-select: none;" onclick="sortStandings('position')" title="Ordenar por posición">Pos <span id="sort_position">↕️</span></th>
+                                <th id="th_name" style="padding: 12px; text-align: left; cursor: pointer; user-select: none;" onclick="sortStandings('name')" title="Ordenar por nombre">Equipo <span id="sort_name">↕️</span></th>
+                                <th id="th_pj" style="padding: 12px; text-align: center; cursor: pointer; user-select: none;" onclick="sortStandings('pj')" title="Ordenar por partidos jugados">PJ <span id="sort_pj">↕️</span></th>
+                                <th id="th_pg" style="padding: 12px; text-align: center; cursor: pointer; user-select: none;" onclick="sortStandings('pg')" title="Ordenar por partidos ganados">PG <span id="sort_pg">↕️</span></th>
+                                <th id="th_pp" style="padding: 12px; text-align: center; cursor: pointer; user-select: none;" onclick="sortStandings('pp')" title="Ordenar por partidos perdidos">PP <span id="sort_pp">↕️</span></th>
+                                <th id="th_pf" style="padding: 12px; text-align: center; cursor: pointer; user-select: none;" onclick="sortStandings('pf')" title="Ordenar por puntos a favor">PF <span id="sort_pf">↕️</span></th>
+                                <th id="th_pc" style="padding: 12px; text-align: center; cursor: pointer; user-select: none;" onclick="sortStandings('pc')" title="Ordenar por puntos en contra">PC <span id="sort_pc">↕️</span></th>
+                                <th id="th_difference" style="padding: 12px; text-align: center; cursor: pointer; user-select: none;" onclick="sortStandings('difference')" title="Ordenar por diferencia">Dif <span id="sort_difference">↕️</span></th>
+                                <th id="th_points" style="padding: 12px; text-align: center; font-weight: bold; cursor: pointer; user-select: none;" onclick="sortStandings('points')" title="Ordenar por puntos">Pts <span id="sort_points">↕️</span></th>
+                                <th style="padding: 12px; text-align: center;">
+                                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                                        <span>Acciones</span>
+                                        <button onclick="showTeamComparison()" style="padding: 5px 10px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
+                                            Comparar Seleccionados
+                                        </button>
+                                    </div>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
             `;
             
-            // Guardar standings originales para ordenamiento
+            // Guardar standings originales para ordenamiento y búsqueda
             window.currentStandings = standings;
+            window.originalStandings = [...standings]; // Copia para búsqueda
             window.currentStandingsSort = { field: null, ascending: true };
             
             standings.forEach((team, index) => {
@@ -3726,10 +4077,15 @@
                         <td style="padding: 12px; text-align: center; color: ${team.difference >= 0 ? '#28a745' : '#dc3545'};">${team.difference || 0}</td>
                         <td style="padding: 12px; text-align: center; font-weight: bold; color: #667eea; font-size: 1.1em;">${team.points || 0}</td>
                         <td style="padding: 12px; text-align: center;">
-                            <button onclick="showTeamStats('${champId}', '${category}', '${team.name.replace(/'/g, "\\'")}')" 
-                                    style="background: #17a2b8; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
-                                📈 Stats
-                            </button>
+                            <div style="display: flex; gap: 5px; justify-content: center; flex-wrap: wrap;">
+                                <button onclick="showTeamStats('${champId}', '${category}', '${team.name.replace(/'/g, "\\'")}')" 
+                                        style="background: #17a2b8; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
+                                    📈 Stats
+                                </button>
+                                <input type="checkbox" class="team-compare-checkbox" value="${team.name.replace(/'/g, "\\'")}" 
+                                       style="width: 20px; height: 20px; cursor: pointer;" 
+                                       title="Seleccionar para comparar">
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -3765,6 +4121,53 @@
                 }, 100);
             } else {
                 chartsDiv.style.display = 'none';
+            }
+        }
+        
+        // Función para actualizar indicadores de ordenamiento
+        function updateSortIndicators() {
+            const sortState = window.currentStandingsSort || { field: null, ascending: true };
+            
+            // Resetear todos los indicadores
+            ['position', 'name', 'pj', 'pg', 'pp', 'pf', 'pc', 'difference', 'points'].forEach(field => {
+                const span = document.getElementById(`sort_${field}`);
+                if (span) {
+                    span.textContent = '↕️';
+                }
+            });
+            
+            // Mostrar indicador en el campo ordenado
+            if (sortState.field) {
+                const span = document.getElementById(`sort_${sortState.field}`);
+                if (span) {
+                    span.textContent = sortState.ascending ? '↑' : '↓';
+                }
+            }
+        }
+        
+        // Función para buscar en tabla de posiciones
+        function searchInStandings(query) {
+            if (!window.originalStandings) {
+                window.originalStandings = window.currentStandings || [];
+            }
+            
+            const searchTerm = query.toLowerCase().trim();
+            
+            if (!searchTerm || searchTerm.length === 0) {
+                // Sin búsqueda, mostrar todos
+                window.currentStandings = [...window.originalStandings];
+            } else {
+                // Filtrar por nombre de equipo
+                window.currentStandings = window.originalStandings.filter(team => {
+                    const teamName = (team.name || '').toLowerCase();
+                    return teamName.includes(searchTerm);
+                });
+            }
+            
+            // Re-renderizar tabla
+            const responseDiv = document.getElementById('response');
+            if (responseDiv && window.currentStandings) {
+                responseDiv.innerHTML = renderStandings(window.currentStandings);
             }
         }
         
@@ -3936,15 +4339,17 @@
                 }
             });
             
+            // Actualizar standings actuales
+            window.currentStandings = standings;
+            
             // Re-renderizar tabla
-            const responseDiv = document.getElementById('responseDiv');
+            const responseDiv = document.getElementById('response');
             if (responseDiv) {
-                const champId = document.getElementById('champIdView')?.value || '';
-                const category = document.getElementById('categoryView')?.value || '';
                 responseDiv.innerHTML = renderStandings(standings);
-                // Actualizar datos de gráficos
-                window.currentStandings = standings;
             }
+            
+            // Actualizar indicadores de ordenamiento
+            setTimeout(updateSortIndicators, 100);
         }
         
         function showAlert(message, type) {
@@ -4080,8 +4485,23 @@
                     
                     console.log('🔴 Click detectado en pestaña:', tabName);
                     
+                    // #region agent log
+                    fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:4310',message:'click en pestaña detectado',data:{tabName:tabName,hasSwitchTab:typeof window.switchTab==='function'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+                    // #endregion
+                    
                     if (typeof window.switchTab === 'function') {
                         window.switchTab(tabName);
+                        
+                        // Verificar botón después de cambiar tab
+                        if (tabName === 'manage') {
+                            setTimeout(() => {
+                                const manageTab = document.getElementById('manageTab');
+                                const exportButton = document.getElementById('exportBothButton');
+                                // #region agent log
+                                fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:4330',message:'verificando botón después de switchTab',data:{hasManageTab:!!manageTab,manageTabActive:manageTab?.classList.contains('active'),manageTabDisplay:manageTab?window.getComputedStyle(manageTab).display:'N/A',hasExportButton:!!exportButton,exportButtonDisplay:exportButton?window.getComputedStyle(exportButton).display:'N/A'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+                                // #endregion
+                            }, 500);
+                        }
                     } else {
                         console.error('❌ window.switchTab no está disponible');
                         alert('Error: La función switchTab no está disponible. Por favor, recargue la página.');
@@ -4104,6 +4524,1664 @@
         
         // También intentar después de un pequeño delay por si acaso
         setTimeout(setupTabListeners, 100);
+        
+        // ============================================
+        // BÚSQUEDA GLOBAL
+        // ============================================
+        
+        let globalSearchDebounceTimer = null;
+        
+        function performGlobalSearch(query) {
+            // Debounce: esperar 300ms antes de buscar
+            clearTimeout(globalSearchDebounceTimer);
+            globalSearchDebounceTimer = setTimeout(() => {
+                if (!query || query.trim().length < 2) {
+                    hideGlobalSearchResults();
+                    return;
+                }
+                
+                const searchTerm = query.toLowerCase().trim();
+                const results = [];
+                
+                // Buscar en campeonatos
+                Object.keys(championshipsData).forEach(champId => {
+                    const champ = championshipsData[champId];
+                    const champName = (champ?.name || champId).toLowerCase();
+                    if (champName.includes(searchTerm)) {
+                        results.push({
+                            type: 'championship',
+                            id: champId,
+                            name: champ?.name || champId,
+                            category: 'Campeonato',
+                            action: () => {
+                                selectChampionship(champId);
+                                switchTab('data');
+                                hideGlobalSearchResults();
+                            }
+                        });
+                    }
+                });
+                
+                // Buscar en equipos (en todas las categorías)
+                Object.keys(championshipsData).forEach(champId => {
+                    const champ = championshipsData[champId];
+                    if (champ?.categories) {
+                        Object.keys(champ.categories).forEach(catName => {
+                            const category = champ.categories[catName];
+                            if (category?.teams) {
+                                category.teams.forEach(team => {
+                                    const teamName = (typeof team === 'string' ? team : team.name || '').toLowerCase();
+                                    if (teamName.includes(searchTerm)) {
+                                        results.push({
+                                            type: 'team',
+                                            id: `${champId}_${catName}_${teamName}`,
+                                            name: typeof team === 'string' ? team : team.name || '',
+                                            category: `${champ?.name || champId} - ${catName}`,
+                                            action: () => {
+                                                selectChampionship(champId);
+                                                selectCategory(champId, catName);
+                                                switchTab('manage');
+                                                document.getElementById('viewSelect').value = 'standings';
+                                                loadView();
+                                                hideGlobalSearchResults();
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+                
+                // Buscar en partidos (por equipos participantes)
+                // Esto requiere cargar fixtures, así que lo haremos de forma asíncrona
+                searchInMatches(searchTerm, results);
+                
+                // Mostrar resultados
+                displayGlobalSearchResults(results);
+            }, 300);
+        }
+        
+        async function searchInMatches(searchTerm, results) {
+            // Buscar en partidos de todos los campeonatos
+            for (const champId of Object.keys(championshipsData)) {
+                const champ = championshipsData[champId];
+                if (champ?.categories) {
+                    for (const catName of Object.keys(champ.categories)) {
+                        try {
+                            const res = await fetch(`${API_BASE}/api/championships/${champId}/fixture/${encodeURIComponent(catName)}`);
+                            if (res.ok) {
+                                const data = await res.json();
+                                if (data.success && data.matches) {
+                                    data.matches.forEach(match => {
+                                        const teamA = (match.team_a || '').toLowerCase();
+                                        const teamB = (match.team_b || '').toLowerCase();
+                                        if (teamA.includes(searchTerm) || teamB.includes(searchTerm)) {
+                                            const matchKey = `${champId}_${catName}_${match.round_number}_${match.team_a}_${match.team_b}`;
+                                            if (!results.find(r => r.id === matchKey)) {
+                                                results.push({
+                                                    type: 'match',
+                                                    id: matchKey,
+                                                    name: `${match.team_a} vs ${match.team_b}`,
+                                                    category: `${champ?.name || champId} - ${catName}`,
+                                                    action: () => {
+                                                        selectChampionship(champId);
+                                                        selectCategory(champId, catName);
+                                                        switchTab('manage');
+                                                        document.getElementById('viewSelect').value = 'fixture';
+                                                        loadView();
+                                                        hideGlobalSearchResults();
+                                                    }
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        } catch (error) {
+                            console.error(`Error buscando partidos en ${champId}/${catName}:`, error);
+                        }
+                    }
+                }
+            }
+            
+            // Actualizar resultados si ya se mostraron
+            const searchInput = document.getElementById('globalSearch');
+            if (searchInput && searchInput.value.trim().length >= 2) {
+                displayGlobalSearchResults(results);
+            }
+        }
+        
+        function displayGlobalSearchResults(results) {
+            const resultsDiv = document.getElementById('globalSearchResults');
+            if (!resultsDiv) return;
+            
+            if (results.length === 0) {
+                resultsDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No se encontraron resultados</div>';
+                showGlobalSearchResults();
+                return;
+            }
+            
+            let html = '<div style="max-height: 400px; overflow-y: auto;">';
+            
+            // Agrupar por tipo
+            const byType = {
+                championship: [],
+                team: [],
+                match: []
+            };
+            
+            results.forEach(result => {
+                if (byType[result.type]) {
+                    byType[result.type].push(result);
+                }
+            });
+            
+            // Mostrar campeonatos
+            if (byType.championship.length > 0) {
+                html += '<div style="padding: 10px; background: #f8f9fa; font-weight: bold; color: #667eea; border-bottom: 2px solid #667eea;">🏆 Campeonatos</div>';
+                byType.championship.slice(0, 5).forEach(result => {
+                    html += `
+                        <div onclick="(${result.action.toString()})()" 
+                             style="padding: 12px; cursor: pointer; border-bottom: 1px solid #e0e0e0; transition: background 0.2s;"
+                             onmouseover="this.style.background='#f0f0f0'"
+                             onmouseout="this.style.background='white'">
+                            <div style="font-weight: 600; color: #333;">${highlightText(result.name, document.getElementById('globalSearch').value)}</div>
+                            <div style="font-size: 0.85em; color: #666; margin-top: 4px;">${result.category}</div>
+                        </div>
+                    `;
+                });
+            }
+            
+            // Mostrar equipos
+            if (byType.team.length > 0) {
+                html += '<div style="padding: 10px; background: #f8f9fa; font-weight: bold; color: #667eea; border-bottom: 2px solid #667eea; margin-top: 10px;">👥 Equipos</div>';
+                byType.team.slice(0, 5).forEach(result => {
+                    html += `
+                        <div onclick="(${result.action.toString()})()" 
+                             style="padding: 12px; cursor: pointer; border-bottom: 1px solid #e0e0e0; transition: background 0.2s;"
+                             onmouseover="this.style.background='#f0f0f0'"
+                             onmouseout="this.style.background='white'">
+                            <div style="font-weight: 600; color: #333;">${highlightText(result.name, document.getElementById('globalSearch').value)}</div>
+                            <div style="font-size: 0.85em; color: #666; margin-top: 4px;">${result.category}</div>
+                        </div>
+                    `;
+                });
+            }
+            
+            // Mostrar partidos
+            if (byType.match.length > 0) {
+                html += '<div style="padding: 10px; background: #f8f9fa; font-weight: bold; color: #667eea; border-bottom: 2px solid #667eea; margin-top: 10px;">⚽ Partidos</div>';
+                byType.match.slice(0, 5).forEach(result => {
+                    html += `
+                        <div onclick="(${result.action.toString()})()" 
+                             style="padding: 12px; cursor: pointer; border-bottom: 1px solid #e0e0e0; transition: background 0.2s;"
+                             onmouseover="this.style.background='#f0f0f0'"
+                             onmouseout="this.style.background='white'">
+                            <div style="font-weight: 600; color: #333;">${highlightText(result.name, document.getElementById('globalSearch').value)}</div>
+                            <div style="font-size: 0.85em; color: #666; margin-top: 4px;">${result.category}</div>
+                        </div>
+                    `;
+                });
+            }
+            
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+            showGlobalSearchResults();
+        }
+        
+        function highlightText(text, query) {
+            if (!query || query.trim().length === 0) return text;
+            const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            return text.replace(regex, '<mark style="background: #ffeb3b; padding: 2px 4px; border-radius: 3px;">$1</mark>');
+        }
+        
+        function showGlobalSearchResults() {
+            const resultsDiv = document.getElementById('globalSearchResults');
+            if (resultsDiv) {
+                resultsDiv.style.display = 'block';
+            }
+        }
+        
+        function hideGlobalSearchResults() {
+            const resultsDiv = document.getElementById('globalSearchResults');
+            if (resultsDiv) {
+                resultsDiv.style.display = 'none';
+            }
+        }
+        
+        // Atajo de teclado Ctrl/Cmd + K para búsqueda
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                const searchInput = document.getElementById('globalSearch');
+                if (searchInput) {
+                    searchInput.focus();
+                    searchInput.select();
+                }
+            }
+            
+            // Esc para cerrar resultados
+            if (e.key === 'Escape') {
+                hideGlobalSearchResults();
+                const searchInput = document.getElementById('globalSearch');
+                if (searchInput && document.activeElement === searchInput) {
+                    searchInput.blur();
+                }
+            }
+        });
+        
+        // Hacer funciones globales
+        window.performGlobalSearch = performGlobalSearch;
+        window.showGlobalSearchResults = showGlobalSearchResults;
+        window.hideGlobalSearchResults = hideGlobalSearchResults;
+        window.searchInStandings = searchInStandings;
+        window.updateSortIndicators = updateSortIndicators;
+        
+        // ============================================
+        // VISTA DE CALENDARIO
+        // ============================================
+        
+        function renderCalendarView(matches, categoryName) {
+            if (!matches || matches.length === 0) {
+                return '<div class="empty-state">No hay partidos en el calendario</div>';
+            }
+            
+            // Agrupar partidos por fecha
+            const matchesByDate = {};
+            matches.forEach(match => {
+                const date = match.date || 'Sin fecha';
+                if (!matchesByDate[date]) {
+                    matchesByDate[date] = [];
+                }
+                matchesByDate[date].push(match);
+            });
+            
+            // Obtener mes actual
+            const now = new Date();
+            let currentMonth = now.getMonth();
+            let currentYear = now.getFullYear();
+            
+            // Intentar obtener mes desde localStorage
+            const savedMonth = localStorage.getItem('calendarMonth');
+            const savedYear = localStorage.getItem('calendarYear');
+            if (savedMonth !== null && savedYear !== null) {
+                currentMonth = parseInt(savedMonth);
+                currentYear = parseInt(savedYear);
+            }
+            
+            // Generar calendario mensual
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay();
+            
+            const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                              'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+            
+            let html = `
+                <div class="calendar-container" style="padding: 25px; font-size: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+                        <h3 style="color: #667eea; margin: 0; font-size: 2em; font-weight: 700;">📆 Calendario - ${categoryName}</h3>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button onclick="changeCalendarMonth(-1)" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                ← Anterior
+                            </button>
+                            <span style="font-size: 1.3em; font-weight: 700; color: #667eea; min-width: 200px; text-align: center;">
+                                ${monthNames[currentMonth]} ${currentYear}
+                            </span>
+                            <button onclick="changeCalendarMonth(1)" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                Siguiente →
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                        <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 20px; height: 20px; background: #28a745; border-radius: 4px;"></div>
+                                <span>Partido jugado</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 20px; height: 20px; background: #007bff; border-radius: 4px;"></div>
+                                <span>Partido programado</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 20px; height: 20px; background: #dc3545; border-radius: 4px;"></div>
+                                <span>Sin fecha</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+            `;
+            
+            // Encabezados de días
+            dayNames.forEach(day => {
+                html += `<div style="text-align: center; font-weight: 700; color: #667eea; padding: 10px; background: #f0f0f0; border-radius: 6px;">${day}</div>`;
+            });
+            
+            // Días vacíos al inicio
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                html += `<div style="min-height: 100px; border: 1px solid #e0e0e0; border-radius: 6px; background: #f8f9fa;"></div>`;
+            }
+            
+            // Días del mes
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayMatches = matchesByDate[dateStr] || [];
+                const isToday = currentYear === now.getFullYear() && currentMonth === now.getMonth() && day === now.getDate();
+                
+                let dayStyle = 'min-height: 100px; border: 2px solid #e0e0e0; border-radius: 6px; padding: 8px; background: white; cursor: pointer; transition: all 0.2s;';
+                
+                if (dayMatches.length > 0) {
+                    const hasPlayed = dayMatches.some(m => m.played);
+                    const hasScheduled = dayMatches.some(m => m.date && !m.played);
+                    const hasUnscheduled = dayMatches.some(m => !m.date);
+                    
+                    if (hasPlayed) {
+                        dayStyle += ' background: #d4edda; border-color: #28a745;';
+                    } else if (hasScheduled) {
+                        dayStyle += ' background: #d1ecf1; border-color: #007bff;';
+                    } else if (hasUnscheduled) {
+                        dayStyle += ' background: #f8d7da; border-color: #dc3545;';
+                    }
+                }
+                
+                if (isToday) {
+                    dayStyle += ' border: 3px solid #ffc107; box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);';
+                }
+                
+                const matchesJson = JSON.stringify(dayMatches).replace(/"/g, '&quot;');
+                html += `
+                    <div onclick="showDayMatches('${dateStr}', ${matchesJson})" 
+                         style="${dayStyle}"
+                         onmouseover="this.style.transform='scale(1.05)'; this.style.zIndex='10';"
+                         onmouseout="this.style.transform='scale(1)'; this.style.zIndex='1';">
+                        <div style="font-weight: 700; color: ${isToday ? '#ffc107' : '#333'}; margin-bottom: 5px; font-size: 1.1em;">${day}</div>
+                        ${dayMatches.length > 0 ? `<div style="font-size: 0.85em; color: #666;">${dayMatches.length} partido${dayMatches.length > 1 ? 's' : ''}</div>` : ''}
+                    </div>
+                `;
+            }
+            
+            // Días vacíos al final
+            const totalCells = startingDayOfWeek + daysInMonth;
+            const remainingCells = 7 - (totalCells % 7);
+            if (remainingCells < 7) {
+                for (let i = 0; i < remainingCells; i++) {
+                    html += `<div style="min-height: 100px; border: 1px solid #e0e0e0; border-radius: 6px; background: #f8f9fa;"></div>`;
+                }
+            }
+            
+            html += `
+                    </div>
+                </div>
+            `;
+            
+            // Guardar mes actual
+            window.calendarCurrentMonth = currentMonth;
+            window.calendarCurrentYear = currentYear;
+            
+            return html;
+        }
+        
+        function changeCalendarMonth(delta) {
+            const currentMonth = window.calendarCurrentMonth !== undefined ? window.calendarCurrentMonth : new Date().getMonth();
+            const currentYear = window.calendarCurrentYear !== undefined ? window.calendarCurrentYear : new Date().getFullYear();
+            
+            let newMonth = currentMonth + delta;
+            let newYear = currentYear;
+            
+            if (newMonth < 0) {
+                newMonth = 11;
+                newYear--;
+            } else if (newMonth > 11) {
+                newMonth = 0;
+                newYear++;
+            }
+            
+            // Guardar en localStorage
+            localStorage.setItem('calendarMonth', newMonth);
+            localStorage.setItem('calendarYear', newYear);
+            
+            // Recargar vista de calendario
+            const champId = document.getElementById('champIdView')?.value;
+            const category = document.getElementById('categoryView')?.value;
+            
+            if (champId && category) {
+                loadViewData();
+            }
+        }
+        
+        function showDayMatches(date, matches) {
+            if (!matches || matches.length === 0) {
+                showAlert('No hay partidos programados para esta fecha', 'info');
+                return;
+            }
+            
+            const dateObj = new Date(date + 'T00:00:00');
+            const dateStr = dateObj.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
+            let html = `
+                <div style="padding: 20px;">
+                    <h3 style="color: #667eea; margin-bottom: 20px;">📅 Partidos del ${dateStr}</h3>
+                    <div style="display: grid; gap: 15px;">
+            `;
+            
+            matches.forEach((match) => {
+                const played = match.played;
+                const scoreA = match.score_a !== null ? match.score_a : '-';
+                const scoreB = match.score_b !== null ? match.score_b : '-';
+                const time = match.time || 'Sin horario';
+                const status = played ? 'Jugado' : 'Programado';
+                const statusColor = played ? '#28a745' : '#007bff';
+                
+                html += `
+                    <div style="padding: 15px; background: ${played ? '#d4edda' : '#d1ecf1'}; border-left: 4px solid ${statusColor}; border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 700; font-size: 1.1em; margin-bottom: 5px;">
+                                    ${match.team_a} <span style="color: ${statusColor};">${scoreA}</span> - 
+                                    <span style="color: ${statusColor};">${scoreB}</span> ${match.team_b}
+                                </div>
+                                <div style="font-size: 0.9em; color: #666;">
+                                    🕐 ${time} | ${status}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+            
+            // Mostrar en modal
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 600px;">
+                    <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+                    ${html}
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            // Cerrar al hacer clic fuera
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+        
+        function renderCalendarWeekView(matches, categoryName) {
+            if (!matches || matches.length === 0) {
+                return '<div class="empty-state">No hay partidos en el calendario</div>';
+            }
+            
+            // Obtener semana actual
+            const now = new Date();
+            let currentWeekStart = new Date(now);
+            currentWeekStart.setDate(now.getDate() - now.getDay()); // Domingo de la semana
+            currentWeekStart.setHours(0, 0, 0, 0);
+            
+            // Intentar obtener semana desde localStorage
+            const savedWeek = localStorage.getItem('calendarWeekStart');
+            if (savedWeek) {
+                currentWeekStart = new Date(savedWeek);
+            }
+            
+            const weekEnd = new Date(currentWeekStart);
+            weekEnd.setDate(currentWeekStart.getDate() + 6);
+            weekEnd.setHours(23, 59, 59, 999);
+            
+            // Agrupar partidos por día de la semana
+            const matchesByDay = {};
+            const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+            
+            for (let i = 0; i < 7; i++) {
+                const day = new Date(currentWeekStart);
+                day.setDate(currentWeekStart.getDate() + i);
+                const dateStr = day.toISOString().split('T')[0];
+                matchesByDay[dateStr] = matches.filter(m => {
+                    if (!m.date) return false;
+                    return m.date === dateStr;
+                });
+            }
+            
+            let html = `
+                <div class="calendar-week-container" style="padding: 25px; font-size: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+                        <h3 style="color: #667eea; margin: 0; font-size: 2em; font-weight: 700;">📅 Calendario Semanal - ${categoryName}</h3>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button onclick="changeCalendarWeek(-1)" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                ← Semana Anterior
+                            </button>
+                            <span style="font-size: 1.1em; font-weight: 700; color: #667eea; min-width: 250px; text-align: center;">
+                                ${currentWeekStart.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })} - ${weekEnd.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            </span>
+                            <button onclick="changeCalendarWeek(1)" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                Semana Siguiente →
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+            `;
+            
+            // Mostrar cada día de la semana
+            for (let i = 0; i < 7; i++) {
+                const day = new Date(currentWeekStart);
+                day.setDate(currentWeekStart.getDate() + i);
+                const dateStr = day.toISOString().split('T')[0];
+                const dayMatches = matchesByDay[dateStr] || [];
+                const isToday = dateStr === now.toISOString().split('T')[0];
+                
+                html += `
+                    <div style="background: ${isToday ? '#fff3cd' : 'white'}; border: 2px solid ${isToday ? '#ffc107' : '#e0e0e0'}; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <div style="font-weight: 700; font-size: 1.3em; color: #667eea; margin-bottom: 15px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                            ${dayNames[day.getDay()]} ${day.getDate()}/${day.getMonth() + 1}
+                        </div>
+                        <div style="min-height: 200px;">
+                `;
+                
+                if (dayMatches.length === 0) {
+                    html += '<div style="text-align: center; color: #999; padding: 20px;">No hay partidos programados</div>';
+                } else {
+                    dayMatches.forEach(match => {
+                        const played = match.played;
+                        const scoreA = match.score_a !== null ? match.score_a : '-';
+                        const scoreB = match.score_b !== null ? match.score_b : '-';
+                        const time = match.time || 'Sin horario';
+                        const statusColor = played ? '#28a745' : '#007bff';
+                        
+                        html += `
+                            <div style="padding: 12px; background: ${played ? '#d4edda' : '#d1ecf1'}; border-left: 4px solid ${statusColor}; border-radius: 8px; margin-bottom: 10px;">
+                                <div style="font-weight: 600; margin-bottom: 5px;">
+                                    ${match.team_a} <span style="color: ${statusColor};">${scoreA}</span> - 
+                                    <span style="color: ${statusColor};">${scoreB}</span> ${match.team_b}
+                                </div>
+                                <div style="font-size: 0.85em; color: #666;">
+                                    🕐 ${time}
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += `
+                    </div>
+                </div>
+            `;
+            
+            // Guardar semana actual
+            window.calendarWeekStart = currentWeekStart;
+            
+            return html;
+        }
+        
+        function changeCalendarWeek(delta) {
+            const currentWeekStart = window.calendarWeekStart || new Date();
+            const newWeekStart = new Date(currentWeekStart);
+            newWeekStart.setDate(currentWeekStart.getDate() + (delta * 7));
+            
+            // Guardar en localStorage
+            localStorage.setItem('calendarWeekStart', newWeekStart.toISOString());
+            
+            // Recargar vista de calendario semanal
+            const champId = document.getElementById('champIdView')?.value;
+            const category = document.getElementById('categoryView')?.value;
+            
+            if (champId && category) {
+                loadViewData();
+            }
+        }
+        
+        function generateICSFile(matches, championshipName, categoryName) {
+            if (!matches || matches.length === 0) {
+                showAlert('No hay partidos para exportar', 'warning');
+                return null;
+            }
+            
+            let icsContent = 'BEGIN:VCALENDAR\r\n';
+            icsContent += 'VERSION:2.0\r\n';
+            icsContent += 'PRODID:-//ABALA//Campeonato de Basquetbol//ES\r\n';
+            icsContent += 'CALSCALE:GREGORIAN\r\n';
+            icsContent += 'METHOD:PUBLISH\r\n';
+            
+            matches.forEach((match, index) => {
+                if (!match.date) return; // Saltar partidos sin fecha
+                
+                const dateStr = match.date; // Formato YYYY-MM-DD
+                const timeStr = match.time || '18:00'; // Hora por defecto
+                const [hours, minutes] = timeStr.split(':');
+                
+                // Crear fecha de inicio
+                const startDate = new Date(`${dateStr}T${hours}:${minutes}:00`);
+                const endDate = new Date(startDate);
+                endDate.setHours(endDate.getHours() + 2); // Duración de 2 horas
+                
+                // Formato iCal: YYYYMMDDTHHMMSS
+                const formatDate = (date) => {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const hour = String(date.getHours()).padStart(2, '0');
+                    const min = String(date.getMinutes()).padStart(2, '0');
+                    const sec = String(date.getSeconds()).padStart(2, '0');
+                    return `${year}${month}${day}T${hour}${min}${sec}`;
+                };
+                
+                const dtStart = formatDate(startDate);
+                const dtEnd = formatDate(endDate);
+                const dtStamp = formatDate(new Date());
+                
+                // Título del evento
+                const summary = `${match.team_a} vs ${match.team_b}`;
+                const description = `Partido de ${categoryName} - ${championshipName}`;
+                
+                // Estado del partido
+                let status = 'CONFIRMED';
+                if (match.played) {
+                    status = 'COMPLETED';
+                }
+                
+                icsContent += 'BEGIN:VEVENT\r\n';
+                icsContent += `UID:abala-${match.team_a}-${match.team_b}-${match.round_number || index}@abala.local\r\n`;
+                icsContent += `DTSTAMP:${dtStamp}\r\n`;
+                icsContent += `DTSTART:${dtStart}\r\n`;
+                icsContent += `DTEND:${dtEnd}\r\n`;
+                icsContent += `SUMMARY:${summary}\r\n`;
+                icsContent += `DESCRIPTION:${description}\r\n`;
+                icsContent += `STATUS:${status}\r\n`;
+                if (match.played && match.score_a !== null && match.score_b !== null) {
+                    icsContent += `COMMENT:Resultado: ${match.team_a} ${match.score_a} - ${match.score_b} ${match.team_b}\r\n`;
+                }
+                icsContent += 'END:VEVENT\r\n';
+            });
+            
+            icsContent += 'END:VCALENDAR\r\n';
+            
+            return icsContent;
+        }
+        
+        function exportToICal() {
+            const champId = document.getElementById('champIdView')?.value;
+            const category = document.getElementById('categoryView')?.value;
+            
+            if (!champId || !category) {
+                showAlert('Primero selecciona campeonato y categoría', 'error');
+                return;
+            }
+            
+            if (!window.originalMatches || window.originalMatches.length === 0) {
+                showAlert('No hay partidos para exportar', 'warning');
+                return;
+            }
+            
+            const champ = championshipsData[champId];
+            const champName = champ?.name || champId;
+            
+            const icsContent = generateICSFile(window.originalMatches, champName, category);
+            
+            if (!icsContent) return;
+            
+            // Crear blob y descargar
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Fixture_${category}_${champId}_${new Date().toISOString().split('T')[0]}.ics`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            showAlert('✅ Calendario exportado exitosamente. Puedes importarlo en Google Calendar, Outlook o Apple Calendar.', 'success');
+        }
+        
+        // Hacer funciones globales
+        window.renderCalendarView = renderCalendarView;
+        window.renderCalendarWeekView = renderCalendarWeekView;
+        window.changeCalendarMonth = changeCalendarMonth;
+        window.changeCalendarWeek = changeCalendarWeek;
+        window.showDayMatches = showDayMatches;
+        window.exportToICal = exportToICal;
+        window.generateICSFile = generateICSFile;
+        
+        // ============================================
+        // EXPORTACIÓN A WHATSAPP (IMÁGENES)
+        // ============================================
+        
+        async function exportStandingsToImage() {
+            if (typeof html2canvas === 'undefined') {
+                showAlert('La librería html2canvas no está cargada. Por favor, recarga la página.', 'error');
+                return;
+            }
+            
+            const champId = document.getElementById('champIdView')?.value;
+            const category = document.getElementById('categoryView')?.value;
+            const champ = championshipsData[champId];
+            const champName = champ?.name || champId;
+            
+            // Buscar el contenedor de la tabla de posiciones
+            const responseDiv = document.getElementById('response');
+            if (!responseDiv) {
+                showAlert('No se encontró la tabla de posiciones. Por favor, carga la tabla primero.', 'error');
+                return;
+            }
+            
+            // Crear un contenedor temporal para la exportación
+            const exportContainer = document.createElement('div');
+            exportContainer.style.position = 'absolute';
+            exportContainer.style.left = '-9999px';
+            exportContainer.style.width = '1400px';
+            exportContainer.style.background = 'white';
+            exportContainer.style.padding = '40px';
+            exportContainer.style.fontFamily = 'Arial, sans-serif';
+            
+            // Agregar encabezado
+            const header = document.createElement('div');
+            header.style.marginBottom = '30px';
+            header.style.borderBottom = '3px solid #667eea';
+            header.style.paddingBottom = '20px';
+            header.innerHTML = `
+                <h1 style="color: #667eea; margin: 0 0 10px 0; font-size: 2.5em; font-weight: 700;">${champName}</h1>
+                <h2 style="color: #333; margin: 0 0 10px 0; font-size: 1.8em; font-weight: 600;">Tabla de Posiciones - ${category}</h2>
+                <p style="color: #666; margin: 0; font-size: 1.1em;">Fecha: ${new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+            `;
+            exportContainer.appendChild(header);
+            
+            // Clonar la tabla de posiciones
+            const standingsTable = responseDiv.querySelector('table');
+            if (!standingsTable) {
+                showAlert('No se encontró la tabla de posiciones. Por favor, carga la tabla primero.', 'error');
+                return;
+            }
+            
+            const clonedTable = standingsTable.cloneNode(true);
+            clonedTable.style.width = '100%';
+            clonedTable.style.fontSize = '1.2em';
+            exportContainer.appendChild(clonedTable);
+            
+            document.body.appendChild(exportContainer);
+            
+            try {
+                showAlert('⏳ Generando imagen...', 'info');
+                
+                const canvas = await html2canvas(exportContainer, {
+                    backgroundColor: '#ffffff',
+                    scale: 2,
+                    logging: false,
+                    width: 1400,
+                    useCORS: true,
+                    allowTaint: true
+                });
+                
+                // Convertir a blob y descargar
+                canvas.toBlob((blob) => {
+                    if (!blob) {
+                        showAlert('Error al generar la imagen', 'error');
+                        return;
+                    }
+                    
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    const dateStr = new Date().toISOString().split('T')[0];
+                    link.download = `Tabla_Posiciones_${category}_${dateStr}.png`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    
+                    showAlert('✅ Imagen exportada exitosamente. Lista para compartir en WhatsApp!', 'success');
+                }, 'image/png', 0.95);
+                
+            } catch (error) {
+                console.error('Error exportando imagen:', error);
+                showAlert('Error al generar la imagen: ' + error.message, 'error');
+            } finally {
+                document.body.removeChild(exportContainer);
+            }
+        }
+        
+        async function exportCalendarToImage() {
+            if (typeof html2canvas === 'undefined') {
+                showAlert('La librería html2canvas no está cargada. Por favor, recarga la página.', 'error');
+                return;
+            }
+            
+            const champId = document.getElementById('champIdView')?.value;
+            const category = document.getElementById('categoryView')?.value;
+            const champ = championshipsData[champId];
+            const champName = champ?.name || champId;
+            
+            // Buscar el contenedor del calendario
+            const responseDiv = document.getElementById('response');
+            if (!responseDiv) {
+                showAlert('No se encontró el calendario. Por favor, carga el calendario primero.', 'error');
+                return;
+            }
+            
+            const calendarContainer = responseDiv.querySelector('.calendar-container') || responseDiv.querySelector('.calendar-week-container');
+            if (!calendarContainer) {
+                showAlert('No se encontró el calendario. Por favor, carga la vista de calendario primero.', 'error');
+                return;
+            }
+            
+            // Crear un contenedor temporal para la exportación
+            const exportContainer = document.createElement('div');
+            exportContainer.style.position = 'absolute';
+            exportContainer.style.left = '-9999px';
+            exportContainer.style.width = '1400px';
+            exportContainer.style.background = 'white';
+            exportContainer.style.padding = '40px';
+            exportContainer.style.fontFamily = 'Arial, sans-serif';
+            
+            // Agregar encabezado
+            const header = document.createElement('div');
+            header.style.marginBottom = '30px';
+            header.style.borderBottom = '3px solid #667eea';
+            header.style.paddingBottom = '20px';
+            header.innerHTML = `
+                <h1 style="color: #667eea; margin: 0 0 10px 0; font-size: 2.5em; font-weight: 700;">${champName}</h1>
+                <h2 style="color: #333; margin: 0 0 10px 0; font-size: 1.8em; font-weight: 600;">Calendario de Partidos - ${category}</h2>
+                <p style="color: #666; margin: 0; font-size: 1.1em;">Fecha: ${new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+            `;
+            exportContainer.appendChild(header);
+            
+            // Clonar el calendario
+            const clonedCalendar = calendarContainer.cloneNode(true);
+            clonedCalendar.style.width = '100%';
+            exportContainer.appendChild(clonedCalendar);
+            
+            document.body.appendChild(exportContainer);
+            
+            try {
+                showAlert('⏳ Generando imagen del calendario...', 'info');
+                
+                const canvas = await html2canvas(exportContainer, {
+                    backgroundColor: '#ffffff',
+                    scale: 2,
+                    logging: false,
+                    width: 1400,
+                    useCORS: true,
+                    allowTaint: true
+                });
+                
+                // Convertir a blob y descargar
+                canvas.toBlob((blob) => {
+                    if (!blob) {
+                        showAlert('Error al generar la imagen', 'error');
+                        return;
+                    }
+                    
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    const dateStr = new Date().toISOString().split('T')[0];
+                    link.download = `Calendario_${category}_${dateStr}.png`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    
+                    showAlert('✅ Imagen del calendario exportada exitosamente. Lista para compartir en WhatsApp!', 'success');
+                }, 'image/png', 0.95);
+                
+            } catch (error) {
+                console.error('Error exportando imagen:', error);
+                showAlert('Error al generar la imagen: ' + error.message, 'error');
+            } finally {
+                document.body.removeChild(exportContainer);
+            }
+        }
+        
+        async function exportBothToImage() {
+            if (typeof html2canvas === 'undefined') {
+                showAlert('La librería html2canvas no está cargada. Por favor, recarga la página.', 'error');
+                return;
+            }
+            
+            const champId = document.getElementById('champIdView')?.value;
+            const category = document.getElementById('categoryView')?.value;
+            const champ = championshipsData[champId];
+            const champName = champ?.name || champId;
+            
+            // Verificar que ambos estén disponibles
+            const responseDiv = document.getElementById('response');
+            if (!responseDiv) {
+                showAlert('No se encontró la información. Por favor, carga primero la tabla y el calendario.', 'error');
+                return;
+            }
+            
+            // Buscar tabla de posiciones
+            let standingsTable = responseDiv.querySelector('table');
+            
+            // Si no hay tabla visible, intentar cargarla
+            if (!standingsTable) {
+                showAlert('Cargando tabla de posiciones...', 'info');
+                const viewSelect = document.getElementById('viewSelect');
+                if (viewSelect) {
+                    const originalView = viewSelect.value;
+                    viewSelect.value = 'standings';
+                    await loadViewData();
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    standingsTable = responseDiv.querySelector('table');
+                    viewSelect.value = originalView;
+                    if (originalView !== 'standings') {
+                        await loadViewData();
+                    }
+                }
+            }
+            
+            if (!standingsTable) {
+                showAlert('No se pudo cargar la tabla de posiciones. Por favor, asegúrate de tener un campeonato y categoría seleccionados.', 'error');
+                return;
+            }
+            
+            // Buscar fixture/calendario (puede estar en diferentes vistas)
+            let calendarContainer = responseDiv.querySelector('.fixture-container') || 
+                                   responseDiv.querySelector('.calendar-container') || 
+                                   responseDiv.querySelector('.calendar-week-container');
+            
+            // Si no está visible, intentar cargar el fixture
+            if (!calendarContainer) {
+                showAlert('Cargando fixture...', 'info');
+                const viewSelect = document.getElementById('viewSelect');
+                if (viewSelect) {
+                    const originalView = viewSelect.value;
+                    // Intentar cargar fixture primero
+                    viewSelect.value = 'fixture';
+                    await loadViewData();
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    
+                    // Buscar de nuevo
+                    calendarContainer = responseDiv.querySelector('.fixture-container') || 
+                                      responseDiv.querySelector('.calendar-container') || 
+                                      responseDiv.querySelector('.calendar-week-container');
+                    
+                    // Restaurar vista original
+                    viewSelect.value = originalView;
+                    if (originalView !== 'fixture') {
+                        await loadViewData();
+                    }
+                }
+            }
+            
+            if (!calendarContainer) {
+                showAlert('No se pudo cargar el fixture. Por favor, asegúrate de tener un campeonato y categoría seleccionados.', 'error');
+                return;
+            }
+            
+            // Crear un contenedor temporal para la exportación combinada
+            const exportContainer = document.createElement('div');
+            exportContainer.style.position = 'absolute';
+            exportContainer.style.left = '-9999px';
+            exportContainer.style.width = '1400px';
+            exportContainer.style.background = 'white';
+            exportContainer.style.padding = '40px';
+            exportContainer.style.fontFamily = 'Arial, sans-serif';
+            
+            // Agregar encabezado
+            const header = document.createElement('div');
+            header.style.marginBottom = '30px';
+            header.style.borderBottom = '3px solid #667eea';
+            header.style.paddingBottom = '20px';
+            header.innerHTML = `
+                <h1 style="color: #667eea; margin: 0 0 10px 0; font-size: 2.5em; font-weight: 700;">${champName}</h1>
+                <h2 style="color: #333; margin: 0 0 10px 0; font-size: 1.8em; font-weight: 600;">${category}</h2>
+                <p style="color: #666; margin: 0; font-size: 1.1em;">Fecha: ${new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+            `;
+            exportContainer.appendChild(header);
+            
+            // Agregar tabla de posiciones
+            const standingsSection = document.createElement('div');
+            standingsSection.style.marginBottom = '50px';
+            const standingsTitle = document.createElement('h2');
+            standingsTitle.style.color = '#667eea';
+            standingsTitle.style.marginBottom = '20px';
+            standingsTitle.style.fontSize = '2em';
+            standingsTitle.textContent = '📊 Tabla de Posiciones';
+            standingsSection.appendChild(standingsTitle);
+            
+            const clonedTable = standingsTable.cloneNode(true);
+            clonedTable.style.width = '100%';
+            clonedTable.style.fontSize = '1.2em';
+            clonedTable.style.marginBottom = '30px';
+            standingsSection.appendChild(clonedTable);
+            exportContainer.appendChild(standingsSection);
+            
+            // Agregar calendario
+            const calendarSection = document.createElement('div');
+            const calendarTitle = document.createElement('h2');
+            calendarTitle.style.color = '#667eea';
+            calendarTitle.style.marginBottom = '20px';
+            calendarTitle.style.fontSize = '2em';
+            calendarTitle.textContent = '📅 Calendario de Partidos';
+            calendarSection.appendChild(calendarTitle);
+            
+            const clonedCalendar = calendarContainer.cloneNode(true);
+            clonedCalendar.style.width = '100%';
+            calendarSection.appendChild(clonedCalendar);
+            exportContainer.appendChild(calendarSection);
+            
+            document.body.appendChild(exportContainer);
+            
+            try {
+                showAlert('⏳ Generando imagen combinada...', 'info');
+                
+                const canvas = await html2canvas(exportContainer, {
+                    backgroundColor: '#ffffff',
+                    scale: 2,
+                    logging: false,
+                    width: 1400,
+                    useCORS: true,
+                    allowTaint: true,
+                    height: exportContainer.scrollHeight
+                });
+                
+                // Convertir a blob y descargar
+                canvas.toBlob((blob) => {
+                    if (!blob) {
+                        showAlert('Error al generar la imagen', 'error');
+                        return;
+                    }
+                    
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    const dateStr = new Date().toISOString().split('T')[0];
+                    link.download = `Campeonato_${champName.replace(/\s+/g, '_')}_${category}_${dateStr}.png`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    
+                    showAlert('✅ Imagen combinada exportada exitosamente. Lista para compartir en WhatsApp!', 'success');
+                }, 'image/png', 0.95);
+                
+            } catch (error) {
+                console.error('Error exportando imagen:', error);
+                showAlert('Error al generar la imagen: ' + error.message, 'error');
+            } finally {
+                document.body.removeChild(exportContainer);
+            }
+        }
+        
+        // Hacer funciones globales
+        window.exportStandingsToImage = exportStandingsToImage;
+        window.exportCalendarToImage = exportCalendarToImage;
+        window.exportBothToImage = exportBothToImage;
+        
+        // Asegurar que el botón ultra visible tenga acceso a la función
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                const ultraVisibleButton = document.getElementById('ultraVisibleExportButton');
+                if (ultraVisibleButton) {
+                    console.log('✅ Botón ultra visible encontrado y configurado');
+                    ultraVisibleButton.onclick = function() {
+                        console.log('🔴 CLICK EN BOTÓN EXPORTAR (ULTRA VISIBLE)');
+                        if (typeof window.exportBothToImage === 'function') {
+                            window.exportBothToImage();
+                        } else if (typeof exportBothToImage === 'function') {
+                            exportBothToImage();
+                        } else {
+                            alert('Error: La función exportBothToImage no está disponible. Por favor, recarga la página.');
+                            console.error('exportBothToImage no disponible');
+                        }
+                    };
+                } else {
+                    console.error('❌ Botón ultra visible NO encontrado');
+                }
+            });
+        } else {
+            // DOM ya está cargado
+            setTimeout(function() {
+                const ultraVisibleButton = document.getElementById('ultraVisibleExportButton');
+                if (ultraVisibleButton) {
+                    console.log('✅ Botón ultra visible encontrado y configurado (DOM ya cargado)');
+                    ultraVisibleButton.onclick = function() {
+                        console.log('🔴 CLICK EN BOTÓN EXPORTAR (ULTRA VISIBLE)');
+                        if (typeof window.exportBothToImage === 'function') {
+                            window.exportBothToImage();
+                        } else if (typeof exportBothToImage === 'function') {
+                            exportBothToImage();
+                        } else {
+                            alert('Error: La función exportBothToImage no está disponible. Por favor, recarga la página.');
+                            console.error('exportBothToImage no disponible');
+                        }
+                    };
+                } else {
+                    console.error('❌ Botón ultra visible NO encontrado (DOM ya cargado)');
+                }
+            }, 100);
+        }
+        
+        // ============================================
+        // GRÁFICOS AVANZADOS
+        // ============================================
+        
+        async function showPointsEvolutionChart() {
+            const champId = document.getElementById('champIdView')?.value;
+            const category = document.getElementById('categoryView')?.value;
+            
+            if (!champId || !category) {
+                showAlert('Primero selecciona campeonato y categoría', 'error');
+                return;
+            }
+            
+            const modal = document.getElementById('evolutionChartModal');
+            const container = document.getElementById('evolutionChartContainer');
+            
+            if (!modal || !container) {
+                // Crear modal si no existe
+                const newModal = document.createElement('div');
+                newModal.id = 'evolutionChartModal';
+                newModal.className = 'modal';
+                newModal.style.display = 'block';
+                newModal.innerHTML = `
+                    <div class="modal-content" style="max-width: 900px;">
+                        <span class="close" onclick="document.getElementById('evolutionChartModal').style.display='none'">&times;</span>
+                        <h2 style="color: #667eea; margin-bottom: 20px;">📊 Evolución de Puntos por Equipo</h2>
+                        <div id="evolutionChartContainer" style="padding: 20px;">
+                            <div style="text-align: center; padding: 40px;">
+                                <div style="font-size: 2em; margin-bottom: 20px;">⏳</div>
+                                <div style="font-size: 1.2em;">Cargando gráfico...</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(newModal);
+                newModal.addEventListener('click', (e) => {
+                    if (e.target === newModal) {
+                        newModal.remove();
+                    }
+                });
+                return showPointsEvolutionChart();
+            }
+            
+            modal.style.display = 'block';
+            container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 2em; margin-bottom: 20px;">⏳</div><div style="font-size: 1.2em;">Cargando gráfico...</div></div>';
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/championships/${champId}/standings/${encodeURIComponent(category)}/evolution`);
+                const data = await res.json();
+                
+                if (!data.success || !data.evolution) {
+                    container.innerHTML = '<div class="alert alert-error">Error al cargar la evolución de puntos</div>';
+                    return;
+                }
+                
+                renderPointsEvolutionChart(data.evolution, container);
+            } catch (error) {
+                console.error('Error cargando evolución:', error);
+                container.innerHTML = '<div class="alert alert-error">Error de conexión al cargar la evolución</div>';
+            }
+        }
+        
+        function renderPointsEvolutionChart(evolution, container) {
+            if (typeof Chart === 'undefined') {
+                container.innerHTML = '<div class="alert alert-error">Chart.js no está cargado. Por favor, recarga la página.</div>';
+                return;
+            }
+            
+            const teams = Object.keys(evolution);
+            if (teams.length === 0) {
+                container.innerHTML = '<div class="alert alert-warning">No hay datos de evolución disponibles</div>';
+                return;
+            }
+            
+            const allRounds = new Set();
+            teams.forEach(team => {
+                evolution[team].forEach(point => {
+                    allRounds.add(point.round);
+                });
+            });
+            const rounds = Array.from(allRounds).sort((a, b) => a - b);
+            
+            const colors = [
+                'rgba(102, 126, 234, 1)', 'rgba(40, 167, 69, 1)', 'rgba(220, 53, 69, 1)', 'rgba(255, 193, 7, 1)',
+                'rgba(23, 162, 184, 1)', 'rgba(108, 117, 125, 1)', 'rgba(255, 87, 34, 1)', 'rgba(156, 39, 176, 1)',
+            ];
+            
+            const datasets = teams.map((team, index) => {
+                const teamData = evolution[team];
+                let lastValue = 0;
+                const interpolatedPoints = rounds.map(round => {
+                    const point = teamData.find(p => p.round === round);
+                    if (point !== null && point !== undefined) {
+                        lastValue = point.points;
+                        return point.points;
+                    }
+                    return lastValue;
+                });
+                
+                return {
+                    label: team,
+                    data: interpolatedPoints,
+                    borderColor: colors[index % colors.length],
+                    backgroundColor: colors[index % colors.length].replace('1)', '0.1)'),
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4
+                };
+            });
+            
+            container.innerHTML = '<canvas id="evolutionChart" style="max-height: 500px;"></canvas>';
+            
+            setTimeout(() => {
+                const ctx = document.getElementById('evolutionChart');
+                if (ctx) {
+                    if (window.evolutionChartInstance) {
+                        window.evolutionChartInstance.destroy();
+                    }
+                    
+                    window.evolutionChartInstance = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: rounds.map(r => `Jornada ${r}`),
+                            datasets: datasets
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: { position: 'top', labels: { boxWidth: 12, padding: 10 } },
+                                tooltip: { mode: 'index', intersect: false }
+                            },
+                            scales: {
+                                y: { beginAtZero: true, title: { display: true, text: 'Puntos' } },
+                                x: { title: { display: true, text: 'Jornada' } }
+                            },
+                            interaction: { mode: 'nearest', axis: 'x', intersect: false }
+                        }
+                    });
+                }
+            }, 100);
+        }
+        
+        function showTeamComparison() {
+            const checkboxes = document.querySelectorAll('.team-compare-checkbox:checked');
+            const selectedTeams = Array.from(checkboxes).map(cb => cb.value);
+            
+            if (selectedTeams.length < 2) {
+                showAlert('Selecciona al menos 2 equipos para comparar', 'warning');
+                return;
+            }
+            
+            if (selectedTeams.length > 4) {
+                showAlert('Máximo 4 equipos para comparar', 'warning');
+                return;
+            }
+            
+            const standings = window.currentStandings || [];
+            const teamsData = selectedTeams.map(teamName => standings.find(t => t.name === teamName)).filter(t => t !== undefined);
+            
+            if (teamsData.length === 0) {
+                showAlert('No se encontraron datos de los equipos seleccionados', 'error');
+                return;
+            }
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 900px;">
+                    <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+                    <h2 style="color: #667eea; margin-bottom: 20px;">📊 Comparativa de Equipos</h2>
+                    <div id="comparisonChartContainer" style="padding: 20px;">
+                        <canvas id="comparisonChart" style="max-height: 500px;"></canvas>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+            
+            setTimeout(() => {
+                renderTeamComparisonChart(teamsData);
+            }, 100);
+        }
+        
+        function renderTeamComparisonChart(teamsData) {
+            if (typeof Chart === 'undefined') {
+                const container = document.getElementById('comparisonChartContainer');
+                if (container) {
+                    container.innerHTML = '<div class="alert alert-error">Chart.js no está cargado. Por favor, recarga la página.</div>';
+                }
+                return;
+            }
+            
+            const ctx = document.getElementById('comparisonChart');
+            if (!ctx) return;
+            
+            if (window.comparisonChartInstance) {
+                window.comparisonChartInstance.destroy();
+            }
+            
+            const teamNames = teamsData.map(t => t.name);
+            const metrics = ['PJ', 'PG', 'PP', 'PF', 'PC', 'Puntos'];
+            const metricKeys = ['pj', 'pg', 'pp', 'pf', 'pc', 'points'];
+            
+            const datasets = teamNames.map((teamName, index) => {
+                const team = teamsData.find(t => t.name === teamName);
+                const colors = ['rgba(102, 126, 234, 0.8)', 'rgba(40, 167, 69, 0.8)', 'rgba(220, 53, 69, 0.8)', 'rgba(255, 193, 7, 0.8)'];
+                return {
+                    label: teamName,
+                    data: metricKeys.map(key => team[key] || 0),
+                    backgroundColor: colors[index % colors.length],
+                    borderColor: colors[index % colors.length].replace('0.8', '1'),
+                    borderWidth: 2
+                };
+            });
+            
+            window.comparisonChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: metrics, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Valor' } },
+                        x: { title: { display: true, text: 'Métrica' } }
+                    }
+                }
+            });
+        }
+        
+        async function showHeatmapChart() {
+            const champId = document.getElementById('champIdView')?.value;
+            const category = document.getElementById('categoryView')?.value;
+            
+            if (!champId || !category) {
+                showAlert('Primero selecciona campeonato y categoría', 'error');
+                return;
+            }
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/championships/${champId}/fixture/${encodeURIComponent(category)}`);
+                const data = await res.json();
+                
+                if (!data.success || !data.matches) {
+                    showAlert('Error al cargar partidos para el heatmap', 'error');
+                    return;
+                }
+                
+                const modal = document.createElement('div');
+                modal.className = 'modal';
+                modal.style.display = 'block';
+                modal.innerHTML = `
+                    <div class="modal-content" style="max-width: 1000px;">
+                        <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+                        <h2 style="color: #667eea; margin-bottom: 20px;">🔥 Heatmap de Densidad de Partidos</h2>
+                        <div id="heatmapChartContainer" style="padding: 20px;">
+                            <canvas id="heatmapChart" style="max-height: 600px;"></canvas>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.remove();
+                    }
+                });
+                
+                setTimeout(() => {
+                    renderHeatmapChart(data.matches);
+                }, 100);
+            } catch (error) {
+                console.error('Error cargando heatmap:', error);
+                showAlert('Error de conexión al cargar el heatmap', 'error');
+            }
+        }
+        
+        function renderHeatmapChart(matches) {
+            if (typeof Chart === 'undefined') {
+                const container = document.getElementById('heatmapChartContainer');
+                if (container) {
+                    container.innerHTML = '<div class="alert alert-error">Chart.js no está cargado. Por favor, recarga la página.</div>';
+                }
+                return;
+            }
+            
+            const ctx = document.getElementById('heatmapChart');
+            if (!ctx) return;
+            
+            const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+            const heatmapData = [];
+            const weekLabels = [];
+            const matchesByWeek = {};
+            
+            matches.forEach(match => {
+                if (!match.date) return;
+                
+                const date = new Date(match.date + 'T00:00:00');
+                const dayOfWeek = date.getDay();
+                let week = 1;
+                
+                if (match.roundNumber) {
+                    week = Math.ceil(match.roundNumber / 2) || 1;
+                } else {
+                    const firstMatch = matches.find(m => m.date);
+                    if (firstMatch) {
+                        const firstDate = new Date(firstMatch.date + 'T00:00:00');
+                        const diffTime = date.getTime() - firstDate.getTime();
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        week = Math.ceil(diffDays / 7) || 1;
+                    }
+                }
+                
+                if (!matchesByWeek[week]) {
+                    matchesByWeek[week] = {};
+                }
+                if (!matchesByWeek[week][dayOfWeek]) {
+                    matchesByWeek[week][dayOfWeek] = 0;
+                }
+                matchesByWeek[week][dayOfWeek]++;
+            });
+            
+            const weeks = Object.keys(matchesByWeek).map(Number).sort((a, b) => a - b);
+            weeks.forEach(week => {
+                weekLabels.push(`Semana ${week}`);
+                const weekData = matchesByWeek[week];
+                const row = dayNames.map((_, dayIndex) => weekData[dayIndex] || 0);
+                heatmapData.push(row);
+            });
+            
+            if (window.heatmapChartInstance) {
+                window.heatmapChartInstance.destroy();
+            }
+            
+            const datasets = dayNames.map((dayName, dayIndex) => {
+                const dayData = heatmapData.map(row => row[dayIndex]);
+                const maxValue = Math.max(...heatmapData.flat(), 1);
+                
+                return {
+                    label: dayName,
+                    data: dayData,
+                    backgroundColor: dayData.map(value => {
+                        const intensity = value / maxValue;
+                        return `rgba(102, 126, 234, ${0.3 + intensity * 0.7})`;
+                    }),
+                    borderColor: dayData.map(value => {
+                        const intensity = value / maxValue;
+                        return `rgba(102, 126, 234, ${0.5 + intensity * 0.5})`;
+                    }),
+                    borderWidth: 1
+                };
+            });
+            
+            window.heatmapChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: weekLabels, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed.y;
+                                    return `${context.dataset.label}: ${value} partido${value !== 1 ? 's' : ''}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { stacked: true, title: { display: true, text: 'Semana del Campeonato' } },
+                        y: { stacked: true, beginAtZero: true, title: { display: true, text: 'Cantidad de Partidos' }, ticks: { stepSize: 1 } }
+                    }
+                }
+            });
+        }
+        
+        // Hacer funciones globales
+        window.showPointsEvolutionChart = showPointsEvolutionChart;
+        window.renderPointsEvolutionChart = renderPointsEvolutionChart;
+        window.showTeamComparison = showTeamComparison;
+        window.renderTeamComparisonChart = renderTeamComparisonChart;
+        window.showHeatmapChart = showHeatmapChart;
+        window.renderHeatmapChart = renderHeatmapChart;
+        // Crear botón de exportación dinámicamente después de que todo cargue
+        function createExportButton() {
+            console.log('🔍 createExportButton llamado');
+            
+            // Verificar si ya existe
+            const existing = document.getElementById('dynamicExportButton');
+            if (existing) {
+                console.log('✅ Botón dinámico ya existe, no se crea duplicado');
+                return;
+            }
+            
+            console.log('🔍 Creando botón dinámico...');
+            
+            // Crear contenedor
+            const container = document.createElement('div');
+            container.id = 'dynamicExportButton';
+            container.style.cssText = 'position: fixed !important; top: 10px !important; right: 10px !important; z-index: 99999 !important; padding: 15px !important; background: #25d366 !important; border-radius: 10px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important; min-width: 300px !important; max-width: 400px !important; display: block !important; visibility: visible !important; opacity: 1 !important;';
+            
+            // Crear botón
+            const button = document.createElement('button');
+            button.textContent = '📤 EXPORTAR FIXTURE Y TABLA';
+            button.style.cssText = 'background: white !important; color: #25d366 !important; padding: 12px 20px !important; border: 2px solid white !important; border-radius: 8px !important; cursor: pointer !important; font-weight: 700 !important; font-size: 1em !important; width: 100% !important; display: block !important; visibility: visible !important; opacity: 1 !important;';
+            button.onclick = function() {
+                console.log('🔴 CLICK EN BOTÓN EXPORTAR (DINÁMICO)');
+                if (typeof window.exportBothToImage === 'function') {
+                    window.exportBothToImage();
+                } else if (typeof exportBothToImage === 'function') {
+                    exportBothToImage();
+                } else {
+                    alert('Error: La función exportBothToImage no está disponible. Por favor, recarga la página.');
+                    console.error('exportBothToImage no disponible');
+                }
+            };
+            
+            // Crear texto
+            const text = document.createElement('p');
+            text.textContent = 'Fixture y Tabla de Posiciones';
+            text.style.cssText = 'color: white !important; margin-top: 8px !important; font-size: 0.8em !important; text-align: center !important;';
+            
+            container.appendChild(button);
+            container.appendChild(text);
+            
+            console.log('🔍 Intentando agregar botón al body...');
+            console.log('🔍 document.body existe:', !!document.body);
+            
+            if (document.body) {
+                document.body.appendChild(container);
+                console.log('✅ Botón de exportación dinámico creado y agregado al body');
+                
+                // Verificar que se agregó correctamente
+                setTimeout(function() {
+                    const check = document.getElementById('dynamicExportButton');
+                    if (check) {
+                        console.log('✅ Botón verificado después de agregar:', {
+                            exists: !!check,
+                            display: window.getComputedStyle(check).display,
+                            visibility: window.getComputedStyle(check).visibility,
+                            opacity: window.getComputedStyle(check).opacity,
+                            offsetParent: check.offsetParent !== null
+                        });
+                    } else {
+                        console.error('❌ Botón NO encontrado después de agregar');
+                    }
+                }, 100);
+            } else {
+                console.error('❌ document.body no existe, no se puede agregar el botón');
+            }
+        }
+        
+        // Intentar crear el botón múltiples veces
+        console.log('🔍 Inicializando creación de botón...');
+        console.log('🔍 document.readyState:', document.readyState);
+        
+        if (document.readyState === 'loading') {
+            console.log('🔍 Esperando DOMContentLoaded...');
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('🔍 DOMContentLoaded disparado');
+                createExportButton();
+            });
+        } else {
+            console.log('🔍 DOM ya está listo, creando botón inmediatamente');
+            createExportButton();
+        }
+        
+        setTimeout(function() {
+            console.log('🔍 Timeout 100ms - creando botón');
+            createExportButton();
+        }, 100);
+        
+        setTimeout(function() {
+            console.log('🔍 Timeout 500ms - creando botón');
+            createExportButton();
+        }, 500);
+        
+        setTimeout(function() {
+            console.log('🔍 Timeout 1000ms - creando botón');
+            createExportButton();
+        }, 1000);
+        
+        setTimeout(function() {
+            console.log('🔍 Timeout 2000ms - creando botón');
+            createExportButton();
+        }, 2000);
+        
+        // También verificar si los otros botones existen
+        setInterval(function() {
+            const headerBtn = document.getElementById('headerExportButton');
+            const ultraContainer = document.getElementById('ultraVisibleExportContainer');
+            const dynamicBtn = document.getElementById('dynamicExportButton');
+            
+            console.log('🔍 Estado de botones (cada 3s):', {
+                headerBtn: !!headerBtn,
+                ultraContainer: !!ultraContainer,
+                dynamicBtn: !!dynamicBtn,
+                headerBtnDisplay: headerBtn ? window.getComputedStyle(headerBtn).display : 'N/A',
+                ultraContainerDisplay: ultraContainer ? window.getComputedStyle(ultraContainer).display : 'N/A',
+                dynamicBtnDisplay: dynamicBtn ? window.getComputedStyle(dynamicBtn).display : 'N/A',
+                dynamicBtnVisible: dynamicBtn ? (dynamicBtn.offsetParent !== null) : false
+            });
+            
+            if (!dynamicBtn) {
+                console.log('🔍 Botón dinámico no existe, creándolo...');
+                createExportButton();
+            }
+        }, 3000);
     </script>
 </body>
 </html>
