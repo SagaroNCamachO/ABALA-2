@@ -94,10 +94,11 @@ export class Category {
     const hadPreviousResult = match.played;
     if (hadPreviousResult && match.scoreA !== null && match.scoreB !== null) {
       // Remover el resultado anterior de las estadísticas
+      // IMPORTANTE: Usar match.teamA y match.teamB (no los parámetros) para mantener consistencia
       const prevScoreA = match.scoreA;
       const prevScoreB = match.scoreB;
-      const teamAObj = this.teams.get(teamA);
-      const teamBObj = this.teams.get(teamB);
+      const teamAObj = this.teams.get(match.teamA);
+      const teamBObj = this.teams.get(match.teamB);
       
       if (teamAObj && teamBObj) {
         // Remover el resultado anterior (invertir la operación)
