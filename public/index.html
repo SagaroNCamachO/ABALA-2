@@ -5201,9 +5201,12 @@
                 return;
             }
             
-            const calendarContainer = responseDiv.querySelector('.calendar-container') || responseDiv.querySelector('.calendar-week-container');
+            // Buscar el contenedor del fixture/calendario (puede ser vista de calendario o fixture normal)
+            const calendarContainer = responseDiv.querySelector('.calendar-container') || 
+                                     responseDiv.querySelector('.calendar-week-container') ||
+                                     responseDiv.querySelector('.fixture-container');
             if (!calendarContainer) {
-                showAlert('No se encontró el calendario. Por favor, carga la vista de calendario primero.', 'error');
+                showAlert('No se encontró el fixture. Por favor, carga el fixture primero seleccionando "Fixture" en "Ver Información".', 'error');
                 return;
             }
             
