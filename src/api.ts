@@ -860,6 +860,115 @@ app.post('/api/championships/:id/results', requireAdmin, async (req: Request, re
 /**
  * Obtener la tabla de posiciones de una categoría.
  */
+// Endpoint para obtener evolución de puntos por equipo
+app.get('/api/championships/:id/standings/:category/evolution', async (req: Request, res: Response) => {
+  try {
+    await ensureChampionshipsLoaded();
+    
+    const champId = req.params.id;
+    const categoryName = req.params.category;
+    const championship = championships.get(champId);
+
+    if (!championship) {
+      return res.status(404).json({
+        success: false,
+        error: "Campeonato no encontrado"
+      });
+    }
+
+    const category = championship.getCategory(categoryName);
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        error: "Categoría no encontrada"
+      });
+    }
+
+    // Obtener todos los partidos ordenados por fecha/jornada
+    const matches = category.matches.filter(m => m.played).sort((a, b) => {
+      // Ordenar por fecha si existe, sino por roundNumber
+      if (a.date && b.date) {
+        return a.date.localeCompare(b.date);
+      }
+      return (a.roundNumber || 0) - (b.roundNumber || 0);
+    });
+
+    // Calcular evolución de puntos por equipo
+    const evolution: Record<string, Array<{ round: number; points: number; date?: string }>> = {};
+    
+    // Inicializar todos los equipos con 0 puntos
+    category.teams.forEach((_team, teamName) => {
+      evolution[teamName] = [{ round: 0, points: 0 }];
+    });
+
+    // Procesar partidos en orden cronológico
+    let currentRound = 0;
+    const pointsByTeam: Record<string, number> = {};
+    
+    // Inicializar puntos en 0
+    category.teams.forEach((_team, teamName) => {
+      pointsByTeam[teamName] = 0;
+    });
+
+    matches.forEach((match, index) => {
+      // Determinar la jornada/ronda
+      const matchRound = match.roundNumber || Math.floor(index / 2) + 1;
+      
+      if (matchRound !== currentRound) {
+        // Nueva ronda, guardar estado actual
+        Object.keys(pointsByTeam).forEach(teamName => {
+          evolution[teamName].push({
+            round: matchRound,
+            points: pointsByTeam[teamName],
+            date: match.date || undefined
+          });
+        });
+        currentRound = matchRound;
+      }
+
+      // Actualizar puntos según resultado
+      if (match.scoreA !== null && match.scoreB !== null) {
+        const teamA = match.teamA;
+        const teamB = match.teamB;
+        const pointsPerWin = category.standings.pointsPerWin;
+        const pointsPerLoss = category.standings.pointsPerLoss;
+
+        if (match.scoreA > match.scoreB) {
+          pointsByTeam[teamA] = (pointsByTeam[teamA] || 0) + pointsPerWin;
+          pointsByTeam[teamB] = (pointsByTeam[teamB] || 0) + pointsPerLoss;
+        } else if (match.scoreB > match.scoreA) {
+          pointsByTeam[teamB] = (pointsByTeam[teamB] || 0) + pointsPerWin;
+          pointsByTeam[teamA] = (pointsByTeam[teamA] || 0) + pointsPerLoss;
+        }
+      }
+    });
+
+    // Agregar punto final
+    Object.keys(pointsByTeam).forEach(teamName => {
+      if (evolution[teamName].length > 0) {
+        const lastPoint = evolution[teamName][evolution[teamName].length - 1];
+        if (lastPoint.round !== currentRound) {
+          evolution[teamName].push({
+            round: currentRound + 1,
+            points: pointsByTeam[teamName]
+          });
+        }
+      }
+    });
+
+    return res.json({
+      success: true,
+      evolution
+    });
+  } catch (error: any) {
+    console.error('Error en GET /api/championships/:id/standings/:category/evolution:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 app.get('/api/championships/:id/standings/:category', async (req: Request, res: Response) => {
   try {
     // Asegurar que los campeonatos estén cargados
