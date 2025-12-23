@@ -5188,22 +5188,46 @@
             
             const champId = document.getElementById('champIdView')?.value;
             const category = document.getElementById('categoryView')?.value;
+            
+            if (!champId || !category) {
+                showAlert('Por favor, selecciona un campeonato y una categoría primero.', 'error');
+                return;
+            }
+            
             const champ = championshipsData[champId];
             const champName = champ?.name || champId;
             
-            // Buscar el contenedor del calendario
+            // Buscar el contenedor del calendario/fixture
             const responseDiv = document.getElementById('response');
             if (!responseDiv) {
-                showAlert('No se encontró el calendario. Por favor, carga el calendario primero.', 'error');
+                showAlert('No se encontró el contenedor de resultados. Por favor, carga el fixture primero seleccionando "Fixture" en "Ver Información" y haciendo clic en "Ver Información".', 'error');
                 return;
             }
             
             // Buscar el contenedor del fixture/calendario (puede ser vista de calendario o fixture normal)
-            const calendarContainer = responseDiv.querySelector('.calendar-container') || 
-                                     responseDiv.querySelector('.calendar-week-container') ||
-                                     responseDiv.querySelector('.fixture-container');
+            // Intentar múltiples selectores para encontrar el fixture
+            let calendarContainer = responseDiv.querySelector('.fixture-container') ||
+                                   responseDiv.querySelector('.calendar-container') || 
+                                   responseDiv.querySelector('.calendar-week-container');
+            
+            // Si no se encuentra, buscar dentro de responseDiv directamente
+            if (!calendarContainer && responseDiv.innerHTML.includes('fixture-container')) {
+                // El fixture puede estar renderizado pero no encontrado por el selector
+                // Intentar buscar cualquier div que contenga partidos
+                const allDivs = responseDiv.querySelectorAll('div');
+                for (let div of allDivs) {
+                    if (div.classList.contains('fixture-container') || 
+                        div.innerHTML.includes('Jornada') || 
+                        div.innerHTML.includes('Equipo A') ||
+                        div.innerHTML.includes('vs')) {
+                        calendarContainer = div;
+                        break;
+                    }
+                }
+            }
+            
             if (!calendarContainer) {
-                showAlert('No se encontró el fixture. Por favor, carga el fixture primero seleccionando "Fixture" en "Ver Información".', 'error');
+                showAlert('No se encontró el fixture. Por favor:\n1. Selecciona "Fixture" en el selector "Ver Información"\n2. Haz clic en el botón "Ver Información"\n3. Espera a que se cargue el fixture\n4. Luego intenta exportar nuevamente.', 'error');
                 return;
             }
             
