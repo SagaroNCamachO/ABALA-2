@@ -120,25 +120,6 @@
             margin-bottom: 30px;
         }
         
-        /* Asegurar que los botones de exportación sean siempre visibles */
-        #headerExportButton,
-        #ultraVisibleExportContainer,
-        #ultraVisibleExportButton,
-        #exportBothButton,
-        #whatsappExportSection {
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            position: relative !important;
-            z-index: 9999 !important;
-        }
-        
-        #headerExportButton button,
-        #ultraVisibleExportButton {
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
         
         .header h1 {
             font-size: 3em; /* Más grande */
@@ -1062,14 +1043,6 @@
     </style>
 </head>
 <body>
-    <!-- BOTÓN DE EXPORTACIÓN ULTRA SIMPLE Y VISIBLE - PRIMERO EN EL BODY -->
-    <div style="position: fixed; top: 0; left: 0; right: 0; background: #25d366; padding: 15px; text-align: center; z-index: 999999; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
-        <button onclick="if(typeof window.exportBothToImage==='function'){window.exportBothToImage();}else if(typeof exportBothToImage==='function'){exportBothToImage();}else{alert('Error: La función no está disponible. Recarga la página.');}" style="background: white; color: #25d366; padding: 10px 20px; border: 2px solid white; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 1.1em; margin: 0 10px;">
-            📤 EXPORTAR FIXTURE Y TABLA
-        </button>
-        <span style="color: white; font-size: 0.9em;">Selecciona campeonato y categoría, luego haz clic aquí</span>
-    </div>
-    <div style="height: 70px;"></div>
     
     <!-- VERIFICACIÓN: Si ves este comentario, el archivo se actualizó correctamente -->
     
@@ -1184,24 +1157,6 @@
         <a href="#" class="mobile-menu-item" onclick="switchTab('dashboard'); toggleMobileMenu();">📈 Dashboard</a>
     </div>
     
-    <!-- BOTÓN DE EXPORTACIÓN ABSOLUTAMENTE VISIBLE - FUERA DE TODO -->
-    <div style="position: fixed; top: 10px; right: 10px; z-index: 99999; padding: 15px; background: #25d366; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); min-width: 300px; max-width: 400px;">
-        <button onclick="console.log('🔴 CLICK EN BOTÓN EXPORTAR (FIXED)'); if(typeof window.exportBothToImage === 'function') { window.exportBothToImage(); } else if(typeof exportBothToImage === 'function') { exportBothToImage(); } else { alert('Error: La función exportBothToImage no está disponible. Por favor, recarga la página.'); }" style="background: white; color: #25d366; padding: 12px 20px; border: 2px solid white; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 1em; width: 100%;">
-            📤 EXPORTAR
-        </button>
-        <p style="color: white; margin-top: 8px; font-size: 0.8em; text-align: center;">Fixture y Tabla</p>
-    </div>
-    
-    <!-- VERIFICACIÓN: Si ves este texto, el archivo se actualizó -->
-    <!-- BOTÓN DE EXPORTACIÓN EN LA PARTE SUPERIOR -->
-    <div style="position: fixed; top: 0; left: 0; right: 0; background: #25d366; padding: 15px; text-align: center; z-index: 999999; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
-        <button onclick="if(typeof window.exportBothToImage==='function'){window.exportBothToImage();}else if(typeof exportBothToImage==='function'){exportBothToImage();}else{alert('Error: La función no está disponible. Recarga la página.');}" style="background: white; color: #25d366; padding: 10px 20px; border: 2px solid white; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 1.1em; margin: 0 10px;">
-            📤 EXPORTAR FIXTURE Y TABLA
-        </button>
-        <span style="color: white; font-size: 0.9em;">Selecciona campeonato y categoría, luego haz clic aquí</span>
-    </div>
-    <div style="height: 70px; margin-top: 70px;"></div>
-    
     <div class="container">
         <div class="header">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 15px;">
@@ -1222,22 +1177,6 @@
                 </div>
             </div>
             <p style="font-size: 1.4em; opacity: 0.95; margin-top: 10px;">Sistema Simple para Administrar Campeonatos de Básquetbol</p>
-            <!-- BOTÓN DE EXPORTACIÓN EN EL HEADER - SIEMPRE VISIBLE -->
-            <div id="headerExportButton" style="margin-top: 15px; padding: 15px; background: #25d366; border-radius: 10px; text-align: center; width: 100%; display: block !important; visibility: visible !important; position: relative !important; z-index: 9999 !important;">
-                <button onclick="console.log('🔴 CLICK EN BOTÓN EXPORTAR (HEADER)'); if(typeof window.exportBothToImage === 'function') { window.exportBothToImage(); } else if(typeof exportBothToImage === 'function') { exportBothToImage(); } else { alert('Error: La función exportBothToImage no está disponible. Por favor, recarga la página.'); }" style="background: white; color: #25d366; padding: 12px 25px; border: 2px solid white; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 1.1em; width: 100%; min-height: 50px; display: block !important; visibility: visible !important;">
-                    📤 EXPORTAR FIXTURE Y TABLA DE POSICIONES
-                </button>
-                <p style="color: rgba(255,255,255,0.9); margin-top: 8px; font-size: 0.85em;">💡 Selecciona campeonato y categoría en "Ver y Gestionar", luego haz clic aquí</p>
-            </div>
-        </div>
-        
-        <!-- BOTÓN DE EXPORTACIÓN ULTRA VISIBLE - ANTES DE TODO -->
-        <div id="ultraVisibleExportContainer" style="margin: 20px auto; padding: 20px; background: #25d366; border-radius: 12px; text-align: center; max-width: 800px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); display: block !important; visibility: visible !important; position: relative !important; z-index: 9999 !important;">
-            <h2 style="color: white; margin-bottom: 15px; font-size: 1.5em;">📤 Exportar para WhatsApp</h2>
-            <button id="ultraVisibleExportButton" onclick="console.log('🔴 CLICK EN BOTÓN EXPORTAR (ULTRA VISIBLE)'); if(typeof window.exportBothToImage === 'function') { window.exportBothToImage(); } else if(typeof exportBothToImage === 'function') { exportBothToImage(); } else { alert('Error: La función exportBothToImage no está disponible. Por favor, recarga la página.'); console.error('exportBothToImage no disponible'); }" style="background: white; color: #25d366; padding: 18px 35px; border: 3px solid white; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 1.4em; width: 100%; min-height: 70px; display: block !important; visibility: visible !important; box-shadow: 0 6px 20px rgba(0,0,0,0.3);">
-                📤 EXPORTAR FIXTURE Y TABLA DE POSICIONES
-            </button>
-            <p style="color: rgba(255,255,255,0.95); margin-top: 15px; font-size: 1em; font-weight: 500;">💡 Primero selecciona un campeonato y categoría en "Ver y Gestionar", luego haz clic aquí para exportar</p>
         </div>
         
         <div class="main-grid">
@@ -1255,15 +1194,6 @@
                     <button class="tab" data-tab="create" onclick="switchTab('create')">➕ Crear Nuevo</button>
                     <button class="tab" data-tab="manage" onclick="switchTab('manage')">👁️ Ver y Gestionar</button>
                 </div>
-                <!-- BOTÓN DE EXPORTACIÓN SIEMPRE VISIBLE - FUERA DE LOS TABS -->
-                <div id="alwaysVisibleExportButton" style="margin: 20px 0; padding: 20px; background: #25d366; border-radius: 12px; text-align: center; display: block !important; visibility: visible !important; position: relative !important; z-index: 9999 !important;">
-                    <h3 style="color: white; margin-bottom: 10px; font-size: 1.3em;">📤 Exportar para WhatsApp</h3>
-                    <button onclick="console.log('🔴 CLICK EN BOTÓN EXPORTAR (SIEMPRE VISIBLE)'); if(typeof exportBothToImage === 'function') { exportBothToImage(); } else { alert('Error: La función exportBothToImage no está disponible. Por favor, recarga la página.'); }" style="background: white; color: #25d366; padding: 15px 30px; border: 3px solid white; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 1.2em; width: 100%; min-height: 60px; display: block !important; visibility: visible !important;">
-                        📤 EXPORTAR FIXTURE Y TABLA DE POSICIONES
-                    </button>
-                    <p style="color: rgba(255,255,255,0.9); margin-top: 10px; font-size: 0.9em;">💡 Selecciona campeonato y categoría en "Ver y Gestionar", luego haz clic aquí</p>
-                </div>
-                
                 <!-- Tab: Dashboard -->
                 <div id="dashboardTab" class="tab-content active">
                     <div class="help-text">
@@ -1274,15 +1204,6 @@
                         🔄 Actualizar Dashboard
                     </button>
                     
-                    <!-- Botón de Exportación para WhatsApp -->
-                    <div class="form-group" style="margin-top: 25px; padding: 20px; background: linear-gradient(135deg, #25d366 0%, #128c7e 100%); border-radius: 12px; text-align: center;">
-                        <h3 style="color: white; margin-bottom: 15px; font-size: 1.3em;">📤 Exportar para WhatsApp</h3>
-                        <p style="color: rgba(255,255,255,0.9); margin-bottom: 20px; font-size: 1em;">Exporta el fixture y la tabla de posiciones como imagen para compartir en grupos de WhatsApp</p>
-                        <button onclick="exportBothToImage()" class="btn btn-large" style="background: white; color: #25d366; padding: 15px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 1.2em; box-shadow: 0 4px 15px rgba(0,0,0,0.2); width: 100%;">
-                            📤 Exportar Fixture y Tabla de Posiciones
-                        </button>
-                        <p style="color: rgba(255,255,255,0.8); margin-top: 15px; font-size: 0.9em;">💡 Primero selecciona un campeonato y categoría en "Ver y Gestionar"</p>
-                    </div>
                     
                     <div id="dashboardContent" style="margin-top: 30px;"></div>
                 </div>
@@ -1310,7 +1231,7 @@
                     <div id="whatsappExportSection" style="margin-bottom: 25px; padding: 25px; background: linear-gradient(135deg, #25d366 0%, #128c7e 100%); border-radius: 12px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.2); display: block !important; visibility: visible !important; opacity: 1 !important; position: relative !important; z-index: 1000 !important;">
                         <h3 style="color: white; margin-bottom: 10px; font-size: 1.5em; font-weight: 700;">📤 Exportar para WhatsApp</h3>
                         <p style="color: rgba(255,255,255,0.95); margin-bottom: 20px; font-size: 1.1em; font-weight: 500;">Exporta el fixture y la tabla de posiciones como imagen para compartir en grupos de WhatsApp</p>
-                        <button id="exportBothButton" onclick="console.log('🔴 CLICK EN BOTÓN EXPORTAR'); if(typeof exportBothToImage === 'function') { exportBothToImage(); } else { alert('Error: La función exportBothToImage no está disponible. Por favor, recarga la página.'); }" class="btn btn-large" style="background: white !important; color: #25d366 !important; padding: 18px 35px !important; border: 3px solid #128c7e !important; border-radius: 10px !important; cursor: pointer !important; font-weight: 700 !important; font-size: 1.3em !important; box-shadow: 0 6px 20px rgba(0,0,0,0.3) !important; width: 100% !important; min-height: 60px !important; display: block !important; visibility: visible !important; opacity: 1 !important; position: relative !important; z-index: 1001 !important; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                        <button id="exportBothButton" onclick="if(typeof exportBothToImage === 'function') { exportBothToImage(); } else { alert('Error: La función exportBothToImage no está disponible. Por favor, recarga la página.'); }" class="btn btn-large" style="background: white !important; color: #25d366 !important; padding: 18px 35px !important; border: 3px solid #128c7e !important; border-radius: 10px !important; cursor: pointer !important; font-weight: 700 !important; font-size: 1.3em !important; box-shadow: 0 6px 20px rgba(0,0,0,0.3) !important; width: 100% !important; min-height: 60px !important; display: block !important; visibility: visible !important; opacity: 1 !important; position: relative !important; z-index: 1001 !important; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
                             📤 Exportar Fixture y Tabla de Posiciones
                         </button>
                         <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
@@ -1322,13 +1243,6 @@
                             </button>
                         </div>
                         <p style="color: rgba(255,255,255,0.85); margin-top: 15px; font-size: 0.95em; font-style: italic;">💡 Selecciona campeonato y categoría abajo, luego haz clic en "Ver Información"</p>
-                    </div>
-                    
-                    <!-- Botón de Exportación DUPLICADO - Para asegurar visibilidad -->
-                    <div style="margin-bottom: 20px; padding: 20px; background: #25d366; border-radius: 10px; text-align: center;">
-                        <button onclick="console.log('🔴 CLICK EN BOTÓN EXPORTAR (DUPLICADO)'); if(typeof exportBothToImage === 'function') { exportBothToImage(); } else { alert('Error: La función exportBothToImage no está disponible. Por favor, recarga la página.'); }" style="background: white; color: #25d366; padding: 15px 30px; border: 3px solid white; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 1.2em; width: 100%; min-height: 50px;">
-                            📤 EXPORTAR FIXTURE Y TABLA DE POSICIONES
-                        </button>
                     </div>
                     
                     <div class="help-text">
@@ -1511,24 +1425,6 @@
             setTimeout(initTheme, 100);
         }
         
-        // #region agent log - Verificar botón al cargar página
-        function checkExportButtonOnLoad() {
-            setTimeout(() => {
-                const manageTab = document.getElementById('manageTab');
-                const exportButton = document.getElementById('exportBothButton');
-                const exportSection = document.getElementById('whatsappExportSection');
-                
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:1378',message:'verificación inicial botón exportación',data:{hasManageTab:!!manageTab,manageTabClasses:manageTab?.className,manageTabDisplay:manageTab?window.getComputedStyle(manageTab).display:'N/A',hasExportButton:!!exportButton,exportButtonText:exportButton?.textContent,exportButtonDisplay:exportButton?window.getComputedStyle(exportButton).display:'N/A',exportButtonVisible:exportButton?.offsetParent!==null,hasExportSection:!!exportSection,exportSectionDisplay:exportSection?window.getComputedStyle(exportSection).display:'N/A'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-                // #endregion
-            }, 2000);
-        }
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', checkExportButtonOnLoad);
-        } else {
-            checkExportButtonOnLoad();
-        }
-        // #endregion
         
         // Asegurar que switchTab esté disponible globalmente ANTES de cualquier otra cosa
         window.switchTab = function(tab) {
@@ -1598,51 +1494,6 @@
                         manageTab.style.visibility = 'visible';
                         manageTab.style.opacity = '1';
                         
-                        // Verificar y forzar visibilidad del botón de exportación
-                        setTimeout(() => {
-                            const exportButton = document.getElementById('exportBothButton');
-                            const exportSection = document.getElementById('whatsappExportSection');
-                            
-                            console.log('🔍 ========== VERIFICACIÓN BOTÓN EXPORTACIÓN ==========');
-                            console.log('🔍 manageTab existe:', !!manageTab);
-                            console.log('🔍 manageTab tiene clase active:', manageTab.classList.contains('active'));
-                            console.log('🔍 manageTab display:', window.getComputedStyle(manageTab).display);
-                            console.log('🔍 manageTab visibility:', window.getComputedStyle(manageTab).visibility);
-                            console.log('🔍 manageTab opacity:', window.getComputedStyle(manageTab).opacity);
-                            console.log('🔍 exportSection existe:', !!exportSection);
-                            console.log('🔍 exportButton existe:', !!exportButton);
-                            
-                            if (exportSection) {
-                                console.log('🔍 exportSection display:', window.getComputedStyle(exportSection).display);
-                                console.log('🔍 exportSection visibility:', window.getComputedStyle(exportSection).visibility);
-                                console.log('🔍 exportSection opacity:', window.getComputedStyle(exportSection).opacity);
-                                exportSection.style.display = 'block';
-                                exportSection.style.visibility = 'visible';
-                                exportSection.style.opacity = '1';
-                                exportSection.style.position = 'relative';
-                                exportSection.style.zIndex = '1000';
-                            }
-                            
-                            if (exportButton) {
-                                console.log('🔍 exportButton display:', window.getComputedStyle(exportButton).display);
-                                console.log('🔍 exportButton visibility:', window.getComputedStyle(exportButton).visibility);
-                                console.log('🔍 exportButton opacity:', window.getComputedStyle(exportButton).opacity);
-                                console.log('🔍 exportButton offsetParent:', exportButton.offsetParent);
-                                exportButton.style.display = 'block';
-                                exportButton.style.visibility = 'visible';
-                                exportButton.style.opacity = '1';
-                                exportButton.style.position = 'relative';
-                                exportButton.style.zIndex = '1001';
-                                console.log('✅ Botón de exportación encontrado y forzado a ser visible');
-                                console.log('✅ DESPUÉS DE FORZAR - display:', window.getComputedStyle(exportButton).display);
-                                console.log('✅ DESPUÉS DE FORZAR - visibility:', window.getComputedStyle(exportButton).visibility);
-                            } else {
-                                console.error('❌ Botón de exportación NO encontrado en el DOM');
-                                console.error('❌ Buscando todos los botones en manageTab:', manageTab.querySelectorAll('button').length);
-                                console.error('❌ HTML de manageTab (primeros 500 chars):', manageTab.innerHTML.substring(0, 500));
-                            }
-                            console.log('🔍 ====================================================');
-                        }, 200);
                         
                         // Asegurar que el formulario de vista se actualice
                         setTimeout(() => {
@@ -3990,12 +3841,6 @@
                             <button onclick="showHeatmapChart()" class="btn" style="background: #ff6b6b; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">
                                 🔥 Heatmap
                             </button>
-                            <button onclick="exportStandingsToImage()" class="btn" style="background: #25d366; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">
-                                📤 Exportar Tabla
-                            </button>
-                            <button onclick="exportBothToImage()" class="btn" style="background: #128c7e; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">
-                                📤 Exportar Todo
-                            </button>
                         </div>
                     </div>
                     
@@ -4485,23 +4330,8 @@
                     
                     console.log('🔴 Click detectado en pestaña:', tabName);
                     
-                    // #region agent log
-                    fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:4310',message:'click en pestaña detectado',data:{tabName:tabName,hasSwitchTab:typeof window.switchTab==='function'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-                    // #endregion
-                    
                     if (typeof window.switchTab === 'function') {
                         window.switchTab(tabName);
-                        
-                        // Verificar botón después de cambiar tab
-                        if (tabName === 'manage') {
-                            setTimeout(() => {
-                                const manageTab = document.getElementById('manageTab');
-                                const exportButton = document.getElementById('exportBothButton');
-                                // #region agent log
-                                fetch('http://127.0.0.1:7242/ingest/527dd315-bd53-467b-961a-3aa45a909471',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:4330',message:'verificando botón después de switchTab',data:{hasManageTab:!!manageTab,manageTabActive:manageTab?.classList.contains('active'),manageTabDisplay:manageTab?window.getComputedStyle(manageTab).display:'N/A',hasExportButton:!!exportButton,exportButtonDisplay:exportButton?window.getComputedStyle(exportButton).display:'N/A'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-                                // #endregion
-                            }, 500);
-                        }
                     } else {
                         console.error('❌ window.switchTab no está disponible');
                         alert('Error: La función switchTab no está disponible. Por favor, recargue la página.');
@@ -6057,131 +5887,6 @@
         window.renderTeamComparisonChart = renderTeamComparisonChart;
         window.showHeatmapChart = showHeatmapChart;
         window.renderHeatmapChart = renderHeatmapChart;
-        // Crear botón de exportación dinámicamente después de que todo cargue
-        function createExportButton() {
-            console.log('🔍 createExportButton llamado');
-            
-            // Verificar si ya existe
-            const existing = document.getElementById('dynamicExportButton');
-            if (existing) {
-                console.log('✅ Botón dinámico ya existe, no se crea duplicado');
-                return;
-            }
-            
-            console.log('🔍 Creando botón dinámico...');
-            
-            // Crear contenedor
-            const container = document.createElement('div');
-            container.id = 'dynamicExportButton';
-            container.style.cssText = 'position: fixed !important; top: 10px !important; right: 10px !important; z-index: 99999 !important; padding: 15px !important; background: #25d366 !important; border-radius: 10px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important; min-width: 300px !important; max-width: 400px !important; display: block !important; visibility: visible !important; opacity: 1 !important;';
-            
-            // Crear botón
-            const button = document.createElement('button');
-            button.textContent = '📤 EXPORTAR FIXTURE Y TABLA';
-            button.style.cssText = 'background: white !important; color: #25d366 !important; padding: 12px 20px !important; border: 2px solid white !important; border-radius: 8px !important; cursor: pointer !important; font-weight: 700 !important; font-size: 1em !important; width: 100% !important; display: block !important; visibility: visible !important; opacity: 1 !important;';
-            button.onclick = function() {
-                console.log('🔴 CLICK EN BOTÓN EXPORTAR (DINÁMICO)');
-                if (typeof window.exportBothToImage === 'function') {
-                    window.exportBothToImage();
-                } else if (typeof exportBothToImage === 'function') {
-                    exportBothToImage();
-                } else {
-                    alert('Error: La función exportBothToImage no está disponible. Por favor, recarga la página.');
-                    console.error('exportBothToImage no disponible');
-                }
-            };
-            
-            // Crear texto
-            const text = document.createElement('p');
-            text.textContent = 'Fixture y Tabla de Posiciones';
-            text.style.cssText = 'color: white !important; margin-top: 8px !important; font-size: 0.8em !important; text-align: center !important;';
-            
-            container.appendChild(button);
-            container.appendChild(text);
-            
-            console.log('🔍 Intentando agregar botón al body...');
-            console.log('🔍 document.body existe:', !!document.body);
-            
-            if (document.body) {
-                document.body.appendChild(container);
-                console.log('✅ Botón de exportación dinámico creado y agregado al body');
-                
-                // Verificar que se agregó correctamente
-                setTimeout(function() {
-                    const check = document.getElementById('dynamicExportButton');
-                    if (check) {
-                        console.log('✅ Botón verificado después de agregar:', {
-                            exists: !!check,
-                            display: window.getComputedStyle(check).display,
-                            visibility: window.getComputedStyle(check).visibility,
-                            opacity: window.getComputedStyle(check).opacity,
-                            offsetParent: check.offsetParent !== null
-                        });
-                    } else {
-                        console.error('❌ Botón NO encontrado después de agregar');
-                    }
-                }, 100);
-            } else {
-                console.error('❌ document.body no existe, no se puede agregar el botón');
-            }
-        }
-        
-        // Intentar crear el botón múltiples veces
-        console.log('🔍 Inicializando creación de botón...');
-        console.log('🔍 document.readyState:', document.readyState);
-        
-        if (document.readyState === 'loading') {
-            console.log('🔍 Esperando DOMContentLoaded...');
-            document.addEventListener('DOMContentLoaded', function() {
-                console.log('🔍 DOMContentLoaded disparado');
-                createExportButton();
-            });
-        } else {
-            console.log('🔍 DOM ya está listo, creando botón inmediatamente');
-            createExportButton();
-        }
-        
-        setTimeout(function() {
-            console.log('🔍 Timeout 100ms - creando botón');
-            createExportButton();
-        }, 100);
-        
-        setTimeout(function() {
-            console.log('🔍 Timeout 500ms - creando botón');
-            createExportButton();
-        }, 500);
-        
-        setTimeout(function() {
-            console.log('🔍 Timeout 1000ms - creando botón');
-            createExportButton();
-        }, 1000);
-        
-        setTimeout(function() {
-            console.log('🔍 Timeout 2000ms - creando botón');
-            createExportButton();
-        }, 2000);
-        
-        // También verificar si los otros botones existen
-        setInterval(function() {
-            const headerBtn = document.getElementById('headerExportButton');
-            const ultraContainer = document.getElementById('ultraVisibleExportContainer');
-            const dynamicBtn = document.getElementById('dynamicExportButton');
-            
-            console.log('🔍 Estado de botones (cada 3s):', {
-                headerBtn: !!headerBtn,
-                ultraContainer: !!ultraContainer,
-                dynamicBtn: !!dynamicBtn,
-                headerBtnDisplay: headerBtn ? window.getComputedStyle(headerBtn).display : 'N/A',
-                ultraContainerDisplay: ultraContainer ? window.getComputedStyle(ultraContainer).display : 'N/A',
-                dynamicBtnDisplay: dynamicBtn ? window.getComputedStyle(dynamicBtn).display : 'N/A',
-                dynamicBtnVisible: dynamicBtn ? (dynamicBtn.offsetParent !== null) : false
-            });
-            
-            if (!dynamicBtn) {
-                console.log('🔍 Botón dinámico no existe, creándolo...');
-                createExportButton();
-            }
-        }, 3000);
     </script>
 </body>
 </html>
